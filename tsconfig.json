@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+        "allowJs": true,   
+        "baseUrl": ".",
+        "experimentalDecorators": true,
+        "target": "ES2017",
+        "moduleResolution": "node",
+        "outDir": "dist",
+        "declaration": true,
+        "emitDeclarationOnly": true,
+        "declarationDir": "types",        
+        "removeComments": true,
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "strictPropertyInitialization": false,
+        "paths": {
+            "@ijstech/components": ["packages/components"]
+        }
+    },
+    "include": [
+        "src/*.ts"
+    ]
+}

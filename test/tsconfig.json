@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "allowJs": true,   
+        "baseUrl": ".",              
+        "target": "ES2015",
+        "moduleResolution": "node",
+        "experimentalDecorators": true,
+        "removeComments": true,
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "strictPropertyInitialization": false,
+        "paths": {
+            "@ijstech/components": ["../packages/components"]
+        }
+    },
+    "include": [
+        "*.ts"
+    ]
+}

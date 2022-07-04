@@ -1,0 +1,17 @@
+{
+    "name": "@ijstech/compiler",
+    "version": "0.1.0",
+    "devDependencies": {
+        "@ijstech/components": "file:packages/components",
+        "@types/mocha": "9.0.0",
+        "@types/node": "14.17",
+        "mocha": "10.0.0",
+        "ts-node": "10.1.0",
+        "typescript": "4.3.5"
+    },
+    "scripts": {
+        "build": "rm -rf types && rm -rf dist && node tools/bundle.js && tsc && tsc --P tsconfig.bundle.json && rm -rf bundle",
+        "serve": "node tools/serve",
+        "test": "mocha --exit --require ts-node/register test/*.spec.ts"
+    }
+}
