@@ -1,7 +1,8 @@
 import {Module} from '@ijstech/components';
+import {hello} from './hello';
 export default class Hello extends Module{
     buttonClick(){
-        //button click event handler
+        alert(hello());
     };
     render(){
         return <i-panel>

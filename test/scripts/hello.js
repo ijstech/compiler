@@ -1,4 +1,9 @@
-"use strict";
-function hello() {
-    return "Hello World";
-}
+define("hello", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.hello = void 0;
+    function hello() {
+        return "Hello World";
+    }
+    exports.hello = hello;
+});
