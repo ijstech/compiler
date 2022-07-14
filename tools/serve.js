@@ -7,8 +7,9 @@ const modulePath = path.join(__dirname, '../test/static');
 http.createServer(function (request, response) {    
     var url = request.url;
     var filePath;
-    if (url == '/' || url == 'index.html') 
-        filePath = path.join(modulePath, 'index.html')
+    let files = url.split('/');    
+    if (files.length == 2)
+        filePath = path.join(modulePath, files[1] || 'index.html')
     else if (url.indexOf('/dist/') >= 0) 
         filePath = path.join(__dirname, '..', url)
     else

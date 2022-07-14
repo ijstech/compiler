@@ -25,6 +25,9 @@
  *---------------------------------------------------------------------------------------------
  *---------------------------------------------------------------------------------------------
  *--------------------------------------------------------------------------------------------*/
+var $JSX = function(...params){
+  this.$render.apply(this, params);
+};
 var _amdLoaderGlobal = this;
 var _currentDefineModule;
 var _defined = {};
@@ -1968,9 +1971,7 @@ var AMDLoader;
 
 define("@ijstech/components",(require, exports)=>{
 var __defProp = Object.defineProperty;
-var __defProps = Object.defineProperties;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
 var __getOwnPropSymbols = Object.getOwnPropertySymbols;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __propIsEnum = Object.prototype.propertyIsEnumerable;
@@ -1986,7 +1987,6 @@ var __spreadValues = (a, b) => {
     }
   return a;
 };
-var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
 var __markAsModule = (target) => __defProp(target, "__esModule", { value: true });
 var __export = (target, all) => {
   __markAsModule(target);
@@ -2005,11 +2005,8 @@ var __decorateClass = (decorators, target, key2, kind) => {
 
 // src/index.ts
 __export(exports, {
-  Alert: () => Alert,
-  Aside: () => Aside,
   BarChart: () => BarChart,
   Button: () => Button,
-  ButtonDropdown: () => ButtonDropdown,
   CardLayout: () => CardLayout,
   CarouselSlider: () => CarouselSlider,
   Checkbox: () => Checkbox,
@@ -2018,7 +2015,6 @@ __export(exports, {
   Clipboard: () => Clipboard,
   CodeDiffEditor: () => CodeDiffEditor,
   CodeEditor: () => CodeEditor,
-  Col: () => Col,
   Collapse: () => Collapse,
   CollapseDetails: () => CollapseDetails,
   CollapseSummary: () => CollapseSummary,
@@ -2029,11 +2025,10 @@ __export(exports, {
   CountDown: () => CountDown,
   Datepicker: () => Datepicker,
   Divider: () => Divider,
+  DropdownButton: () => DropdownButton,
   DropdownItem: () => DropdownItem,
   EventBus: () => EventBus,
-  Footer: () => Footer,
   HStack: () => HStack,
-  Header: () => Header,
   Icon: () => Icon,
   Iframe: () => Iframe,
   Image: () => Image2,
@@ -2045,7 +2040,6 @@ __export(exports, {
   ListView: () => ListView,
   ListViewItem: () => ListViewItem,
   Loading: () => Loading,
-  Main: () => Main,
   Markdown: () => Markdown,
   MarkdownEditor: () => MarkdownEditor,
   Menu: () => Menu,
@@ -2061,13 +2055,10 @@ __export(exports, {
   RadioGroup: () => RadioGroup,
   Range: () => Range,
   RequireJS: () => RequireJS,
-  Row: () => Row,
   ScatterChart: () => ScatterChart,
   ScatterLineChart: () => ScatterLineChart,
   Search: () => Search,
-  Section: () => Section,
   Slot: () => Slot,
-  Spinner: () => Spinner,
   Styles: () => src_exports,
   Switch: () => Switch,
   Tab: () => Tab,
@@ -2078,8 +2069,8 @@ __export(exports, {
   Timeline: () => Timeline,
   Toast: () => Toast,
   Tooltip: () => Tooltip,
+  TreeNode: () => TreeNode,
   TreeView: () => TreeView,
-  TreeViewNode: () => TreeViewNode,
   Unobserve: () => Unobserve,
   Upload: () => Upload,
   VStack: () => VStack,
@@ -3816,7 +3807,8 @@ var Component = class extends HTMLElement {
     if (this.connected)
       return;
     this.connected = true;
-    this.init();
+    if (!this.initialized)
+      this.init();
   }
   disconnectCallback() {
     this.connected = false;
@@ -3899,11 +3891,6 @@ var Component = class extends HTMLElement {
   init() {
     this.initialized = true;
   }
-  static async create(options, parent, defaults) {
-    let component = new this(parent, options, defaults);
-    component.init();
-    return component;
-  }
 };
 
 // packages/base/src/style/base.css.ts
@@ -3971,6 +3958,45 @@ var disabledStyle = style({
 var contentCenterStyle = style({
   margin: "0 auto"
 });
+var containerStyle = style({
+  $nest: {
+    ".e-resize": {
+      position: "absolute",
+      right: "0px",
+      height: "100%",
+      width: "4px",
+      cursor: "e-resize"
+    },
+    ".n-resize": {
+      position: "absolute",
+      top: "0px",
+      height: "4px",
+      width: "100%",
+      cursor: "n-resize"
+    },
+    ".s-resize": {
+      position: "absolute",
+      bottom: "0px",
+      height: "4px",
+      width: "100%",
+      cursor: "s-resize"
+    },
+    ".w-resize": {
+      position: "absolute",
+      left: "0px",
+      height: "100%",
+      width: "4px",
+      cursor: "w-resize"
+    },
+    ".highlight": {
+      backgroundColor: theme_exports.ThemeVars.colors.info.dark
+    },
+    ".resizing": {
+      userSelect: "none",
+      pointerEvents: "none"
+    }
+  }
+});
 
 // packages/base/src/control.ts
 var _refreshTimeout;
@@ -3981,15 +4007,16 @@ function refresh() {
   _refreshTimeout = setTimeout(() => {
     try {
       clearTimeout(_refreshTimeout);
-      let width = document.body.offsetWidth - 1;
-      let height = document.body.offsetHeight - 1;
+      _refreshTimeout = void 0;
+      let width = window.innerWidth - 1;
+      let height = window.innerHeight - 1;
       for (let i = 0; i < document.body.childNodes.length; i++) {
         let node = document.body.childNodes[i];
-        if (node instanceof Control) {
+        if (node instanceof Container) {
           node.style.position = "absolute";
           node.style.width = width + "px";
           node.style.height = height + "px";
-          node.parent = null;
+          node.style.overflowX = "hidden";
           node.refresh();
         }
       }
@@ -4002,8 +4029,8 @@ window.addEventListener("resize", () => {
   refresh();
 });
 var Control = class extends Component {
-  constructor() {
-    super(...arguments);
+  constructor(parent, options, defaults) {
+    super(parent, options, defaults);
     this._enabled = true;
     this._paddingLeft = 0;
     this._paddingTop = 0;
@@ -4019,7 +4046,14 @@ var Control = class extends Component {
     this._anchorBottom = false;
     this._visible = true;
     this._contentCenter = false;
-    this.controls = [];
+    if (parent instanceof Container)
+      this.parent = parent;
+  }
+  static async create(options, parent, defaults) {
+    let self = new this(parent, options);
+    if (!self.initialized)
+      await self.init();
+    return self;
   }
   get color() {
     return this.style.backgroundColor;
@@ -4048,6 +4082,29 @@ var Control = class extends Component {
     const { top = 0, right = 0, bottom = 0, left = 0 } = value;
     this.style.padding = `${this.getSpacingValue(top)} ${this.getSpacingValue(right)} ${this.getSpacingValue(bottom)} ${this.getSpacingValue(left)}`;
   }
+  get parent() {
+    return this._parent;
+  }
+  set parent(value) {
+    if (this._parent != value) {
+      if (this._parent) {
+        this._parent.controls.splice(this._parent.controls.indexOf(this), 1);
+        this._parent.removeChild(this);
+        if (!_refreshTimeout)
+          this._parent.refresh();
+      }
+      ;
+      this._parent = value;
+      if (this._parent) {
+        this._parent.controls.push(this);
+        if (this.parentNode != value) {
+          this._parent.appendChild(this);
+          if (!_refreshTimeout)
+            this._parent.refresh();
+        }
+      }
+    }
+  }
   getSpacingValue(value) {
     if (typeof value === "number")
       return value + "px";
@@ -4063,32 +4120,29 @@ var Control = class extends Component {
     refresh();
   }
   disconnectCallback() {
-    if (this.parent && this.parent.controls) {
-      this.parent.controls.splice(this.parent.controls.indexOf(this), 1);
-      this.parent = null;
-    }
+    this.parent = void 0;
     super.disconnectCallback();
   }
   getParentHeight() {
-    if (!this.parent)
+    if (!this._parent)
       return window.innerHeight;
     else
-      return this.parent.offsetHeight;
+      return this._parent.offsetHeight;
   }
   getParentWidth() {
-    if (!this.parent)
+    if (!this._parent)
       return window.innerWidth;
     else {
-      return this.parent.offsetWidth;
+      return this._parent.offsetWidth;
     }
   }
   getParentOccupiedLeft() {
-    if (!this.parent)
+    if (!this._parent)
       return 0;
     else {
       let result = 0;
-      for (let i = 0; i < this.parent.controls.length; i++) {
-        let control = this.parent.controls[i];
+      for (let i = 0; i < this._parent.controls.length; i++) {
+        let control = this._parent.controls[i];
         if (control === this) {
           if (this.dock == "left")
             return result;
@@ -4101,12 +4155,12 @@ var Control = class extends Component {
     ;
   }
   getParentOccupiedRight() {
-    if (!this.parent)
+    if (!this._parent)
       return 0;
     else {
       let result = 0;
-      for (let i = 0; i < this.parent.controls.length; i++) {
-        let control = this.parent.controls[i];
+      for (let i = 0; i < this._parent.controls.length; i++) {
+        let control = this._parent.controls[i];
         if (control === this) {
           if (this.dock == "right")
             return result;
@@ -4119,12 +4173,12 @@ var Control = class extends Component {
     ;
   }
   getParentOccupiedBottom() {
-    if (!this.parent)
+    if (!this._parent)
       return 0;
     else {
       let result = 0;
-      for (let i = 0; i < this.parent.controls.length; i++) {
-        let control = this.parent.controls[i];
+      for (let i = 0; i < this._parent.controls.length; i++) {
+        let control = this._parent.controls[i];
         if (control === this) {
           if (this.dock == "bottom")
             return result;
@@ -4137,12 +4191,12 @@ var Control = class extends Component {
     ;
   }
   getParentOccupiedTop() {
-    if (!this.parent)
+    if (!this._parent)
       return 0;
     else {
       let result = 0;
-      for (let i = 0; i < this.parent.controls.length; i++) {
-        let control = this.parent.controls[i];
+      for (let i = 0; i < this._parent.controls.length; i++) {
+        let control = this._parent.controls[i];
         if (control === this) {
           if (this.dock == "top")
             return result;
@@ -4160,6 +4214,8 @@ var Control = class extends Component {
   }
   set dock(value) {
     this._dock = value;
+    if (this._resizer)
+      this._resizer.reset();
   }
   get enabled() {
     return this._enabled;
@@ -4210,6 +4266,9 @@ var Control = class extends Component {
   }
   set onClick(callback) {
     this._onClick = callback;
+  }
+  clearInnerHTML() {
+    this.innerHTML = "";
   }
   refresh() {
     if (this._dock != null) {
@@ -4263,20 +4322,9 @@ var Control = class extends Component {
       }
     }
     ;
-    this.controls = [];
-    for (let i = 0; i < this.childNodes.length; i++) {
-      let node = this.childNodes[i];
-      if (node instanceof Control) {
-        node.parent = this;
-        this.controls.push(node);
-      }
-    }
-    ;
-    for (let i = 0; i < this.controls.length; i++)
-      this.controls[i].refresh();
   }
-  clearInnerHTML() {
-    this.innerHTML = "";
+  get resizable() {
+    return this.attrs["resizer"] == true && ["left", "top", "right", "bottom"].indexOf(this.dock) >= 0;
   }
   setProperty(propName, value) {
     if (value.__target) {
@@ -4389,8 +4437,8 @@ var Control = class extends Component {
       this.style.display = "block";
     else
       this.style.display = "";
-    if (this.parent && !_refreshTimeout)
-      this.parent.refresh();
+    if (this._parent && !_refreshTimeout)
+      this._parent.refresh();
   }
   get width() {
     return !isNaN(this._width) ? this._width : this.offsetWidth;
@@ -4463,14 +4511,133 @@ var Control = class extends Component {
     this.style.setProperty(`border-${side}-color`, (value == null ? void 0 : value.color) || "");
   }
 };
-
-// packages/base/src/container.ts
+var ContainerResizer = class {
+  constructor(target) {
+    this.target = target;
+    this._mouseDownHandler = this.handleMouseDown.bind(this);
+    this._mouseUpHandler = this.handleMouseUp.bind(this);
+    this._mouseMoveHandler = this.handleMouseMove.bind(this);
+  }
+  reset() {
+    if (!this.target.resizable && this._resizer) {
+      this._resizer.removeEventListener("mousedown", this._mouseDownHandler);
+      this.target.removeChild(this._resizer);
+      this._resizer = void 0;
+    } else if (this.target.resizable) {
+      switch (this.target.dock) {
+        case "left":
+          this.resizer.classList.value = "e-resize";
+          break;
+        case "top":
+          this.resizer.classList.value = "s-resize";
+          break;
+        case "right":
+          this.resizer.classList.value = "w-resize";
+          break;
+        case "bottom":
+          this.resizer.classList.value = "n-resize";
+          break;
+      }
+      ;
+    }
+    ;
+  }
+  handleMouseDown(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    this.target.classList.add("resizing");
+    this._origHeight = this.target.offsetHeight;
+    this._origWidth = this.target.offsetWidth;
+    if (this._resizer) {
+      this._resizer.classList.add("highlight");
+      this._mouseDownPos = {
+        x: e.clientX,
+        y: e.clientY
+      };
+      document.addEventListener("mousemove", this._mouseMoveHandler);
+      document.addEventListener("mouseup", this._mouseUpHandler);
+    }
+  }
+  handleMouseMove(e) {
+    var _a, _b, _c, _d;
+    e.preventDefault();
+    e.stopPropagation();
+    let offsetX = e.clientX - this._mouseDownPos.x;
+    let offsetY = e.clientY - this._mouseDownPos.y;
+    switch (this.target.dock) {
+      case "left":
+        this.target.style.width = this._origWidth + offsetX + "px";
+        (_a = this.target.parent) == null ? void 0 : _a.refresh();
+        break;
+      case "top":
+        this.target.style.height = this._origHeight + offsetY + "px";
+        (_b = this.target.parent) == null ? void 0 : _b.refresh();
+        break;
+      case "right":
+        this.target.style.width = this._origWidth - offsetX + "px";
+        (_c = this.target.parent) == null ? void 0 : _c.refresh();
+        break;
+      case "bottom":
+        this.target.style.height = this._origHeight - offsetY + "px";
+        (_d = this.target.parent) == null ? void 0 : _d.refresh();
+        break;
+    }
+  }
+  handleMouseUp(e) {
+    document.removeEventListener("mousemove", this._mouseMoveHandler);
+    document.removeEventListener("mouseup", this._mouseUpHandler);
+    e.preventDefault();
+    e.stopPropagation();
+    this.target.classList.remove("resizing");
+    if (this._resizer)
+      this._resizer.classList.remove("highlight");
+  }
+  get resizer() {
+    if (!this._resizer) {
+      this._resizer = document.createElement("span");
+      this.target.appendChild(this._resizer);
+      this._resizer.addEventListener("mousedown", this._mouseDownHandler);
+    }
+    ;
+    return this._resizer;
+  }
+};
 var Container = class extends Control {
-  constructor(parent, options) {
-    super(parent, options);
+  constructor() {
+    super(...arguments);
+    this.controls = [];
+  }
+  get resizer() {
+    return this.attrs["resizer"] == true;
+  }
+  set resizer(value) {
+    this.attrs["resizer"] = value;
+    if (this.resizable && !this._resizer)
+      this._resizer = new ContainerResizer(this);
+    if (this._resizer)
+      this._resizer.reset();
   }
   init() {
-    this.controls = this.getAttribute("controls", true) || [];
+    super.init();
+    this.classList.add(containerStyle);
+    if (this.resizable && !this._resizer) {
+      this._resizer = new ContainerResizer(this);
+      this._resizer.reset();
+    }
+    ;
+  }
+  refresh() {
+    super.refresh();
+    for (let i = 0; i < this.childNodes.length; i++) {
+      let node = this.childNodes[i];
+      if (node instanceof Control) {
+        node.parent = this;
+      }
+      ;
+    }
+    ;
+    for (let i = 0; i < this.controls.length; i++)
+      this.controls[i].refresh();
   }
 };
 
@@ -4498,184 +4665,6 @@ function customElements2(name, options) {
 function customModule(target) {
   _currentDefineModule = target;
 }
-
-// packages/icon/src/style/icon.css.ts
-var Theme = theme_exports.ThemeVars;
-cssRule("i-icon", {
-  $nest: {
-    "svg": {
-      verticalAlign: "top",
-      width: "100%",
-      height: "100%"
-    }
-  }
-});
-
-// packages/icon/src/icon.ts
-var _iconLoaded = false;
-async function loadIconFile() {
-  if (_iconLoaded)
-    return;
-  _iconLoaded = true;
-  try {
-    let res = await fetch(`${LibPath}assets/icon/solid.svg`);
-    let text = await res.text();
-    let span = document.createElement("span");
-    span.innerHTML = text;
-    document.body.appendChild(span);
-  } catch (err) {
-    _iconLoaded = false;
-  }
-  ;
-}
-var Icon = class extends Control {
-  constructor(parent, options) {
-    super(parent, options);
-    loadIconFile();
-  }
-  init() {
-    if (!this.initialized) {
-      super.init();
-      let fill = this.getAttribute("fill");
-      if (fill)
-        this.fill = fill;
-      this._size = this.getAttribute("size", true);
-      this._name = this.getAttribute("name", true);
-      this._updateIcon();
-    }
-  }
-  get fill() {
-    return this.style.getPropertyValue("fill");
-  }
-  set fill(color) {
-    this.style.setProperty("fill", color);
-  }
-  get name() {
-    return this._name;
-  }
-  set name(value) {
-    this._name = value;
-    this._updateIcon();
-  }
-  _updateIcon() {
-    if (this._name)
-      this.innerHTML = `<svg><use xlink:href="#${this.name}"></use></svg>`;
-    else
-      this.innerHTML = "";
-  }
-  static async create(options, parent) {
-    let component = new this(parent, options);
-    component.init();
-    return component;
-  }
-};
-Icon = __decorateClass([
-  customElements2("i-icon")
-], Icon);
-
-// packages/alert/src/style/alert.css.ts
-var Theme2 = theme_exports.ThemeVars;
-var Colors2 = theme_exports.Colors;
-cssRule("i-alert", {
-  fontFamily: Theme2.typography.fontFamily,
-  fontSize: Theme2.typography.fontSize,
-  padding: "1rem 1.5rem",
-  margin: 0,
-  minWidth: 0,
-  background: "linear-gradient(90deg, rgba(255, 168, 1, 0.04) 0%, rgba(255, 168, 1, 0.01) 100%), rgba(255, 255, 255, 0.04)",
-  border: `1px solid ${Colors2.yellow[800]}7f`,
-  borderRadius: "0.25rem",
-  boxSizing: "border-box",
-  display: "block",
-  $nest: {
-    "*": {
-      boxSizing: "border-box"
-    },
-    "> .wrapper": {
-      display: "flex",
-      flex: "1 1 auto",
-      flexDirection: "column",
-      alignItems: "flex-start",
-      margin: "0",
-      minWidth: "0"
-    },
-    ".title": {
-      display: "flex",
-      alignItems: "center",
-      minWidth: 0,
-      fontSize: "0.625rem",
-      lineHeight: "1.25rem",
-      color: Colors2.yellow[700],
-      textTransform: "uppercase",
-      margin: 0,
-      letterSpacing: "1.2px",
-      fontWeight: 500,
-      $nest: {
-        "i-icon": {
-          margin: "0 4px 1px 0"
-        }
-      }
-    },
-    ".content": {
-      fontSize: "0.875rem",
-      lineHeight: "1.5rem",
-      color: "rgba(255, 255, 255, 0.88)"
-    }
-  }
-});
-
-// packages/alert/src/alert.ts
-var Colors3 = theme_exports.Colors;
-var Alert = class extends Control {
-  constructor(parent, options) {
-    super(parent, options);
-  }
-  get title() {
-    return this._title;
-  }
-  set title(title) {
-    if (title == null)
-      title = "";
-    this._title = title;
-  }
-  get content() {
-    return this._content;
-  }
-  set content(content) {
-    if (content == null)
-      content = "";
-    this._content = content;
-  }
-  init() {
-    if (!this.wrapperElm) {
-      this.title = this.getAttribute("title", true);
-      this.content = this.getAttribute("content", true);
-      this.wrapperElm = this.createElement("div", this);
-      this.wrapperElm.classList.add("wrapper");
-      this.titleElm = this.createElement("div", this);
-      this.titleElm.classList.add("title");
-      this.iconElm = new Icon(this, { name: "exclamation-triangle", width: 9, height: 9, fill: Colors3.yellow[700] });
-      this.titleElm.appendChild(this.iconElm);
-      const text = this.createElement("span", this);
-      text.innerHTML = this.title;
-      this.titleElm.appendChild(text);
-      this.wrapperElm.appendChild(this.titleElm);
-      this.contentElm = this.createElement("div", this);
-      this.contentElm.classList.add("content");
-      this.contentElm.innerHTML = this.content;
-      this.wrapperElm.appendChild(this.contentElm);
-      super.init();
-    }
-  }
-  static async create(options, parent) {
-    let component = new this(parent, options);
-    component.init();
-    return component;
-  }
-};
-Alert = __decorateClass([
-  customElements2("i-alert")
-], Alert);
 
 // packages/application/src/event-bus.ts
 var _EventBus = class {
@@ -4717,7 +4706,7 @@ EventBus.nextId = 0;
 EventBus.instance = void 0;
 
 // packages/application/src/styles/index.css.ts
-var Theme3 = theme_exports.ThemeVars;
+var Theme = theme_exports.ThemeVars;
 var applicationStyle = style({
   height: "100%",
   $nest: {
@@ -4796,7 +4785,10 @@ var Application = class {
     if (RequireJS.defined(packageName))
       return true;
     if (modulePath.startsWith("{LIB}/")) {
-      modulePath = modulePath.replace("{LIB}/", LibPath + "/");
+      if (LibPath.endsWith("/"))
+        modulePath = modulePath.replace("{LIB}/", LibPath);
+      else
+        modulePath = modulePath.replace("{LIB}/", LibPath + "/");
     }
     ;
     let script = await this.getScript(modulePath);
@@ -4823,7 +4815,7 @@ var Application = class {
   }
   async newModule(modulePath, options) {
     let elmId = this.modulesId[modulePath];
-    if (elmId)
+    if (elmId && modulePath)
       return document.createElement(elmId);
     if (options && options.dependencies) {
       for (let p in options.dependencies) {
@@ -4868,8 +4860,82 @@ var Application = class {
 window["application"] = Application.Instance;
 var application = Application.Instance;
 
+// packages/icon/src/style/icon.css.ts
+var Theme2 = theme_exports.ThemeVars;
+cssRule("i-icon", {
+  $nest: {
+    "svg": {
+      verticalAlign: "top",
+      width: "100%",
+      height: "100%"
+    }
+  }
+});
+
+// packages/icon/src/icon.ts
+var _iconLoaded = false;
+async function loadIconFile() {
+  if (_iconLoaded)
+    return;
+  _iconLoaded = true;
+  try {
+    let res = await fetch(`${LibPath}assets/icon/solid.svg`);
+    let text = await res.text();
+    let span = document.createElement("span");
+    span.innerHTML = text;
+    document.body.appendChild(span);
+  } catch (err) {
+    _iconLoaded = false;
+  }
+  ;
+}
+var Icon = class extends Control {
+  constructor(parent, options) {
+    super(parent, options);
+    loadIconFile();
+  }
+  init() {
+    if (!this.initialized) {
+      super.init();
+      let fill = this.getAttribute("fill");
+      if (fill)
+        this.fill = fill;
+      this._size = this.getAttribute("size", true);
+      this._name = this.getAttribute("name", true);
+      this._updateIcon();
+    }
+  }
+  get fill() {
+    return this.style.getPropertyValue("fill");
+  }
+  set fill(color) {
+    this.style.setProperty("fill", color);
+  }
+  get name() {
+    return this._name;
+  }
+  set name(value) {
+    this._name = value;
+    this._updateIcon();
+  }
+  _updateIcon() {
+    if (this._name)
+      this.innerHTML = `<svg><use xlink:href="#${this.name}"></use></svg>`;
+    else
+      this.innerHTML = "";
+  }
+  static async create(options, parent) {
+    let component = new this(parent, options);
+    component.init();
+    return component;
+  }
+};
+Icon = __decorateClass([
+  customElements2("i-icon")
+], Icon);
+
 // packages/button/src/style/button.css.ts
-var Theme4 = theme_exports.ThemeVars;
+var Theme3 = theme_exports.ThemeVars;
 var spinnerAnim = keyframes({
   "0%": {
     transform: "rotate(0deg)"
@@ -4879,31 +4945,30 @@ var spinnerAnim = keyframes({
   }
 });
 cssRule("i-button", {
-  background: Theme4.colors.primary.main,
-  boxShadow: Theme4.shadows[2],
-  color: Theme4.text.primary,
-  display: "inline-block",
-  verticalAlign: "baseline",
-  textAlign: "center",
+  background: Theme3.colors.primary.main,
+  boxShadow: Theme3.shadows[2],
+  color: Theme3.text.primary,
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
   borderRadius: 4,
-  fontFamily: Theme4.typography.fontFamily,
-  fontSize: Theme4.typography.fontSize,
+  fontFamily: Theme3.typography.fontFamily,
+  fontSize: Theme3.typography.fontSize,
   $nest: {
     "&:not(.disabled):hover": {
       cursor: "pointer",
-      backgroundColor: Theme4.colors.primary.dark,
-      boxShadow: Theme4.shadows[4],
-      background: Theme4.colors.primary.main
+      backgroundColor: Theme3.colors.primary.dark,
+      boxShadow: Theme3.shadows[4],
+      background: Theme3.colors.primary.main
     },
     "&.disabled": {
-      color: Theme4.text.disabled,
-      boxShadow: Theme4.shadows[0],
-      background: Theme4.action.disabledBackground
+      color: Theme3.text.disabled,
+      boxShadow: Theme3.shadows[0],
+      background: Theme3.action.disabledBackground
     },
     "i-icon": {
       display: "inline-block",
-      fill: Theme4.text.primary,
-      height: "50%",
+      fill: Theme3.text.primary,
       verticalAlign: "middle",
       $nest: {
         "&.loading-icon": {
@@ -4919,6 +4984,12 @@ cssRule("i-button", {
 
 // packages/button/src/button.ts
 var Button = class extends Control {
+  static async create(options, parent) {
+    let self = new this(parent, options);
+    if (!self.initialized)
+      await self.init();
+    return self;
+  }
   constructor(parent, options) {
     super(parent, options, {
       loading: false
@@ -4947,13 +5018,13 @@ var Button = class extends Control {
     if (!this.iconElm) {
       this.iconElm = new Icon();
       this.iconElm.init();
+      this.iconElm.style.width = +this.offsetHeight / 2 + "px";
+      this.iconElm.style.height = +this.offsetHeight / 2 + "px";
       this.appendChild(this.iconElm);
-      if (this.captionElm && this.iconAlign === "left")
+      if (this.captionElm && this.iconPosition === "left")
         this.insertBefore(this.iconElm, this.captionElm);
     }
     this.iconElm.name = name;
-    this.iconElm.style.width = +this.height / 2 + "px";
-    this.iconElm.style.height = +this.height / 2 + "px";
   }
   get loading() {
     return this._loading;
@@ -4979,24 +5050,19 @@ var Button = class extends Control {
       this.captionElm = this.createElement("span", this);
       let caption = this.getAttribute("caption", true) || "";
       this.captionElm.innerHTML = caption;
-      this.iconAlign = this.getAttribute("iconAlign", true) || "left";
+      this.iconPosition = this.getAttribute("iconPosition", true) || "left";
       this._icon = this.getAttribute("icon", true);
       this.icon = this._icon;
       this.loading = this.getAttribute("loading", true);
     }
-  }
-  static async create(options, parent) {
-    let component = new this(parent, options);
-    component.init();
-    return component;
   }
 };
 Button = __decorateClass([
   customElements2("i-button")
 ], Button);
 
-// packages/button-dropdown/src/style/button-dropdown.css.ts
-var Theme5 = theme_exports.ThemeVars;
+// packages/dropdown-button/src/style/dropdown-button.css.ts
+var Theme4 = theme_exports.ThemeVars;
 var spinnerAnim2 = keyframes({
   "0%": {
     transform: "rotate(0deg)"
@@ -5005,8 +5071,8 @@ var spinnerAnim2 = keyframes({
     transform: "rotate(360deg)"
   }
 });
-cssRule("i-button-dropdown", {
-  fontFamily: Theme5.typography.fontFamily,
+cssRule("i-dropdown-button", {
+  fontFamily: Theme4.typography.fontFamily,
   position: "relative",
   $nest: {
     "> *": {
@@ -5112,7 +5178,7 @@ cssRule("i-button-dropdown", {
   }
 });
 cssRule(".i-popper", {
-  fontFamily: Theme5.typography.fontFamily,
+  fontFamily: Theme4.typography.fontFamily,
   display: "none",
   flexDirection: "column",
   position: "absolute",
@@ -5145,7 +5211,7 @@ cssRule(".i-popper", {
   }
 });
 
-// packages/button-dropdown/src/button-dropdown.ts
+// packages/dropdown-button/src/dropdown-button.ts
 var DropdownItem = class extends Control {
   get loading() {
     return this._loading;
@@ -5191,7 +5257,7 @@ var DropdownItem = class extends Control {
 DropdownItem = __decorateClass([
   customElements2("i-dropdown-item")
 ], DropdownItem);
-var ButtonDropdown = class extends Control {
+var DropdownButton = class extends Control {
   constructor(parent, options) {
     super(parent, options, {
       body: false,
@@ -5229,12 +5295,12 @@ var ButtonDropdown = class extends Control {
     this.isDropdownShown = true;
     this.dropdownElm.classList.add("show");
   }
-  closeList() {
+  handleClose() {
     this.isDropdownShown = false;
     this.dropdownElm.classList.remove("show");
   }
   toggleList() {
-    this.isDropdownShown ? this.closeList() : this.openList();
+    this.isDropdownShown ? this.handleClose() : this.openList();
   }
   positionAt(placement, event) {
     const parent = this.buttonElm;
@@ -5309,11 +5375,11 @@ var ButtonDropdown = class extends Control {
         this.dropdownElm.classList.add(classArr.join(","));
       }
       if (this.hasChildNodes()) {
-        const dropdownItems = Array.from(this.querySelectorAll("i-button-dropdown > i-dropdown-item"));
+        const dropdownItems = Array.from(this.querySelectorAll("i-dropdown-button > i-dropdown-item"));
         for (const dropdownItem of dropdownItems) {
           dropdownItem.addEventListener("click", (e) => {
             e.stopPropagation();
-            this.closeList();
+            this.handleClose();
           });
           this.dropdownElm.appendChild(dropdownItem);
         }
@@ -5330,7 +5396,7 @@ var ButtonDropdown = class extends Control {
         if (!this._enabled)
           return false;
         if (!this.contains(e.target)) {
-          this.closeList();
+          this.handleClose();
         }
       });
       super.init();
@@ -5342,9 +5408,9 @@ var ButtonDropdown = class extends Control {
     return component;
   }
 };
-ButtonDropdown = __decorateClass([
-  customElements2("i-button-dropdown")
-], ButtonDropdown);
+DropdownButton = __decorateClass([
+  customElements2("i-dropdown-button")
+], DropdownButton);
 
 // packages/code-editor/src/monaco.ts
 async function initMonaco() {
@@ -5720,7 +5786,7 @@ CodeDiffEditor = __decorateClass([
 ], CodeDiffEditor);
 
 // packages/combo-box/src/style/combo-box.css.ts
-var Theme6 = theme_exports.ThemeVars;
+var Theme5 = theme_exports.ThemeVars;
 var ItemListStyle = style({
   display: "none",
   position: "absolute",
@@ -5748,21 +5814,21 @@ var ItemListStyle = style({
       cursor: "pointer"
     },
     "> ul > li .highlight": {
-      backgroundColor: Theme6.colors.warning.light
+      backgroundColor: Theme5.colors.warning.light
     },
     "> ul > li.matched": {
-      backgroundColor: Theme6.colors.primary.light
+      backgroundColor: Theme5.colors.primary.light
     },
     "> ul > li:hover": {
-      backgroundColor: Theme6.colors.primary.light
+      backgroundColor: Theme5.colors.primary.light
     }
   }
 });
 cssRule("i-combo-box", {
   position: "relative",
   display: "inline-flex!important",
-  fontFamily: Theme6.typography.fontFamily,
-  fontSize: Theme6.typography.fontSize,
+  fontFamily: Theme5.typography.fontFamily,
+  fontSize: Theme5.typography.fontSize,
   $nest: {
     "*": {
       boxSizing: "border-box"
@@ -6065,10 +6131,10 @@ ComboBox = __decorateClass([
 ], ComboBox);
 
 // packages/checkbox/src/style/checkbox.css.ts
-var Theme7 = theme_exports.ThemeVars;
+var Theme6 = theme_exports.ThemeVars;
 cssRule("i-checkbox", {
-  fontFamily: Theme7.typography.fontFamily,
-  fontSize: Theme7.typography.fontSize,
+  fontFamily: Theme6.typography.fontFamily,
+  fontSize: Theme6.typography.fontSize,
   userSelect: "none",
   "$nest": {
     ".i-checkbox": {
@@ -6087,14 +6153,14 @@ cssRule("i-checkbox", {
       height: 15,
       display: "inline-block",
       position: "relative",
-      backgroundColor: Theme7.background.paper,
-      border: `1px solid ${Theme7.divider}`,
+      backgroundColor: Theme6.background.paper,
+      border: `1px solid ${Theme6.divider}`,
       boxSizing: "border-box",
       transition: "border-color .25s cubic-bezier(.71,-.46,.29,1.46),background-color .25s cubic-bezier(.71,-.46,.29,1.46)"
     },
     ".i-checkbox_label": {
       boxSizing: "border-box",
-      color: Theme7.text.primary,
+      color: Theme6.text.primary,
       display: "inline-block",
       paddingLeft: 8,
       lineHeight: 1
@@ -6110,10 +6176,10 @@ cssRule("i-checkbox", {
     "&.is-checked": {
       "$nest": {
         ".i-checkbox_label": {
-          color: Theme7.colors.info.main
+          color: Theme6.colors.info.main
         },
         ".checkmark": {
-          backgroundColor: Theme7.colors.info.main
+          backgroundColor: Theme6.colors.info.main
         },
         ".checkmark:after": {
           transform: "rotate(45deg) scaleY(1)"
@@ -6124,7 +6190,7 @@ cssRule("i-checkbox", {
       }
     },
     "&:not(.disabled):hover input ~ .checkmark": {
-      borderColor: Theme7.colors.info.main
+      borderColor: Theme6.colors.info.main
     },
     "&.disabled": {
       cursor: "not-allowed"
@@ -6132,7 +6198,7 @@ cssRule("i-checkbox", {
     ".checkmark:after": {
       content: "''",
       boxSizing: "content-box",
-      border: `1px solid ${Theme7.background.paper}`,
+      border: `1px solid ${Theme6.background.paper}`,
       borderLeft: 0,
       borderTop: 0,
       height: 7.5,
@@ -6146,7 +6212,7 @@ cssRule("i-checkbox", {
       position: "absolute"
     },
     ".is-indeterminate .checkmark": {
-      backgroundColor: Theme7.colors.info.main
+      backgroundColor: Theme6.colors.info.main
     },
     ".is-indeterminate .checkmark:after": {
       width: "80%",
@@ -6164,11 +6230,11 @@ var CheckboxGroup = class extends Control {
   constructor(parent, options) {
     super(parent, options);
   }
-  get values() {
-    return this._values;
+  get selectedValues() {
+    return this._selectedValues;
   }
-  set values(value) {
-    this._values = value;
+  set selectedValues(value) {
+    this._selectedValues = value;
     if (this.hasChildNodes()) {
       const elms = Array.from(this.children);
       elms.forEach((elm) => {
@@ -6179,7 +6245,7 @@ var CheckboxGroup = class extends Control {
   }
   get parsedValue() {
     try {
-      return JSON.parse(this._values);
+      return JSON.parse(this._selectedValues);
     } catch (e) {
       return [];
     }
@@ -6192,17 +6258,17 @@ var CheckboxGroup = class extends Control {
       if (index === -1) {
         const data = this.parsedValue;
         data.push(value);
-        this.values = JSON.stringify(data);
+        this.selectedValues = JSON.stringify(data);
       }
     } else {
       if (index !== -1) {
         const data = this.parsedValue;
         data.splice(index, 1);
-        this.values = JSON.stringify(data);
+        this.selectedValues = JSON.stringify(data);
       }
     }
     if (this.onChange)
-      this.onChange(this, this.values);
+      this.onChange(this, this.selectedValues);
   }
   updateUI(inputElm) {
     if (inputElm) {
@@ -6214,8 +6280,8 @@ var CheckboxGroup = class extends Control {
   init() {
     this.classList.add("i-checkbox-group");
     this.setAttribute("role", "group");
-    const valAttr = this.getAttribute("values");
-    this.values = valAttr;
+    const valAttr = this.getAttribute("selectedValues");
+    this.selectedValues = valAttr;
     if (this.hasChildNodes()) {
       const elms = Array.from(this.children);
       elms.forEach((elm) => {
@@ -6235,8 +6301,8 @@ var CheckboxGroup = class extends Control {
   }
 };
 __decorateClass([
-  observable("values")
-], CheckboxGroup.prototype, "_values", 2);
+  observable("selectedValues")
+], CheckboxGroup.prototype, "_selectedValues", 2);
 CheckboxGroup = __decorateClass([
   customElements2("i-checkbox-group")
 ], CheckboxGroup);
@@ -6245,6 +6311,10 @@ var Checkbox = class extends Control {
     super(parent, options, {
       height: 30
     });
+    if (options == null ? void 0 : options.onRender)
+      this.onRender = options.onRender;
+    if (options == null ? void 0 : options.onChange)
+      this.onRender = options.onChange;
   }
   get caption() {
     return this._caption;
@@ -6349,14 +6419,11 @@ var Checkbox = class extends Control {
       this.addClass(this.inputElm.checked, "is-checked");
       this.indeterminate = this.getAttribute("indeterminate");
       this.inputElm.indeterminate = this.indeterminate;
-      const slots = this.getElementsByTagName("i-slot");
-      if (slots.length) {
-        for (let i = 0; i < slots.length; i++) {
-          this.wrapperElm.appendChild(slots[i]);
-        }
+      if (this.onRender && typeof this.onRender === "function") {
         this.inputSpanElm.style.display = "none";
         this.captionSpanElm.style.opacity = "0";
         this.captionSpanElm.style.width = "0";
+        this.onRender(this.wrapperElm);
       }
       super.init();
     }
@@ -6375,11 +6442,11 @@ Checkbox = __decorateClass([
 ], Checkbox);
 
 // packages/datepicker/src/style/datepicker.css.ts
-var Theme8 = theme_exports.ThemeVars;
+var Theme7 = theme_exports.ThemeVars;
 cssRule("i-datepicker", {
   display: "inline-block",
-  fontFamily: Theme8.typography.fontFamily,
-  fontSize: Theme8.typography.fontSize,
+  fontFamily: Theme7.typography.fontFamily,
+  fontSize: Theme7.typography.fontSize,
   "$nest": {
     "*": {
       boxSizing: "border-box"
@@ -6389,7 +6456,7 @@ cssRule("i-datepicker", {
     },
     "> span > label": {
       boxSizing: "border-box",
-      color: Theme8.text.primary,
+      color: Theme7.text.primary,
       display: "inline-block",
       overflow: "hidden",
       whiteSpace: "nowrap",
@@ -6400,15 +6467,15 @@ cssRule("i-datepicker", {
     },
     "> input": {
       padding: "1px 0.5rem",
-      border: `0.5px solid ${Theme8.divider}`,
+      border: `0.5px solid ${Theme7.divider}`,
       boxSizing: "border-box",
       outline: "none"
     },
     "> input[type=text]:focus": {
-      borderColor: Theme8.colors.info.main
+      borderColor: Theme7.colors.info.main
     },
     "i-icon": {
-      fill: Theme8.colors.primary.contrastText
+      fill: Theme7.colors.primary.contrastText
     },
     ".datepicker-toggle": {
       display: "inline-block",
@@ -6467,6 +6534,9 @@ var Datepicker = class extends Control {
         } else {
           this.inputElm.value = "";
           _datepicker.value = "";
+        }
+        if (this.onSelect) {
+          this.onSelect(this.inputElm.value);
         }
       });
       if (this.callback) {
@@ -6531,6 +6601,9 @@ var Datepicker = class extends Control {
           this._value = "";
           this.inputElm.value = "";
           this.datepickerElm.value = "";
+        }
+        if (this.onSelect) {
+          this.onSelect(this.inputElm.value);
         }
       });
       if (this.callback) {
@@ -6626,7 +6699,13 @@ var Datepicker = class extends Control {
     this.inputElm.disabled = !value;
     this.datepickerElm.disabled = !value;
   }
-  init() {
+  get onSelect() {
+    return this._onSelect;
+  }
+  set onSelect(callback) {
+    this._onSelect = callback;
+  }
+  async init() {
     if (!this.captionSpanElm) {
       this.callback = this.getAttribute("parentCallback", true);
       this._placeholder = this.getAttribute("placeholder", true) || "";
@@ -6649,9 +6728,10 @@ var Datepicker = class extends Control {
       this.toggleElm.classList.add("datepicker-toggle");
       this.toggleElm.style.width = this._iconWidth + "px";
       this.toggleElm.style.height = this._iconWidth + "px";
-      this.toggleIconElm = new Icon();
+      this.toggleIconElm = await Icon.create({
+        name: this._type === "time" ? "clock" : "calendar"
+      });
       this.toggleElm.appendChild(this.toggleIconElm);
-      this.toggleIconElm.name = this._type === "time" ? "clock" : "calendar";
       this.datepickerElm = this.createElement("input", this.toggleIconElm);
       const inputType = this._type === "dateTime" ? "datetime-local" : this._type;
       this.datepickerElm.setAttribute("type", inputType);
@@ -6676,12 +6756,12 @@ Datepicker = __decorateClass([
 ], Datepicker);
 
 // packages/range/src/style/range.css.ts
-var Theme9 = theme_exports.ThemeVars;
+var Theme8 = theme_exports.ThemeVars;
 cssRule("i-range", {
   position: "relative",
   display: "inline-block",
-  fontFamily: Theme9.typography.fontFamily,
-  fontSize: Theme9.typography.fontSize,
+  fontFamily: Theme8.typography.fontFamily,
+  fontSize: Theme8.typography.fontSize,
   "$nest": {
     "*": {
       boxSizing: "border-box"
@@ -6691,7 +6771,7 @@ cssRule("i-range", {
     },
     "> span > label": {
       boxSizing: "border-box",
-      color: Theme9.text.primary,
+      color: Theme8.text.primary,
       display: "inline-block",
       overflow: "hidden",
       whiteSpace: "nowrap",
@@ -6708,7 +6788,7 @@ cssRule("i-range", {
       "-webkit-appearance": "none",
       appearance: "none",
       background: "#d3d3d3",
-      backgroundImage: `linear-gradient(${Theme9.colors.info.main}, ${Theme9.colors.info.main})`,
+      backgroundImage: `linear-gradient(${Theme8.colors.info.main}, ${Theme8.colors.info.main})`,
       backgroundSize: "0% 100%",
       backgroundRepeat: "no-repeat !important",
       borderRadius: "0.5rem",
@@ -6743,7 +6823,7 @@ cssRule("i-range", {
       "-webkit-appearance": "none",
       appearance: "none",
       marginTop: "-5px",
-      backgroundColor: Theme9.colors.info.main,
+      backgroundColor: Theme8.colors.info.main,
       borderRadius: "0.5rem",
       height: "1rem",
       width: "1rem"
@@ -7019,13 +7099,13 @@ Range = __decorateClass([
 ], Range);
 
 // packages/radio/src/radio.css.ts
-var Theme10 = theme_exports.ThemeVars;
+var Theme9 = theme_exports.ThemeVars;
 var captionStyle = style({
-  fontFamily: Theme10.typography.fontFamily,
-  fontSize: Theme10.typography.fontSize,
+  fontFamily: Theme9.typography.fontFamily,
+  fontSize: Theme9.typography.fontSize,
   "$nest": {
     "span": {
-      color: Theme10.text.primary
+      color: Theme9.text.primary
     }
   }
 });
@@ -7039,6 +7119,10 @@ var Radio = class extends Control {
       height: 25,
       width: 100
     });
+    if (options == null ? void 0 : options.onRender)
+      this.onRender = options.onRender;
+    if (options == null ? void 0 : options.onChange)
+      this.onRender = options.onChange;
   }
   get value() {
     return this._value;
@@ -7133,13 +7217,10 @@ var Radio = class extends Control {
     this.caption = this.getAttribute("caption") || "";
     this.captionWidth = this.getAttribute("captionWidth") || defaultCaptionWidth3;
     this.labelElm.style.color = "#000";
-    const slots = this.getElementsByTagName("i-slot");
-    if (slots.length) {
-      for (let i = 0; i < slots.length; i++) {
-        this.labelElm.appendChild(slots[i]);
-      }
+    if (this.onRender && typeof this.onRender === "function") {
       this.inputElm.style.display = "none";
       this.captionSpanElm.style.opacity = "0";
+      this.onRender(this.labelElm);
     }
     this.inputElm.addEventListener("click", this._handleChange.bind(this));
   }
@@ -7217,18 +7298,18 @@ RadioGroup = __decorateClass([
 ], RadioGroup);
 
 // packages/input/src/style/input.css.ts
-var Theme11 = theme_exports.ThemeVars;
+var Theme10 = theme_exports.ThemeVars;
 cssRule("i-input", {
   display: "inline-block",
-  fontFamily: Theme11.typography.fontFamily,
-  fontSize: Theme11.typography.fontSize,
+  fontFamily: Theme10.typography.fontFamily,
+  fontSize: Theme10.typography.fontSize,
   "$nest": {
     "> span": {
       overflow: "hidden"
     },
     "> span > label": {
       boxSizing: "border-box",
-      color: Theme11.text.primary,
+      color: Theme10.text.primary,
       display: "inline-block",
       overflow: "hidden",
       whiteSpace: "nowrap",
@@ -7238,7 +7319,7 @@ cssRule("i-input", {
       height: "100%"
     },
     "> input": {
-      border: `0.5px solid ${Theme11.divider}`,
+      border: `0.5px solid ${Theme10.divider}`,
       boxSizing: "border-box",
       outline: "none"
     },
@@ -7395,7 +7476,6 @@ var Input = class extends Control {
     const height = this.getAttribute("height", true);
     const checked = this.getAttribute("checked", true);
     const enabled = this.getAttribute("enabled", true);
-    const slots = this.getElementsByTagName("i-slot");
     this._clearBtnWidth = height - 2 || 0;
     switch (type) {
       case "checkbox":
@@ -7406,11 +7486,8 @@ var Input = class extends Control {
           caption,
           indeterminate: this.getAttribute("indeterminate", true)
         });
-        if (slots.length) {
-          for (let i = 0; i < slots.length; i++) {
-            this._inputControl.appendChild(slots[i]);
-          }
-        }
+        if (this.onRender)
+          this._inputControl.onRender = this.onRender;
         this._inputControl.onChange = this.onChange;
         this.appendChild(this._inputControl);
         this.inputElm = this._inputControl.querySelector('input[type="checkbox"]');
@@ -7479,11 +7556,8 @@ var Input = class extends Control {
           id: id + "_radio",
           name: this.getAttribute("name", true)
         });
-        if (slots.length) {
-          for (let i = 0; i < slots.length; i++) {
-            this._inputControl.appendChild(slots[i]);
-          }
-        }
+        if (this.onRender)
+          this._inputControl.onRender = this.onRender;
         this.appendChild(this._inputControl);
         this.inputElm = this._inputControl.querySelector('input[type="radio"]');
         break;
@@ -7611,7 +7685,7 @@ Input = __decorateClass([
 ], Input);
 
 // packages/image/src/style/image.css.ts
-var Theme12 = theme_exports.ThemeVars;
+var Theme11 = theme_exports.ThemeVars;
 cssRule("i-image", {
   position: "relative",
   $nest: {
@@ -7630,7 +7704,7 @@ cssRule("i-image", {
       position: "absolute",
       top: 0,
       left: 0,
-      border: `1px dashed ${Theme12.background.paper}`,
+      border: `1px dashed ${Theme11.background.paper}`,
       zIndex: "100",
       maxWidth: "100%"
     },
@@ -7650,8 +7724,8 @@ cssRule("i-image", {
     ".i-image_resize-handle": {
       display: "inline-block",
       position: "absolute",
-      border: `1px solid ${Theme12.background.default}`,
-      backgroundColor: Theme12.action.disabled,
+      border: `1px solid ${Theme11.background.default}`,
+      backgroundColor: Theme11.action.disabled,
       width: 10,
       height: 10,
       outline: "1px solid transparent"
@@ -8018,12 +8092,12 @@ Image2 = __decorateClass([
 ], Image2);
 
 // packages/markdown/src/style/markdown.css.ts
-var Theme13 = theme_exports.ThemeVars;
+var Theme12 = theme_exports.ThemeVars;
 cssRule("i-markdown", {
   display: "inline-block",
-  color: Theme13.text.primary,
-  fontFamily: Theme13.typography.fontFamily,
-  fontSize: Theme13.typography.fontSize,
+  color: Theme12.text.primary,
+  fontFamily: Theme12.typography.fontFamily,
+  fontSize: Theme12.typography.fontSize,
   $nest: {
     h1: {
       fontSize: "48px",
@@ -8256,7 +8330,7 @@ Markdown = __decorateClass([
 ], Markdown);
 
 // packages/tab/src/style/tab.css.ts
-var Theme14 = theme_exports.ThemeVars;
+var Theme13 = theme_exports.ThemeVars;
 cssRule("i-tabs", {
   lineHeight: "25px",
   $nest: {
@@ -8267,7 +8341,7 @@ cssRule("i-tabs", {
     },
     "&:not(.vertical) .tabs": {
       display: "flex",
-      borderBottom: `1px solid ${Theme14.divider}`,
+      borderBottom: `1px solid ${Theme13.divider}`,
       marginBottom: "1rem",
       $nest: {
         "i-tab:not(.disabled).active::after": {
@@ -8276,7 +8350,7 @@ cssRule("i-tabs", {
           alignContent: "center",
           margin: "auto",
           zIndex: 3,
-          borderBottom: `2px solid ${Theme14.colors.info.main}`
+          borderBottom: `2px solid ${Theme13.colors.info.main}`
         }
       }
     },
@@ -8304,15 +8378,15 @@ cssRule("i-tabs", {
           flexDirection: "column"
         },
         "i-tab:not(.disabled).active": {
-          backgroundColor: Theme14.colors.info.main,
-          color: Theme14.colors.info.contrastText,
+          backgroundColor: Theme13.colors.info.main,
+          color: Theme13.colors.info.contrastText,
           borderRadius: "0.25rem"
         }
       }
     },
     ".tabs > i-tab": {
       display: "inline-block",
-      color: Theme14.text.primary,
+      color: Theme13.text.primary,
       marginBottom: "-1px",
       alignItems: "flex-start",
       font: "inherit",
@@ -8324,14 +8398,14 @@ cssRule("i-tabs", {
         },
         "&:not(.disabled):hover": {
           cursor: "pointer",
-          color: Theme14.text.secondary
+          color: Theme13.text.secondary
         },
         "&.disabled": {
-          color: Theme14.text.disabled,
-          boxShadow: Theme14.shadows[0]
+          color: Theme13.text.disabled,
+          boxShadow: Theme13.shadows[0]
         },
         "&:not(.disabled).active.border": {
-          borderColor: `${Theme14.divider} ${Theme14.divider} #fff`,
+          borderColor: `${Theme13.divider} ${Theme13.divider} #fff`,
           borderBottomWidth: "1.5px"
         },
         ".tab-link": {
@@ -8344,7 +8418,7 @@ cssRule("i-tabs", {
       minHeight: "260px",
       $nest: {
         "&.border": {
-          border: `1px solid ${Theme14.divider}`,
+          border: `1px solid ${Theme13.divider}`,
           borderBottomLeftRadius: "0.25rem",
           borderBottomRightRadius: "0.25rem",
           padding: "0 1rem 1rem"
@@ -8364,7 +8438,7 @@ cssRule("i-tabs", {
 });
 
 // packages/tab/src/tab.ts
-var Tabs = class extends Control {
+var Tabs = class extends Container {
   constructor(parent, options) {
     super(parent, options, {
       width: 600
@@ -8547,7 +8621,7 @@ TabSheet = __decorateClass([
 ], TabSheet);
 
 // packages/markdown-editor/src/style/markdown-editor.css.ts
-var Theme15 = theme_exports.ThemeVars;
+var Theme14 = theme_exports.ThemeVars;
 cssRule("i-markdown-editor", {
   display: "block",
   $nest: {
@@ -8558,12 +8632,12 @@ cssRule("i-markdown-editor", {
     ".editor-tabs": {
       display: "block",
       position: "relative",
-      border: `1px solid ${Theme15.divider}`,
+      border: `1px solid ${Theme14.divider}`,
       borderRadius: "6px",
       $nest: {
         ".tabs": {
-          backgroundColor: Theme15.background.paper,
-          borderBottom: `1px solid ${Theme15.divider}`,
+          backgroundColor: Theme14.background.paper,
+          borderBottom: `1px solid ${Theme14.divider}`,
           borderTopLeftRadius: "6px",
           borderTopRightRadius: "6px",
           marginBottom: 0,
@@ -8589,32 +8663,32 @@ cssRule("i-markdown-editor", {
                 "i-icon": {
                   display: "inline-block",
                   verticalAlign: "middle",
-                  fill: Theme15.text.secondary
+                  fill: Theme14.text.secondary
                 },
                 "span": {
                   marginLeft: "6px",
                   fontSize: "14px",
                   lineHeight: "23px",
-                  color: Theme15.text.secondary,
+                  color: Theme14.text.secondary,
                   verticalAlign: "middle"
                 },
                 "&.active": {
                   borderTopLeftRadius: "6px",
                   borderTopRightRadius: "6px",
-                  backgroundColor: Theme15.colors.primary.main,
-                  borderColor: Theme15.divider,
+                  backgroundColor: Theme14.colors.primary.main,
+                  borderColor: Theme14.divider,
                   $nest: {
                     "&:first-of-type": {
                       borderColor: "transparent",
                       borderTopRightRadius: 0,
-                      borderRightColor: Theme15.divider
+                      borderRightColor: Theme14.divider
                     },
                     "i-icon": {
-                      fill: Theme15.text.primary
+                      fill: Theme14.text.primary
                     },
                     "span": {
                       fontWeight: 600,
-                      color: Theme15.text.primary
+                      color: Theme14.text.primary
                     }
                   }
                 }
@@ -8701,11 +8775,11 @@ MarkdownEditor = __decorateClass([
 ], MarkdownEditor);
 
 // packages/menu/src/style/menu-item.css.ts
-var Theme16 = theme_exports.ThemeVars;
+var Theme15 = theme_exports.ThemeVars;
 var menuItemId = style({});
 cssRule("i-menu-item", {
-  fontFamily: Theme16.typography.fontFamily,
-  fontSize: Theme16.typography.fontSize,
+  fontFamily: Theme15.typography.fontFamily,
+  fontSize: Theme15.typography.fontSize,
   position: "relative",
   $nest: {
     "*": {
@@ -8724,7 +8798,7 @@ cssRule("i-menu-item", {
           display: "none"
         },
         "> .link": {
-          color: Theme16.text.primary,
+          color: Theme15.text.primary,
           margin: 0,
           padding: 0,
           border: 0,
@@ -8753,6 +8827,7 @@ cssRule("i-menu-item", {
               alignItems: "center",
               justifyContent: "space-between",
               whiteSpace: "nowrap",
+              padding: ".75rem 1rem",
               $nest: {
                 svg: {
                   color: "inherit",
@@ -8776,7 +8851,6 @@ cssRule("i-menu-item", {
           display: "flex",
           alignItems: "center",
           width: "100%",
-          padding: ".5rem 1rem",
           opacity: 1,
           borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
           $nest: {
@@ -8784,13 +8858,12 @@ cssRule("i-menu-item", {
               flexDirection: "column",
               alignItems: "flex-start",
               justifyContent: "center",
-              paddingLeft: "1rem",
               letterSpacing: 0
             },
             ".content": {
               fontSize: "14px",
               fontWeight: 400,
-              color: Theme16.text.primary,
+              color: Theme15.text.primary,
               opacity: 0.64
             }
           }
@@ -8820,7 +8893,7 @@ cssRule("i-menu-item", {
       height: "52px",
       transition: "all 0.3s ease 0s",
       opacity: 0.68,
-      color: Theme16.text.primary,
+      color: Theme15.text.primary,
       fontSize: "16px",
       letterSpacing: 0,
       lineHeight: "20px",
@@ -8869,7 +8942,7 @@ cssRule("i-menu-item", {
           margin: 0,
           minWidth: 0,
           gap: "16px",
-          color: `${Theme16.text.primary}f5`,
+          color: `${Theme15.text.primary}f5`,
           textDecoration: "none",
           $nest: {
             ".title": {
@@ -8881,7 +8954,7 @@ cssRule("i-menu-item", {
               fontSize: "16px",
               fontWeight: 600,
               letterSpacing: "0.4px",
-              color: `${Theme16.text.primary}f5`
+              color: `${Theme15.text.primary}f5`
             }
           }
         },
@@ -8934,10 +9007,10 @@ var MenuItem = class extends Control {
     return this._href;
   }
   set href(value) {
-    this._href = value || "#";
+    this._href = value || "";
   }
   get linkTarget() {
-    return this._linkTarget;
+    return this._linkTarget || "_self";
   }
   set linkTarget(value) {
     this._linkTarget = value || "_self";
@@ -9174,7 +9247,7 @@ MenuItem = __decorateClass([
 ], MenuItem);
 
 // packages/menu/src/style/menu.css.ts
-var Theme17 = theme_exports.ThemeVars;
+var Theme16 = theme_exports.ThemeVars;
 var menuId = style({});
 var fadeInRight = keyframes({
   "0%": {
@@ -9187,8 +9260,8 @@ var fadeInRight = keyframes({
   }
 });
 cssRule("i-menu", {
-  fontFamily: Theme17.typography.fontFamily,
-  fontSize: Theme17.typography.fontSize,
+  fontFamily: Theme16.typography.fontFamily,
+  fontSize: Theme16.typography.fontSize,
   position: "relative",
   $nest: {
     "*": {
@@ -9250,7 +9323,7 @@ cssRule("i-menu", {
       boxShadow: "none",
       border: "none",
       backgroundColor: "transparent",
-      color: Theme17.text.primary,
+      color: Theme16.text.primary,
       cursor: "pointer"
     },
     "> nav.mobile": {
@@ -9340,6 +9413,9 @@ cssRule("i-menu", {
         ".submenu": {
           transition: "border-color .3s cubic-bezier(.645,.045,.355,1),background .3s cubic-bezier(.645,.045,.355,1),padding .15s cubic-bezier(.645,.045,.355,1)"
         },
+        ".submenu > .desktop .align": {
+          paddingLeft: ".5rem"
+        },
         "i-menu-item > .desktop": {
           $nest: {
             "~ i-menu": {
@@ -9397,7 +9473,7 @@ cssRule("i-menu", {
                   width: "100%"
                 },
                 "&:hover": {
-                  backgroundColor: Theme17.action.hover
+                  backgroundColor: Theme16.action.hover
                 }
               }
             }
@@ -9416,7 +9492,7 @@ cssRule("i-menu", {
                   padding: "5px 10px"
                 },
                 ".link:hover": {
-                  backgroundColor: Theme17.action.hover
+                  backgroundColor: Theme16.action.hover
                 }
               }
             }
@@ -9431,7 +9507,8 @@ cssRule("i-menu", {
 var Menu = class extends Control {
   constructor(parent, options) {
     super(parent, options, {
-      mode: "horizontal"
+      mode: "horizontal",
+      platform: "desktop"
     });
     this.isMobileMenuSwitching = false;
     this._menuItems = [];
@@ -9449,7 +9526,7 @@ var Menu = class extends Control {
     this._title = value;
   }
   get platform() {
-    return this._platform;
+    return this._platform || "desktop";
   }
   set platform(value) {
     if (!value || !["desktop", "mobile"].includes(value)) {
@@ -9711,46 +9788,47 @@ var Menu = class extends Control {
       item.active = isActive;
     });
   }
-  renderItems(items, isDropdown = false) {
+  renderItems(items) {
     if (!Array.isArray(items))
       return;
     let navElm = this.navElm;
     if (!navElm) {
       navElm = this.createElement("nav");
-      this.navElm = navElm;
+      navElm.classList.add(this.platform);
     }
-    navElm.classList.add(this.platform);
     const alignElm = this.createElement("div");
     alignElm.classList.add("align");
     items.forEach((item) => {
+      const hasChildren = item.items && item.items.length;
       const menuItem = new MenuItem();
       menuItem.platform = this.platform;
       menuItem.title = item.caption;
-      menuItem.href = item.href || "/#";
-      menuItem.isDropdown = isDropdown;
-      if (item.items && item.items.length)
-        menuItem.hasChildren = true;
+      menuItem.href = item.href || "";
+      menuItem.isDropdown = !!hasChildren;
+      menuItem.hasChildren = !!hasChildren;
+      menuItem.enabled = item.enabled === false ? false : true;
       menuItem.renderItem();
       if (item.items && item.items.length) {
-        const sub = this.renderItems(item.items, true);
-        menuItem.appendChild(sub);
+        const subMenu = new Menu();
+        subMenu.isDropdown = true;
+        subMenu.items = item.items;
+        menuItem.appendChild(subMenu);
       }
-      if (menuItem.platform === "desktop")
+      if (menuItem.platform === "desktop" && menuItem.enabled)
         menuItem.addEvent();
       alignElm.appendChild(menuItem);
     });
-    navElm.appendChild(alignElm);
-    if (isDropdown) {
-      const subMenu = new Menu();
-      subMenu.classList.add("submenu");
-      subMenu.appendChild(navElm);
+    if (this.isDropdown) {
       navElm.classList.add("dropdown");
-      return subMenu;
+      this.classList.add("submenu");
     } else {
-      this.navElm = navElm;
-      this.appendChild(this.navElm);
       this.classList.add("root-menu");
     }
+    this.classList.add(`${this.platform}-menu`);
+    this.id = `menu-${this.platform}-${new Date().getTime()}`;
+    navElm.appendChild(alignElm);
+    this.navElm = navElm;
+    this.appendChild(this.navElm);
   }
   append(...nodes) {
     switch (this.platform) {
@@ -9768,14 +9846,15 @@ var Menu = class extends Control {
         break;
     }
   }
-  init() {
+  async init() {
     if (!this.navElm) {
       this.title = this.getAttribute("title", true);
-      this.platform = this.getAttribute("platform", true);
+      this.platform = this.getAttribute("platform", true, "desktop");
       this.isDropdown = this.getAttribute("isDropdown", true);
       this.mode = this.getAttribute("mode");
-      if (this.attrs["items"]) {
-        this.items = this.attrs["items"];
+      const itemsAttr = this.attrs["items"] || this.getAttribute("items", true, []);
+      if (itemsAttr && itemsAttr.length) {
+        this.items = itemsAttr;
       } else {
         switch (this.platform) {
           case "desktop":
@@ -9868,7 +9947,7 @@ function bindObservable(elm, prop) {
     elm[prop] = changes[0].value;
   };
 }
-var Module = class extends Control {
+var Module = class extends Container {
   constructor(parent, options, defaults) {
     super(parent, options, defaults || {
       width: "inherit",
@@ -9877,6 +9956,11 @@ var Module = class extends Control {
     this.$renderElms = [];
     let proxy = ProxyObject(this, true);
     this.$render = this._render.bind(proxy);
+  }
+  static async create(options, parent, defaults) {
+    let self = new this(parent, options, defaults);
+    self.init();
+    return self;
   }
   init() {
     super.init();
@@ -9895,12 +9979,12 @@ var Module = class extends Control {
           let target = value.__target;
           let paths = value.__path;
           let targetValue = this.getValue(target, paths);
-          let observable4 = getObservable(target, paths);
-          if (isObservable(observable4)) {
+          let observable3 = getObservable(target, paths);
+          if (isObservable(observable3)) {
             if (paths.length > 0)
-              Observe(observable4, bindObservable(elm, prop), { path: paths.join(".") });
+              Observe(observable3, bindObservable(elm, prop), { path: paths.join(".") });
             else {
-              Observe(observable4, bindObservable(elm, prop));
+              Observe(observable3, bindObservable(elm, prop));
             }
           }
           elm[prop] = targetValue;
@@ -9952,23 +10036,18 @@ var Module = class extends Control {
   }
   onLoad() {
   }
-  static async create(options, parent, defaults) {
-    let component = new this(parent, options, defaults);
-    component.init();
-    return component;
-  }
 };
 Module = __decorateClass([
   customElements2("i-module")
 ], Module);
 
 // packages/label/src/style/label.css.ts
-var Theme18 = theme_exports.ThemeVars;
+var Theme17 = theme_exports.ThemeVars;
 var captionStyle2 = style({
   display: "inline-block",
-  color: Theme18.text.primary,
-  fontFamily: Theme18.typography.fontFamily,
-  fontSize: Theme18.typography.fontSize,
+  color: Theme17.text.primary,
+  fontFamily: Theme17.typography.fontFamily,
+  fontSize: Theme17.typography.fontSize,
   $nest: {
     "&.is-ellipsis": {
       whiteSpace: "nowrap",
@@ -10110,7 +10189,7 @@ var alignItemsEndStyle = style({
 });
 
 // packages/panel/src/panel.ts
-var Panel = class extends Control {
+var Panel = class extends Container {
   constructor(parent, options) {
     super(parent, options);
   }
@@ -10320,11 +10399,11 @@ HStack = __decorateClass([
 ], HStack);
 
 // packages/toast/src/style/toast.ts
-var Theme19 = theme_exports.ThemeVars;
+var Theme18 = theme_exports.ThemeVars;
 var toastStyle = style({});
 cssRule("i-toast", {
-  fontFamily: Theme19.typography.fontFamily,
-  fontSize: Theme19.typography.fontSize,
+  fontFamily: Theme18.typography.fontFamily,
+  fontSize: Theme18.typography.fontSize,
   $nest: {
     "*": {
       boxSizing: "border-box"
@@ -10851,14 +10930,14 @@ Toast = __decorateClass([
 ], Toast);
 
 // packages/tooltip/src/style/tooltip.css.ts
-var Theme20 = theme_exports.ThemeVars;
+var Theme19 = theme_exports.ThemeVars;
 var arrowBackgroundColor = "var(--tooltips-arrow-background, rgba(97, 97, 97, 0.92))";
 cssRule("body", {
   $nest: {
     ".ii-tooltip": {
       position: "absolute",
       display: "inline-block",
-      fontFamily: Theme20.typography.fontFamily,
+      fontFamily: Theme19.typography.fontFamily,
       backgroundColor: "rgba(97, 97, 97, 0.92)",
       borderRadius: "4px",
       color: "rgb(255, 255, 255)",
@@ -11163,75 +11242,42 @@ Tooltip = __decorateClass([
 ], Tooltip);
 
 // packages/tree-view/src/style/treeView.css.ts
-var Theme21 = theme_exports.ThemeVars;
+var Theme20 = theme_exports.ThemeVars;
 cssRule("i-tree-view", {
   display: "block",
   overflowY: "auto",
-  fontFamily: Theme21.typography.fontFamily,
-  fontSize: Theme21.typography.fontSize,
+  fontFamily: Theme20.typography.fontFamily,
+  fontSize: Theme20.typography.fontSize,
   $nest: {
-    "> i-tree-view-node:not(.custom-left).has-children": {
-      marginLeft: "1em"
-    },
-    ".tree-content": {
+    ".i-tree-node_content": {
       display: "flex",
       alignItems: "center"
     },
-    "i-tree-view-node": {
+    "i-tree-node": {
       display: "block",
       position: "relative"
     },
-    "i-tree-view-node.is-checked > .tree-child-node": {
+    "i-tree-node.is-checked > .i-tree-node_children": {
       display: "block"
     },
-    input: {
+    "i-tree-node.is-checked > .i-tree-node_content > .i-tree-node_icon": {
+      transform: "rotate(90deg)"
+    },
+    'input[type="checkbox"]': {
       position: "absolute",
       clip: "rect(0, 0, 0, 0)"
     },
-    ".tree-child-node": {
+    ".i-tree-node_children": {
       display: "none"
     },
-    "input:checked ~ .tree-child-node": {
-      display: "block"
-    },
-    ".tree_label": {
+    ".i-tree-node_label": {
       position: "relative",
       display: "inline-block",
       width: "100%",
-      color: Theme21.text.primary,
-      cursor: "pointer",
-      $nest: {
-        "&.hidden-icon": {
-          $nest: {
-            "&:before": {
-              content: "none!important"
-            },
-            "&:after": {
-              content: "none"
-            }
-          }
-        }
-      }
+      color: Theme20.text.primary,
+      cursor: "pointer"
     },
-    ".tree_label:hover": {
-      color: "#55f"
-    },
-    "input ~ .tree_label.is-custom": {
-      maxWidth: "calc(100% - 15px)"
-    },
-    ".icon-right": {
-      display: "inline-block",
-      width: "14px",
-      height: "14px",
-      position: "absolute",
-      top: "1px",
-      right: 0,
-      transition: "all ease 0.4s"
-    },
-    "input:checked ~ .tree_label > .icon-right": {
-      transform: "rotate(90deg)"
-    },
-    ".icon-left": {
+    ".i-tree-node_icon": {
       display: "none",
       transition: "all ease 0.4s",
       paddingRight: ".7em",
@@ -11242,120 +11288,130 @@ cssRule("i-tree-view", {
         }
       }
     },
-    "input ~ .icon-left": {
+    "input ~ .i-tree-node_icon": {
       display: "inline-block"
     },
-    "input:checked ~ .icon-left": {
-      display: "inline-block",
-      transform: "rotate(90deg)"
+    "input ~ .i-tree-node_label": {
+      maxWidth: "calc(100% - 15px)"
     },
-    "input ~ .tree_label:not(.is-custom):before": {
-      background: Theme21.colors.primary.main,
-      color: Theme21.colors.primary.contrastText,
-      position: "relative",
-      zIndex: "1",
-      float: "left",
-      margin: "0 1em 0 -2em",
-      width: "1em",
-      height: "1em",
-      borderRadius: "0.2em",
-      content: "'+'",
-      textAlign: "center",
-      lineHeight: ".9em"
-    },
-    "input:checked ~ .tree_label:not(.is-custom):before": {
-      content: "'\u2013'"
-    },
-    "i-tree-view-node:not(.custom-left)": {
-      padding: "0 0 1em 1em",
-      $nest: {
-        "&.active": {
-          $nest: {
-            "> .tree_label": {
-              color: "#55f"
-            }
-          }
-        }
-      }
-    },
-    ".tree-child-node i-tree-view-node:not(.custom-left)": {
-      padding: "1em 0 0 1em"
-    },
-    "i-tree-view-node:not(.custom-left):last-of-type:before": {
-      height: "1em",
-      bottom: "auto"
-    },
-    " i-tree-view-node:not(.custom-left):before": {
-      position: "absolute",
-      top: "0",
-      bottom: "0",
-      left: "-.5em",
-      display: "block",
-      width: "0",
-      borderLeft: `1px solid ${Theme21.divider}`,
-      content: "''"
-    },
-    " i-tree-view-node.hidden-icon": {
-      marginLeft: 0,
-      $nest: {
-        "&:before": {
-          content: "none"
-        }
-      }
-    },
-    "i-tree-view-node:not(.custom-left) .tree_label:after": {
-      position: "absolute",
-      top: "0",
-      left: "-1.5em",
-      display: "block",
-      height: "0.5em",
-      width: "1em",
-      borderBottom: `1px solid ${Theme21.divider}`,
-      borderLeft: `1px solid ${Theme21.divider}`,
-      borderRadius: " 0 0 0 0",
-      content: "''"
-    },
-    "i-tree-view-node:not(.custom-left) input:checked ~ .tree_label:after": {
-      borderRadius: "0 .1em 0 0",
-      borderTop: `1px solid ${Theme21.divider}`,
-      borderRight: `0.5px solid ${Theme21.divider}`,
-      borderBottom: "0",
-      borderLeft: "0",
-      bottom: "0",
-      top: "0.5em",
-      height: "auto"
-    },
-    ".custom-left": {
+    "&.i-tree-view": {
       padding: 0,
       position: "relative",
       $nest: {
         ".is-checked:before": {
-          borderLeft: `1px solid ${Theme21.divider}`,
-          left: 6.4,
-          bottom: 5,
+          borderLeft: `1px solid ${Theme20.divider}`,
           height: "calc(100% - 1em)",
           top: "1em"
         },
-        ".tree-child-node > .is-checked:before": {
+        ".i-tree-node_children > .is-checked:before": {
           height: "calc(100% - 25px)",
           top: 25
         },
-        ".tree-child-node > i-tree-view-node > .tree-content": {
-          paddingLeft: "1.2em"
+        "i-tree-node.active > .i-tree-node_content": {
+          backgroundColor: Theme20.action.selected,
+          border: `1px solid ${Theme20.colors.info.dark}`,
+          color: Theme20.text.primary
         },
-        "&.active > .tree-content": {
-          backgroundColor: Theme21.action.selected,
-          border: `1px solid ${Theme21.colors.info.dark}`,
-          color: Theme21.text.primary
+        ".i-tree-node_content:hover": {
+          backgroundColor: Theme20.action.hover
         },
-        ".tree-content:hover": {
-          backgroundColor: Theme21.action.hover
-        },
-        "input": {
+        'input[type="checkbox"]': {
           margin: 0
         },
-        ".tree_label": {
+        ".i-tree-node_label": {
           padding: ".2rem .3rem"
+        }
+      }
+    },
+    "&.shown-line": {
+      $nest: {
+        "> i-tree-node.has-children": {
+          marginLeft: "1em"
+        },
+        "input ~ .i-tree-node_label:before": {
+          background: Theme20.colors.primary.main,
+          color: Theme20.colors.primary.contrastText,
+          position: "relative",
+          zIndex: "1",
+          float: "left",
+          margin: "0 1em 0 -2em",
+          width: "1em",
+          height: "1em",
+          borderRadius: "0.2em",
+          content: "'+'",
+          textAlign: "center",
+          lineHeight: ".9em"
+        },
+        "input:checked ~ .i-tree-node_label:before": {
+          content: "'\u2013'"
+        },
+        "i-tree-node": {
+          padding: "0 0 1em 1em",
+          $nest: {
+            "&.active": {
+              $nest: {
+                "> .i-tree-node_label": {
+                  color: "#55f"
+                }
+              }
+            }
+          }
+        },
+        ".i-tree-node_children i-tree-node": {
+          padding: ".5em 0 0 .9em"
+        },
+        "i-tree-node:last-of-type:before": {
+          height: "1em",
+          bottom: "auto"
+        },
+        " i-tree-node:before": {
+          position: "absolute",
+          top: "0",
+          bottom: "0",
+          left: "-.1em",
+          display: "block",
+          width: "1px",
+          borderLeft: `1px solid ${Theme20.divider}`,
+          content: "''"
+        },
+        ".i-tree-node_icon": {
+          display: "none"
+        },
+        ".i-tree-node_content": {
+          paddingLeft: `0 !important`
+        },
+        "i-tree-node .i-tree-node_label:after": {
+          position: "absolute",
+          top: ".25em",
+          left: "-1em",
+          display: "block",
+          height: "0.5em",
+          width: "1em",
+          borderBottom: `1px solid ${Theme20.divider}`,
+          borderLeft: `1px solid ${Theme20.divider}`,
+          borderRadius: " 0 0 0 0",
+          content: "''"
+        },
+        "i-tree-node input:checked ~ .i-tree-node_label:after": {
+          borderRadius: "0 .1em 0 0",
+          borderTop: `1px solid ${Theme20.divider}`,
+          borderRight: `0.5px solid ${Theme20.divider}`,
+          borderBottom: "0",
+          borderLeft: "0",
+          bottom: "0",
+          height: "auto",
+          top: ".5em"
+        }
+      }
+    },
+    ".text-input": {
+      border: "none",
+      outline: "0",
+      height: "100%",
+      width: "100%",
+      $nest: {
+        "&:focus": {
+          borderBottom: `2px solid ${Theme20.colors.primary.main}`
         }
       }
     }
@@ -11363,12 +11419,98 @@ cssRule("i-tree-view", {
 });
 
 // packages/tree-view/src/treeView.ts
+var Theme21 = theme_exports.ThemeVars;
 var TreeView = class extends Control {
   constructor(parent, options) {
-    super(parent, options);
+    super(parent, options, {
+      editable: false
+    });
+    this._items = [];
+  }
+  get activeItem() {
+    return this._activeItem;
+  }
+  set activeItem(value) {
+    this._activeItem = value;
+    const treeNodes = Array.from(this.querySelectorAll("i-tree-node"));
+    treeNodes.forEach((treeNode) => treeNode.active = false);
+    if (value)
+      value.active = true;
+  }
+  get dataSource() {
+    return this._data || [];
+  }
+  set dataSource(value) {
+    this._data = value;
+    this.renderTree();
+  }
+  get items() {
+    return this._items || [];
+  }
+  get editable() {
+    return this._editable;
+  }
+  set editable(value) {
+    this._editable = value;
+  }
+  async add(parentNode, caption) {
+    const childData = { caption, children: [] };
+    const childNode = await TreeNode.create(__spreadValues({}, childData));
+    childNode.nodeLevel = parentNode.nodeLevel + 1;
+    childNode.editable = this.editable;
+    if (this.onRenderNode && typeof this.onRenderNode === "function")
+      this.onRenderNode(this, childNode);
+    parentNode.appendNode(childNode);
+    return childNode;
+  }
+  delete(node) {
+    if ((node == null ? void 0 : node.nodeLevel) === 0) {
+      const findedIndex = this.dataSource.findIndex((nodeItem) => nodeItem.order === node.order);
+      findedIndex !== -1 && this.dataSource.splice(findedIndex, 1);
+      node.remove();
+    } else {
+      const parentNode = node.closest("i-tree-node");
+      parentNode && parentNode.removeNode(node);
+    }
+  }
+  async renderTreeNode(node, level = 0) {
+    const treeNode = await TreeNode.create(__spreadValues({}, node));
+    treeNode.nodeLevel = level;
+    treeNode.editable = this.editable;
+    if (this.onRenderNode && typeof this.onRenderNode === "function")
+      this.onRenderNode(this, treeNode);
+    if (node.children && !node.isLazyLoad) {
+      for (const child2 of node.children) {
+        const childNode = await this.renderTreeNode(child2, level + 1);
+        const childWrapper = treeNode.querySelector(".i-tree-node_children");
+        childWrapper && childWrapper.appendChild(childNode);
+      }
+    }
+    return treeNode;
+  }
+  async renderTree() {
+    for (const node of this.dataSource) {
+      let treeNode = await this.renderTreeNode(node, 0);
+      this.appendChild(treeNode);
+      const activedNode = treeNode.querySelector(".active");
+      if (activedNode) {
+        treeNode.classList.add("is-checked");
+        const inputArr = Array.from(treeNode.querySelectorAll('input[type="checkbox"]'));
+        inputArr.forEach((input) => input.checked = true);
+        this.activeItem = activedNode;
+      }
+      this._items.push(treeNode);
+    }
   }
   init() {
-    super.init();
+    if (!this.initialized) {
+      super.init();
+      this.classList.add("i-tree-view");
+      this.editable = this.getAttribute("editable", true);
+      this.dataSource = this.attrs["data"];
+      const activeAttr = this.attrs["activeItem"];
+      activeAttr && (this.activeItem = activeAttr);
+    }
   }
   static async create(options, parent) {
     let component = new this(parent, options);
@@ -11379,27 +11521,27 @@ var TreeView = class extends Control {
 TreeView = __decorateClass([
   customElements2("i-tree-view")
 ], TreeView);
-var TreeViewNode = class extends Control {
+var beforeExpandEvent = new Event("beforeExpand");
+var TreeNode = class extends Control {
   constructor(parent, options) {
     super(parent, options);
+    this._nodeLevel = 0;
+    this._editable = false;
+    options && (this.nodeData = options);
   }
   get caption() {
     return this._caption;
   }
   set caption(value) {
     this._caption = value;
-  }
-  get useIcon() {
-    return this._useIcon;
-  }
-  set useIcon(value) {
-    this._useIcon = value;
+    if (this._captionElm)
+      this._captionElm.innerHTML = value;
   }
   get collapsible() {
     return this._collapsible;
   }
   set collapsible(value) {
-    if (typeof value == "boolean") {
+    if (typeof value === "boolean") {
       this._collapsible = value;
     } else {
       this._collapsible = true;
@@ -11409,27 +11551,17 @@ var TreeViewNode = class extends Control {
     return this._expanded;
   }
   set expanded(value) {
-    if (typeof value == "boolean") {
+    if (typeof value === "boolean") {
       this._expanded = value;
     } else {
       this._expanded = false;
-    }
-  }
-  get useIconRight() {
-    return this._useIconRight;
-  }
-  set useIconRight(value) {
-    if (typeof value == "boolean") {
-      this._useIconRight = value;
-    } else {
-      this._useIconRight = false;
     }
   }
   get active() {
     return this._active;
   }
   set active(value) {
-    if (typeof value == "boolean") {
+    if (typeof value === "boolean") {
       this._active = value;
       this.active ? this.classList.add("active") : this.classList.remove("active");
     } else {
@@ -11437,48 +11569,144 @@ var TreeViewNode = class extends Control {
       this.classList.remove("active");
     }
   }
-  get font() {
-    return {
-      color: this._captionElm.style.color,
-      name: this._captionElm.style.fontFamily,
-      size: this._captionElm.style.fontSize,
-      bold: this._captionElm.style.fontStyle.indexOf("bold") >= 0
-    };
+  get isLazyLoad() {
+    return this._isLazyLoad;
   }
-  set font(value) {
-    this._captionElm.style.color = value.color || "";
-    this._captionElm.style.fontSize = value.size || "";
-    this._captionElm.style.fontWeight = value.bold ? "bold" : "";
-    this._captionElm.style.fontFamily = value.name || "";
+  set isLazyLoad(value) {
+    this._isLazyLoad = value;
   }
-  get titleRender() {
-    return this._titleRender;
+  get nodeLevel() {
+    return this._nodeLevel || 0;
   }
-  set titleRender(value) {
-    this._titleRender = value;
-    if (typeof this._titleRender === "function") {
-      const renderedElm = this._titleRender();
-      if (typeof renderedElm === "string") {
-        this._captionElm.innerHTML = renderedElm;
-      } else {
-        this._captionElm.innerHTML = "";
-        this._captionElm.appendChild(renderedElm);
-      }
+  set nodeLevel(value) {
+    this._nodeLevel = value;
+    if (this._wrapperElm)
+      this._wrapperElm.style.paddingLeft = `${this.nodeLevel}em`;
+  }
+  get order() {
+    return this._order;
+  }
+  set order(value) {
+    this._order = value;
+  }
+  get editable() {
+    return this._editable;
+  }
+  set editable(value) {
+    this._editable = value;
+    if (value)
+      this.addEventListener("dblclick", this.handleEdit.bind(this));
+    else
+      this.removeEventListener("dblclick", this.handleEdit.bind(this));
+  }
+  get rootParent() {
+    return this.closest("i-tree-view");
+  }
+  handleLazyLoad() {
+    const fn = this.rootParent.onLazyLoad;
+    if (fn && typeof fn === "function")
+      fn(this.rootParent, this);
+  }
+  handleEdit(event) {
+    event.stopImmediatePropagation();
+    event.preventDefault();
+    const captionInput = this.createElement("input");
+    captionInput.value = this.caption;
+    captionInput.classList.add("text-input");
+    this._captionElm.innerHTML = "";
+    this._captionElm.appendChild(captionInput);
+    captionInput.focus();
+    this.click();
+    captionInput.addEventListener("blur", (event2) => {
+      event2.preventDefault();
+      const newValue = captionInput.value;
+      this.handleChange(this, this.caption, newValue);
+      this._captionElm.innerHTML = "";
+      this._captionElm.textContent = newValue;
+    });
+  }
+  edit() {
+    this.editable = true;
+  }
+  handleActive(source, event) {
+    event.stopPropagation();
+    const fn = this.rootParent.onActiveChange;
+    if (fn && typeof fn === "function")
+      fn(this.rootParent, this.rootParent.activeItem);
+    this.rootParent.activeItem = this;
+  }
+  handleChange(target, oldValue, newValue) {
+    const fn = this.rootParent.onChange;
+    if (fn && typeof fn === "function")
+      fn(this.rootParent, target, oldValue, newValue);
+  }
+  handleContextMenu() {
+    const fn = this.rootParent.onContextMenu;
+    if (fn && typeof fn === "function")
+      fn(this.rootParent, this);
+  }
+  handleMouseEnter() {
+    const fn = this.rootParent.onMouseEnterNode;
+    if (fn && typeof fn === "function")
+      fn(this.rootParent, this);
+  }
+  handleMouseLeave() {
+    const fn = this.rootParent.onMouseLeaveNode;
+    if (fn && typeof fn === "function")
+      fn(this.rootParent, this);
+  }
+  registerEvents() {
+    this.onClick = this.handleActive.bind(this);
+    this.addEventListener("contextmenu", () => this.handleContextMenu());
+    this.addEventListener("mouseenter", () => this.handleMouseEnter());
+    this.addEventListener("mouseleave", () => this.handleMouseLeave());
+    this.addEventListener("beforeExpand", (event) => this.handleLazyLoad());
+  }
+  appendNode(childNode) {
+    if (!this._childNodeElm)
+      this.initChildNodeElm();
+    this._childNodeElm.appendChild(childNode);
+    if (!this.nodeData.children)
+      this.nodeData.children = [];
+    this.nodeData.children.push(childNode.nodeData);
+  }
+  removeNode(node) {
+    const children = node.nodeData.children || [];
+    if (children.length) {
+      const index = children.findIndex((item) => item.order === node.order);
+      index !== -1 && children.splice(index, 1);
     }
+    node.remove();
+  }
+  initChildNodeElm() {
+    this.classList.add("has-children");
+    this._expandElm = this.createElement("input", this._wrapperElm);
+    this._expandElm.type = "checkbox";
+    if (this.expanded)
+      this._expandElm.checked = true;
+    if (this._iconElm)
+      this._wrapperElm.insertBefore(this._expandElm, this._iconElm);
+    else
+      this._wrapperElm.insertBefore(this._expandElm, this._captionElm);
+    this._childNodeElm = this.createElement("div", this);
+    this._childNodeElm.classList.add("i-tree-node_children");
   }
   init() {
+    var _a, _b;
     if (!this._captionElm) {
       let caption = this.getAttribute("caption", true);
-      let useIcon = this.getAttribute("useIcon", true);
+      let iconAttr = this.attrs["icon"] || this.getAttribute("icon", true);
+      let imageAttr = this.attrs["image"] || this.getAttribute("image", true);
       let collapsible = this.getAttribute("collapsible", true);
       let expanded = this.getAttribute("expanded", true);
-      let useIconRight = this.getAttribute("useIconRight", true);
       let active = this.getAttribute("active", true);
-      this.useIcon = useIcon;
+      let isLazyLoad = this.getAttribute("isLazyLoad", true);
+      let orderAttr = this.getAttribute("order", true);
       this.collapsible = collapsible;
       this.expanded = expanded;
-      this.useIconRight = useIconRight;
       this.active = active;
+      this.isLazyLoad = isLazyLoad;
+      this.order = orderAttr;
       if (this.collapsible) {
         this.onclick = (event) => {
           event.stopPropagation();
@@ -11489,64 +11717,29 @@ var TreeViewNode = class extends Control {
             else
               this.classList.remove("is-checked");
           }
+          if (this.isLazyLoad)
+            this.dispatchEvent(beforeExpandEvent);
         };
       }
-      let childNodes = [];
-      for (let i = 0; i < this.childNodes.length; i++)
-        childNodes.push(this.childNodes[i]);
       this._wrapperElm = this.createElement("div", this);
-      this._wrapperElm.classList.add("tree-content");
+      this._wrapperElm.classList.add("i-tree-node_content");
       this._captionElm = this.createElement("label", this._wrapperElm);
-      this._captionElm.classList.add("tree_label");
-      this._caption = caption;
-      this._captionElm.innerHTML = caption;
-      this.titleRender = this.attrs["titleRender"];
-      if (this.useIconRight) {
-        const iconRight = new Icon(this, {
-          name: "chevron-right",
-          fill: "#5c6975"
-        });
-        iconRight.classList.add("icon-right");
-        this._captionElm.appendChild(iconRight);
-      }
-      if (!this.useIcon) {
-        this.classList.add("hidden-icon");
-        this._captionElm.classList.add("hidden-icon");
-      } else {
-        if (typeof this.useIcon === "string") {
-          this._iconElm = new Icon(this, {
-            name: this.useIcon,
-            fill: "#5c6975",
-            width: 14,
-            height: 14
-          });
-          this.classList.add("custom-left");
-          this._iconElm.classList.add("icon-left");
-          this._captionElm.appendChild(this._iconElm);
-          this._wrapperElm.insertBefore(this._iconElm, this._captionElm);
-          this._captionElm.classList.add("is-custom");
-        }
-      }
-      if (childNodes.length > 0) {
-        this.classList.add("has-children");
-        this._expandElm = this.createElement("input", this._wrapperElm);
-        this._expandElm.type = "checkbox";
-        if (this.expanded) {
-          this._expandElm.checked = true;
-        }
-        if (this._iconElm) {
-          this._wrapperElm.insertBefore(this._expandElm, this._iconElm);
-        } else {
-          this._wrapperElm.insertBefore(this._expandElm, this._captionElm);
-        }
-        this._childNodeElm = this.createElement("div", this);
-        this._childNodeElm.classList.add("tree-child-node");
-        for (let i = 0; i < childNodes.length; i++) {
-          this._childNodeElm.appendChild(childNodes[i]);
-        }
-      }
-      if (this.attrs.font)
-        this.font = this.attrs.font;
+      this._captionElm.classList.add("i-tree-node_label");
+      this.caption = caption;
+      const defaultIcon = new Icon(this, {
+        name: "caret-right",
+        fill: Theme21.text.secondary,
+        width: 12,
+        height: 12
+      });
+      this._iconElm = iconAttr || imageAttr || defaultIcon;
+      this.classList.add("i-tree-node");
+      this._iconElm.classList.add("i-tree-node_icon");
+      this._captionElm.appendChild(this._iconElm);
+      this._wrapperElm.insertBefore(this._iconElm, this._captionElm);
+      if ((_b = (_a = this.nodeData) == null ? void 0 : _a.children) == null ? void 0 : _b.length)
+        this.initChildNodeElm();
+      this.registerEvents();
     }
     super.init();
   }
@@ -11556,9 +11749,9 @@ var TreeViewNode = class extends Control {
     return component;
   }
 };
-TreeViewNode = __decorateClass([
-  customElements2("i-tree-view-node")
-], TreeViewNode);
+TreeNode = __decorateClass([
+  customElements2("i-tree-node")
+], TreeNode);
 
 // packages/search/src/style/search.css.ts
 var Theme22 = theme_exports.ThemeVars;
@@ -12633,15 +12826,14 @@ var Collapse = class extends Control {
     this.setAttribute("expanded", `${value}`);
     if (value === true) {
       this.classList.add("is-active");
-      this.wrapperElm.style.maxHeight = this.wrapperElm.scrollHeight ? this.wrapperElm.scrollHeight + "px" : "100%";
+      this.wrapperElm && (this.wrapperElm.style.maxHeight = this.wrapperElm.scrollHeight ? this.wrapperElm.scrollHeight + "px" : "100%");
     } else {
       this.classList.remove("is-active");
-      this.wrapperElm.style.maxHeight = "0px";
+      this.wrapperElm && (this.wrapperElm.style.maxHeight = "0px");
     }
     const summaryElm = this.querySelector("i-collapse-summary");
-    if (summaryElm) {
+    if (summaryElm)
       summaryElm.updateIcon();
-    }
   }
   get hasBorder() {
     return this._hasBorder;
@@ -12662,7 +12854,7 @@ var Collapse = class extends Control {
       this.onChange(this, this.expanded);
   }
   init() {
-    if (!this.initialized) {
+    if (!this.wrapperElm) {
       super.init();
       let childNodes = [];
       for (let i = 0; i < this.childNodes.length; i++)
@@ -13898,458 +14090,6 @@ Timeline = __decorateClass([
   customElements2("i-timeline")
 ], Timeline);
 
-// packages/grid/src/style/grid.css.ts
-var widths = ["8.33333%", "16.66666%", "24.99999%", "33.33333%", "41.66666%", "49.99999%", "58.33333%", "66.66666%", "74.99999%", "83.33333%", "91.66666%", "99.99999%"];
-function createColStyles(size) {
-  let classList = {};
-  for (let i = 0; i < widths.length; i++) {
-    const num = i + 1;
-    const formatted = size ? "-" + size : "";
-    classList = __spreadProps(__spreadValues({}, classList), {
-      [`&.i-col${formatted}-${num}`]: {
-        width: widths[i]
-      },
-      [`&.i-col${formatted}-offset-${num}`]: {
-        marginLeft: widths[i]
-      },
-      [`&.i-col${formatted}-pull-${num}`]: {
-        position: "relative",
-        right: widths[i]
-      },
-      [`&.i-col${formatted}-push-${num}`]: {
-        position: "relative",
-        left: widths[i]
-      }
-    });
-  }
-  return classList;
-}
-cssRule("i-row", {
-  boxSizing: "border-box",
-  display: "block",
-  $nest: {
-    "*": {
-      boxSizing: "border-box"
-    },
-    "&:before": {
-      content: '""',
-      display: "table",
-      clear: "both"
-    },
-    "&:after": {
-      content: '""',
-      display: "table",
-      clear: "both"
-    },
-    "&.i-row-padding": {
-      padding: "0 8px"
-    },
-    "&.i-row--flex": {
-      display: "flex",
-      flexWrap: "wrap",
-      $nest: {
-        "&.is-align-middle": {
-          alignItems: "center"
-        },
-        "&.is-align-bottom": {
-          alignItems: "flex-end"
-        },
-        "&.is-justify-end": {
-          justifyContent: "flex-end"
-        },
-        "&.is-justify-center": {
-          justifyContent: "center"
-        },
-        "&.is-justify-space-around": {
-          justifyContent: "space-around"
-        },
-        "&.is-justify-space-between": {
-          justifyContent: "space-between"
-        }
-      }
-    },
-    "&.i-row--flex:after, &.i-row--flex:before": {
-      display: "none"
-    },
-    "i-col": {
-      $nest: {
-        "@media only screen and (min-width: 576px)": {
-          $nest: __spreadValues({}, createColStyles("xs"))
-        },
-        "@media only screen and (min-width: 768px)": {
-          $nest: __spreadValues({}, createColStyles("sm"))
-        },
-        "@media only screen and (min-width: 992px)": {
-          $nest: __spreadValues({}, createColStyles("md"))
-        },
-        "@media only screen and (min-width: 1200px)": {
-          $nest: __spreadValues({}, createColStyles("lg"))
-        }
-      }
-    }
-  }
-});
-cssRule("i-col", {
-  float: "left",
-  width: "100%",
-  boxSizing: "border-box",
-  $nest: __spreadValues({
-    "*": {
-      boxSizing: "border-box"
-    }
-  }, createColStyles(""))
-});
-cssRule(".i-cell", {
-  display: "table-cell",
-  $nest: {
-    "&.i-cell-top": {
-      verticalAlign: "top"
-    },
-    "&.i-cell-middle": {
-      verticalAlign: "middle"
-    },
-    "&.i-cell-bottom": {
-      verticalAlign: "bottom"
-    }
-  }
-});
-cssRule(".i-cell-row", {
-  display: "table",
-  width: "100%",
-  $nest: {
-    "&:before": {
-      content: '""',
-      display: "table",
-      clear: "both"
-    },
-    "&:after": {
-      content: '""',
-      display: "table",
-      clear: "both"
-    }
-  }
-});
-
-// packages/grid/src/grid.ts
-var defaultRowConfig = {
-  gutter: 0,
-  align: "top",
-  justify: "start",
-  wrap: true
-};
-var Row = class extends Control {
-  constructor(parent, options) {
-    super(parent, options, __spreadValues({}, defaultRowConfig));
-  }
-  get gutter() {
-    return this._gutter;
-  }
-  set gutter(value) {
-    this._gutter = value || 0;
-    const half = Math.ceil(this._gutter / 2);
-    this.style.marginLeft = `-${half}px`;
-    this.style.marginRight = `-${half}px`;
-    if (this.children && this.children.length) {
-      for (let i = 0; i < this.children.length; i++) {
-        const elm = this.children[i];
-        elm.style.paddingLeft = `${half}px`;
-        elm.style.paddingRight = `${half}px`;
-      }
-    }
-  }
-  get isFlex() {
-    return this._isFlex;
-  }
-  set isFlex(value) {
-    this._isFlex = value;
-    value ? this.classList.add("i-row--flex") : this.classList.remove("i-row--flex");
-  }
-  get justify() {
-    return this._justify;
-  }
-  set justify(value) {
-    this._justify = value;
-    value && value !== "start" && this.classList.add(`is-justify-${value}`);
-  }
-  get align() {
-    return this._align;
-  }
-  set align(value) {
-    this._align = value;
-    value && value !== "top" && this.classList.add(`is-align-${value}`);
-  }
-  init() {
-    if (!this.initialized) {
-      super.init();
-      const flexAttr = this.getAttribute("isFlex", true);
-      if (flexAttr) {
-        this.isFlex = flexAttr;
-        this.justify = this.getAttribute("justify", true);
-        this.align = this.getAttribute("align", true);
-        const wrapAttr = this.getAttribute("wrap", true);
-        this.style.flexWrap = wrapAttr ? "wrap" : "nowrap";
-      }
-      const gutterAttr = this.getAttribute("gutter", true);
-      gutterAttr && (this.gutter = gutterAttr);
-    }
-  }
-};
-Row = __decorateClass([
-  customElements2("i-row")
-], Row);
-var defaultColConfig = {
-  offset: 0,
-  pull: 0,
-  push: 0,
-  span: 12
-};
-var Col = class extends Control {
-  constructor(parent, options) {
-    super(parent, options, __spreadValues({}, defaultColConfig));
-  }
-  initValue() {
-    ["span", "offset", "pull", "push"].forEach((prop) => {
-      const attrValue = +this.getAttribute(prop, true);
-      if (attrValue) {
-        this.classList.add(prop !== "span" ? `i-col-${prop}-${attrValue}` : `i-col-${attrValue}`);
-      }
-    });
-    ["xs", "sm", "md", "lg"].forEach((size) => {
-      const sizeValue = this.getAttribute(size, true);
-      if (!sizeValue)
-        return;
-      try {
-        const parsedSizeValue = +sizeValue;
-        if (typeof parsedSizeValue === "number" && !isNaN(parsedSizeValue)) {
-          this.classList.add(`i-col-${size}-${sizeValue}`);
-        } else {
-          const parsedData = JSON.parse(sizeValue);
-          Object.keys(parsedData).forEach((prop) => {
-            this.classList.add(prop !== "span" ? `i-col-${size}-${prop}-${parsedData[prop]}` : `i-col-${size}-${parsedData[prop]}`);
-          });
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    });
-  }
-  init() {
-    if (!this.initialized) {
-      super.init();
-      this.initValue();
-    }
-  }
-};
-Col = __decorateClass([
-  customElements2("i-col")
-], Col);
-
-// packages/layout/src/style/layout.css.ts
-var Theme32 = theme_exports.ThemeVars;
-cssRule("i-header", {
-  boxSizing: "border-box",
-  flex: "0 0 auto",
-  maxWidth: "100%",
-  width: "100%",
-  padding: "0 1rem"
-});
-cssRule("i-footer", {
-  boxSizing: "border-box",
-  flex: "0 0 auto",
-  maxWidth: "100%",
-  width: "100%",
-  padding: "0 1rem"
-});
-cssRule("i-aside", {
-  boxSizing: "border-box",
-  height: "100vh",
-  maxHeight: "100%",
-  maxWidth: "100%",
-  flex: "0 0 auto",
-  padding: "0 1rem",
-  transition: "all 0.3s ease",
-  background: "#fff",
-  position: "relative",
-  $nest: {
-    "&.i-aside--collapsed-zero": {
-      padding: 0
-    },
-    ".i-aside_hambuger": {
-      display: "none",
-      boxShadow: "none",
-      border: "none",
-      backgroundColor: Theme32.colors.primary.main,
-      color: Theme32.text.primary,
-      cursor: "pointer",
-      position: "absolute",
-      zIndex: 99,
-      width: 40,
-      height: 40,
-      padding: 0,
-      top: 0,
-      right: -40,
-      transition: "all .3s ease"
-    },
-    "&.i-aside--collapsed-zero .i-aside_hambuger": {
-      display: "block"
-    },
-    "&.i-aside--collapsed-zero .i-aside_hambuger img": {
-      opacity: 1
-    },
-    "&.i-aside--collapsed-zero *:not(.i-aside_hambuger)": {
-      opacity: 0
-    }
-  }
-});
-cssRule("i-main", {
-  boxSizing: "border-box",
-  flex: "auto",
-  minHeight: 0,
-  padding: "0 1rem"
-});
-cssRule("i-section", {
-  display: "block"
-});
-
-// packages/layout/src/layout.ts
-var Main = class extends Control {
-  constructor(parent, options) {
-    super(parent, options);
-  }
-  init() {
-    if (!this.initialized) {
-      super.init();
-    }
-  }
-};
-Main = __decorateClass([
-  customElements2("i-main")
-], Main);
-var Aside = class extends Control {
-  constructor(parent, options) {
-    super(parent, options, {
-      width: 300,
-      collapsedWidth: 80
-    });
-    this.hambugerIcon = "data:image/svg+xml,%3csvg width='32' height='32' viewBox='0 0 32 32' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3cg opacity='0.88'%3e%3cpath d='M9 10H23' stroke='white' stroke-miterlimit='1.55572'/%3e%3cpath d='M12 16L20 16' stroke='white' stroke-miterlimit='1.55572'/%3e%3cpath d='M9 22H23' stroke='white' stroke-miterlimit='1.55572'/%3e%3c/g%3e%3c/svg%3e";
-  }
-  get breakpoint() {
-    return this._breakpoint;
-  }
-  set breakpoint(value) {
-    this._breakpoint = value;
-  }
-  get breakpointWidth() {
-    const mapData = {
-      "xs": 575,
-      "sm": 768,
-      "md": 992,
-      "lg": 1200
-    };
-    return mapData[this.breakpoint] || 0;
-  }
-  get collapsedWidth() {
-    return this._collapsedWidth;
-  }
-  set collapsedWidth(value) {
-    this._collapsedWidth = +value;
-  }
-  updateWidth(width) {
-    if (typeof width == "string") {
-      this.style.width = `${width}`;
-      this.style.flex = `0 0 ${width}`;
-      this.style.maxWidth = `${width}`;
-    } else {
-      this.style.width = `${width}px`;
-      this.style.flex = `0 0 ${width}px`;
-      this.style.maxWidth = `${width}px`;
-    }
-  }
-  handleResize() {
-    const bodyWidth = window.innerWidth;
-    if (this.breakpoint) {
-      if (bodyWidth <= this.breakpointWidth) {
-        this.updateWidth(this.collapsedWidth);
-        this.classList.add("i-aside--collapsed");
-        this.collapsedWidth === 0 && this.classList.add("i-aside--collapsed-zero");
-      } else {
-        this.updateWidth(this.width);
-        this.classList.remove("i-aside--collapsed", "i-aside--collapsed-zero");
-      }
-    }
-  }
-  init() {
-    if (!this.initialized) {
-      super.init();
-      const collapsedWidth = this.getAttribute("collapsedWidth", true);
-      collapsedWidth && (this.collapsedWidth = collapsedWidth);
-      const breakpointAttr = this.getAttribute("breakpoint", true);
-      breakpointAttr && (this.breakpoint = breakpointAttr);
-      window.addEventListener("resize", this.handleResize.bind(this));
-      const button = this.createElement("button");
-      button.classList.add("i-aside_hambuger");
-      const icon = this.createElement("img");
-      icon.setAttribute("src", this.hambugerIcon);
-      button.appendChild(icon);
-      button.addEventListener("click", () => {
-        const width = this.offsetWidth === this.width ? this.collapsedWidth : this.width;
-        this.updateWidth(width);
-      });
-      this.appendChild(button);
-      this.handleResize();
-    }
-  }
-  disconnectedCallback() {
-    window.removeEventListener("resize", this.handleResize.bind(this));
-  }
-};
-Aside = __decorateClass([
-  customElements2("i-aside")
-], Aside);
-var Header = class extends Control {
-  constructor(parent, options) {
-    super(parent, options, {
-      height: 60
-    });
-  }
-  init() {
-    if (!this.initialized) {
-      super.init();
-    }
-  }
-};
-Header = __decorateClass([
-  customElements2("i-header")
-], Header);
-var Footer = class extends Control {
-  constructor(parent, options) {
-    super(parent, options, {
-      height: 60
-    });
-  }
-  init() {
-    if (!this.initialized) {
-      super.init();
-    }
-  }
-};
-Footer = __decorateClass([
-  customElements2("i-footer")
-], Footer);
-var Section = class extends Control {
-  constructor(parent, options) {
-    super(parent, options);
-  }
-  init() {
-    if (!this.initialized) {
-      super.init();
-    }
-  }
-};
-Section = __decorateClass([
-  customElements2("i-section")
-], Section);
-
 // packages/layout/src/card.ts
 var CardLayout = class extends Control {
   constructor(parent, options) {
@@ -14374,22 +14114,22 @@ CardLayout = __decorateClass([
 ], CardLayout);
 
 // packages/pagination/src/style/pagination.css.ts
-var Theme33 = theme_exports.ThemeVars;
+var Theme32 = theme_exports.ThemeVars;
 cssRule("i-pagination", {
   display: "block",
   width: "100%",
   maxWidth: "100%",
   verticalAlign: "baseline",
-  fontFamily: Theme33.typography.fontFamily,
-  fontSize: Theme33.typography.fontSize,
+  fontFamily: Theme32.typography.fontFamily,
+  fontSize: Theme32.typography.fontSize,
   lineHeight: "25px",
-  color: Theme33.text.primary,
+  color: Theme32.text.primary,
   "$nest": {
     ".pagination": {
       display: "inline-flex"
     },
     ".pagination a": {
-      color: Theme33.text.primary,
+      color: Theme32.text.primary,
       float: "left",
       padding: "8px 16px",
       textDecoration: "none",
@@ -14402,8 +14142,11 @@ cssRule("i-pagination", {
       border: "1px solid #4CAF50"
     },
     ".pagination a.disabled": {
-      color: Theme33.text.disabled,
+      color: Theme32.text.disabled,
       pointerEvents: "none"
+    },
+    ".pagination-main": {
+      display: "flex"
     }
   }
 });
@@ -14454,16 +14197,10 @@ var Pagination = class extends Control {
     }
   }
   onDisablePrevNext() {
-    if (this.currentPage <= 1) {
-      this._prevElm.classList.add("disabled");
-    } else {
-      this._prevElm.classList.remove("disabled");
-    }
-    if (this.currentPage >= this.totalPage) {
-      this._nextElm.classList.add("disabled");
-    } else {
-      this._nextElm.classList.remove("disabled");
-    }
+    if (this._prevElm)
+      this.currentPage <= 1 ? this._prevElm.classList.add("disabled") : this._prevElm.classList.remove("disabled");
+    if (this._nextElm)
+      this.currentPage >= this.totalPage ? this._nextElm.classList.add("disabled") : this._nextElm.classList.remove("disabled");
   }
   _handleOnClickIndex(value, event) {
     if (!this.enabled)
@@ -14655,14 +14392,14 @@ Pagination = __decorateClass([
 ], Pagination);
 
 // packages/progress/src/style/progress.css.ts
-var Theme34 = theme_exports.ThemeVars;
+var Theme33 = theme_exports.ThemeVars;
 cssRule("i-progress", {
   display: "block",
   maxWidth: "100%",
   verticalAlign: "baseline",
-  fontFamily: Theme34.typography.fontFamily,
-  fontSize: Theme34.typography.fontSize,
-  color: Theme34.text.primary,
+  fontFamily: Theme33.typography.fontFamily,
+  fontSize: Theme33.typography.fontSize,
+  color: Theme33.text.primary,
   position: "relative",
   $nest: {
     ".i-progress": {
@@ -14681,80 +14418,80 @@ cssRule("i-progress", {
     ".i-progress--exception": {
       $nest: {
         "> .i-progress_wrapbar > .i-progress_overlay": {
-          backgroundColor: Theme34.colors.error.light
+          backgroundColor: Theme33.colors.error.light
         },
         "> .i-progress_wrapbar > .i-progress_bar .i-progress_bar-item": {
-          backgroundColor: Theme34.colors.error.light
+          backgroundColor: Theme33.colors.error.light
         },
         ".i-progress_item.i-progress_item-start": {
-          borderColor: Theme34.colors.error.light
+          borderColor: Theme33.colors.error.light
         },
         ".i-progress_item.i-progress_item-end": {},
         ".status-circle": {
           display: "inline-block",
-          border: `1px solid ${Theme34.colors.error.light}`,
+          border: `1px solid ${Theme33.colors.error.light}`,
           backgroundColor: "rgb(255, 255, 255)",
-          boxShadow: `${Theme34.colors.error.light} 0px 0px 2px 0px, ${Theme34.colors.error.light} 0px 0px 8px 0px, ${Theme34.colors.error.light} 0px 0px 12px 0px`
+          boxShadow: `${Theme33.colors.error.light} 0px 0px 2px 0px, ${Theme33.colors.error.light} 0px 0px 8px 0px, ${Theme33.colors.error.light} 0px 0px 12px 0px`
         }
       }
     },
     ".i-progress--success": {
       $nest: {
         "> .i-progress_wrapbar > .i-progress_overlay": {
-          backgroundColor: Theme34.colors.success.light
+          backgroundColor: Theme33.colors.success.light
         },
         "> .i-progress_wrapbar > .i-progress_bar .i-progress_bar-item": {
-          backgroundColor: Theme34.colors.success.light
+          backgroundColor: Theme33.colors.success.light
         },
         ".i-progress_item.i-progress_item-start": {
-          borderColor: Theme34.colors.success.light
+          borderColor: Theme33.colors.success.light
         },
         ".i-progress_item.i-progress_item-end": {},
         ".status-circle": {
           display: "inline-block",
-          border: `1px solid ${Theme34.colors.success.light}`,
+          border: `1px solid ${Theme33.colors.success.light}`,
           backgroundColor: "rgb(255, 255, 255)",
-          boxShadow: `${Theme34.colors.success.light} 0px 0px 2px 0px, ${Theme34.colors.success.light} 0px 0px 8px 0px, ${Theme34.colors.success.light} 0px 0px 12px 0px`
+          boxShadow: `${Theme33.colors.success.light} 0px 0px 2px 0px, ${Theme33.colors.success.light} 0px 0px 8px 0px, ${Theme33.colors.success.light} 0px 0px 12px 0px`
         }
       }
     },
     ".i-progress--warning": {
       $nest: {
         "> .i-progress_wrapbar > .i-progress_overlay": {
-          backgroundColor: Theme34.colors.warning.light
+          backgroundColor: Theme33.colors.warning.light
         },
         "> .i-progress_wrapbar > .i-progress_bar .i-progress_bar-item": {
-          backgroundColor: Theme34.colors.warning.light
+          backgroundColor: Theme33.colors.warning.light
         },
         ".i-progress_item.i-progress_item-start": {
-          borderColor: Theme34.colors.warning.light
+          borderColor: Theme33.colors.warning.light
         },
         ".i-progress_item.i-progress_item-end": {},
         ".status-circle": {
           display: "inline-block",
-          border: `1px solid ${Theme34.colors.warning.light}`,
+          border: `1px solid ${Theme33.colors.warning.light}`,
           backgroundColor: "rgb(255, 255, 255)",
-          boxShadow: `${Theme34.colors.warning.light} 0px 0px 2px 0px, ${Theme34.colors.warning.light} 0px 0px 8px 0px, ${Theme34.colors.warning.light} 0px 0px 12px 0px`
+          boxShadow: `${Theme33.colors.warning.light} 0px 0px 2px 0px, ${Theme33.colors.warning.light} 0px 0px 8px 0px, ${Theme33.colors.warning.light} 0px 0px 12px 0px`
         }
       }
     },
     ".i-progress--active": {
       $nest: {
         "> .i-progress_wrapbar > .i-progress_overlay": {
-          backgroundColor: Theme34.colors.primary.light
+          backgroundColor: Theme33.colors.primary.light
         },
         "> .i-progress_wrapbar > .i-progress_bar .i-progress_bar-item": {
-          backgroundColor: Theme34.colors.primary.light
+          backgroundColor: Theme33.colors.primary.light
         },
         ".i-progress_item.i-progress_item-start": {
           backgroundColor: "transparent",
-          borderColor: Theme34.colors.primary.light
+          borderColor: Theme33.colors.primary.light
         },
         ".status-circle": {
           display: "inline-block",
-          border: `1px solid ${Theme34.colors.primary.light}`,
+          border: `1px solid ${Theme33.colors.primary.light}`,
           backgroundColor: "rgb(255, 255, 255)",
-          boxShadow: `${Theme34.colors.primary.light} 0px 0px 2px 0px, ${Theme34.colors.primary.light} 0px 0px 8px 0px, ${Theme34.colors.primary.light} 0px 0px 12px 0px`
+          boxShadow: `${Theme33.colors.primary.light} 0px 0px 2px 0px, ${Theme33.colors.primary.light} 0px 0px 8px 0px, ${Theme33.colors.primary.light} 0px 0px 12px 0px`
         }
       }
     },
@@ -14775,11 +14512,11 @@ cssRule("i-progress", {
           gap: "1px",
           $nest: {
             "&.has-bg": {
-              backgroundColor: Theme34.divider
+              backgroundColor: Theme33.divider
             },
             ".i-progress_bar-item": {
               flex: "auto",
-              backgroundColor: Theme34.divider
+              backgroundColor: Theme33.divider
             }
           }
         },
@@ -14804,7 +14541,7 @@ cssRule("i-progress", {
           borderStyle: "solid",
           borderImage: "initial",
           borderRadius: 14,
-          borderColor: Theme34.divider,
+          borderColor: Theme33.divider,
           padding: "4px 12px",
           order: 1
         },
@@ -14824,18 +14561,18 @@ cssRule("i-progress", {
         },
         ".lb-start, .lb-end": {
           fontSize: "10px",
-          color: Theme34.text.secondary
+          color: Theme33.text.secondary
         },
         ".lb-end--number": {
           fontSize: "14px",
-          color: Theme34.text.primary
+          color: Theme33.text.primary
         }
       }
     },
     ".info-wrapper, i-slot[name=tooltip]": {
       opacity: 0,
-      backgroundColor: Theme34.background.paper,
-      border: `1px solid ${Theme34.divider}`,
+      backgroundColor: Theme33.background.paper,
+      border: `1px solid ${Theme33.divider}`,
       position: "absolute",
       borderRadius: "4px",
       padding: "1rem 1rem .5rem",
@@ -14871,18 +14608,18 @@ cssRule("i-progress", {
               borderRadius: 20
             },
             "&::-webkit-scrollbar-track": {
-              background: Theme34.colors.info.contrastText
+              background: Theme33.colors.info.contrastText
             },
             "&::-webkit-scrollbar-thumb": {
-              background: Theme34.colors.info.contrastText
+              background: Theme33.colors.info.contrastText
             },
             "&::-webkit-scrollbar-thumb:hover": {
-              background: Theme34.colors.info.contrastText
+              background: Theme33.colors.info.contrastText
             }
           }
         },
         ".info-title": {
-          color: Theme34.text.secondary,
+          color: Theme33.text.secondary,
           textTransform: "uppercase"
         },
         ".info-icon i-icon": {
@@ -14920,11 +14657,11 @@ cssRule("i-progress", {
     },
     ".lb-label": {
       fontSize: "10px",
-      color: Theme34.text.secondary
+      color: Theme33.text.secondary
     },
     ".lb-value": {
       fontSize: "14px",
-      color: Theme34.text.primary
+      color: Theme33.text.primary
     },
     ".is-mobile": {
       display: "none",
@@ -14949,7 +14686,7 @@ cssRule("i-progress", {
             },
             ".lb-start": {
               fontSize: "10px",
-              color: Theme34.text.primary,
+              color: Theme33.text.primary,
               textTransform: "uppercase"
             }
           }
@@ -14977,7 +14714,7 @@ cssRule("i-progress-item", {
   position: "absolute",
   top: "50%",
   transform: "translateY(-50%)",
-  backgroundColor: Theme34.colors.primary.dark,
+  backgroundColor: Theme33.colors.primary.dark,
   boxSizing: "border-box",
   margin: 0,
   minWidth: 0,
@@ -14988,13 +14725,13 @@ cssRule("i-progress-item", {
   alignItems: "center",
   $nest: {
     "&.is-exception": {
-      backgroundColor: Theme34.colors.error.dark
+      backgroundColor: Theme33.colors.error.dark
     },
     "&.is-success": {
-      backgroundColor: Theme34.colors.success.dark
+      backgroundColor: Theme33.colors.success.dark
     },
     "&.is-warning": {
-      backgroundColor: Theme34.colors.warning.dark
+      backgroundColor: Theme33.colors.warning.dark
     },
     "&:hover > .info-wrapper, &:hover > i-slot[name=tooltip]": {
       opacity: 1
@@ -15006,7 +14743,7 @@ cssRule("i-progress-item", {
 });
 
 // packages/progress/src/progress.ts
-var Theme35 = theme_exports.ThemeVars;
+var Theme34 = theme_exports.ThemeVars;
 var defaultVals = {
   percent: 0,
   height: 20,
@@ -15018,6 +14755,10 @@ var defaultVals = {
 var Progress = class extends Control {
   constructor(parent, options) {
     super(parent, options, __spreadValues({}, defaultVals));
+    if (options == null ? void 0 : options.onRenderStart)
+      this.onRenderStart = options.onRenderStart;
+    if (options == null ? void 0 : options.onRenderEnd)
+      this.onRenderEnd = options.onRenderEnd;
   }
   get percent() {
     return this._percent;
@@ -15232,38 +14973,38 @@ var Progress = class extends Control {
     let ret = "";
     switch (this.status) {
       case "success":
-        ret = Theme35.colors.success.main;
+        ret = Theme34.colors.success.main;
         break;
       case "exception":
-        ret = Theme35.colors.error.main;
+        ret = Theme34.colors.error.main;
         break;
       case "warning":
-        ret = Theme35.colors.warning.main;
+        ret = Theme34.colors.warning.main;
         break;
       default:
-        ret = Theme35.colors.primary.main;
+        ret = Theme34.colors.primary.main;
     }
     if (this.percent === 100 && !this.status)
-      ret = Theme35.colors.success.main;
+      ret = Theme34.colors.success.main;
     return ret;
   }
   get trackColor() {
     let ret = "";
     switch (this.status) {
       case "success":
-        ret = Theme35.colors.success.light;
+        ret = Theme34.colors.success.light;
         break;
       case "exception":
-        ret = Theme35.colors.error.light;
+        ret = Theme34.colors.error.light;
         break;
       case "warning":
-        ret = Theme35.colors.warning.light;
+        ret = Theme34.colors.warning.light;
         break;
       default:
-        ret = Theme35.divider;
+        ret = Theme34.divider;
     }
     if (this.percent === 100 && !this.status)
-      ret = Theme35.colors.success.light;
+      ret = Theme34.colors.success.light;
     return ret;
   }
   get progressTextSize() {
@@ -15305,7 +15046,7 @@ var Progress = class extends Control {
     const templateHtml = `<svg viewBox="0 0 100 100">
             <path class="i-progress-circle__track"
             d="${this.trackPath}"
-            stroke="${this.status ? this.trackColor : Theme35.divider}"
+            stroke="${this.status ? this.trackColor : Theme34.divider}"
             stroke-width="${this.relativeStrokeWidth}"
             fill="${this.status ? this.trackColor : "none"}"
             style="${this.trailPathStyle}"></path>
@@ -15354,20 +15095,13 @@ var Progress = class extends Control {
         const dataAttr = this.getAttribute("data", true);
         dataAttr && (this.popupData = dataAttr);
         this.steps = this.getAttribute("steps", true);
-        let slots = Array.from(this.getElementsByTagName("i-slot"));
-        for (let i = 0; i < slots.length; i++) {
-          let slot = slots[i];
-          let slotName = slot.getAttribute("name");
-          if (slotName === "start") {
-            if (this._startElm)
-              this._startElm.innerHTML = slot.innerHTML;
-            slot.innerHTML = "";
-          } else if (slotName === "end") {
-            if (this._endElm)
-              this._endElm.innerHTML = slot.innerHTML;
-            slot.innerHTML = "";
-          }
-          slot.classList.add("info-wrapper");
+        if (this.onRenderStart && typeof this.onRenderStart === "function") {
+          this._startElm.innerHTML = "";
+          this.onRenderStart(this._startElm);
+        }
+        if (this.onRenderEnd && typeof this.onRenderEnd === "function") {
+          this._endElm.innerHTML = "";
+          this.onRenderEnd(this._endElm);
         }
       }
       if (this.type === "circle")
@@ -15386,6 +15120,8 @@ Progress = __decorateClass([
 var ProgressItem = class extends Control {
   constructor(parent, options) {
     super(parent, options);
+    if (options == null ? void 0 : options.onRenderTooltip)
+      this.onRenderTooltip = options.onRenderTooltip;
   }
   get percent() {
     return this._percent;
@@ -15453,10 +15189,9 @@ var ProgressItem = class extends Control {
       statusAttr && (this.status = statusAttr);
       const dataAttr = this.getAttribute("data", true);
       dataAttr && (this.popupData = dataAttr);
-      let slots = Array.from(this.getElementsByTagName("i-slot"));
-      const slotIndex = slots.findIndex((slot) => slot.getAttribute("name") === "tooltip");
-      if (slotIndex > -1) {
-        this._popupElm && (this._popupElm.innerHTML = slots[slotIndex].innerHTML);
+      if (this.onRenderTooltip && typeof this.onRenderTooltip === "function") {
+        this._popupElm.innerHTML = "";
+        this.onRenderTooltip(this._popupElm);
       }
     }
   }
@@ -15471,12 +15206,12 @@ ProgressItem = __decorateClass([
 ], ProgressItem);
 
 // packages/link/src/style/link.css.ts
-var Theme36 = theme_exports.ThemeVars;
+var Theme35 = theme_exports.ThemeVars;
 cssRule("i-link", {
   cursor: "pointer",
   $nest: {
     "&:hover *": {
-      color: Theme36.colors.primary.dark
+      color: Theme35.colors.primary.dark
     },
     "> a": {
       transition: "all .3s",
@@ -15558,7 +15293,7 @@ Link = __decorateClass([
 ], Link);
 
 // packages/list-view/src/style/listView.css.ts
-var Theme37 = theme_exports.ThemeVars;
+var Theme36 = theme_exports.ThemeVars;
 var fadeInUp = keyframes({
   "0%": {
     opacity: 0,
@@ -15598,8 +15333,8 @@ cssRule("i-list-view", {
     ".list-item": {
       position: "relative",
       display: "flex",
-      backgroundColor: Theme37.action.hover,
-      border: `1px solid ${Theme37.divider}`,
+      backgroundColor: Theme36.action.hover,
+      border: `1px solid ${Theme36.divider}`,
       borderRadius: "0.25rem",
       flexDirection: "row",
       padding: "0.75rem 1.25rem",
@@ -15607,7 +15342,7 @@ cssRule("i-list-view", {
     },
     ".list-item:focus, .list-item:hover": {
       zIndex: 1,
-      backgroundColor: Theme37.action.selected,
+      backgroundColor: Theme36.action.selected,
       transform: "scale(1.06)",
       transformOrigin: "center",
       cursor: "pointer"
@@ -15692,9 +15427,9 @@ cssRule("i-list-view", {
     },
     ".item-content": {
       display: "block",
-      color: Theme37.text.primary,
-      fontFamily: Theme37.typography.fontFamily,
-      fontSize: Theme37.typography.fontSize,
+      color: Theme36.text.primary,
+      fontFamily: Theme36.typography.fontFamily,
+      fontSize: Theme36.typography.fontSize,
       marginRight: "auto"
     },
     ".item-content > *:last-child": {
@@ -15703,7 +15438,7 @@ cssRule("i-list-view", {
     ".item-title, .item-subtitle, .item-small, .item-small-title": {
       marginTop: 0,
       marginBottom: "0.5rem",
-      color: Theme37.text.primary
+      color: Theme36.text.primary
     },
     ".item-title": {
       fontSize: "1.1em",
@@ -15720,7 +15455,7 @@ cssRule("i-list-view", {
       fontWeight: 600
     },
     ".item-link": {
-      color: Theme37.colors.primary.main,
+      color: Theme36.colors.primary.main,
       textDecoration: "underline",
       cursor: "pointer"
     },
@@ -16032,7 +15767,7 @@ ListViewItem = __decorateClass([
 ], ListViewItem);
 
 // packages/count-down/src/style/countDown.css.ts
-var Theme38 = theme_exports.ThemeVars;
+var Theme37 = theme_exports.ThemeVars;
 cssRule("i-count-down", {
   display: "inline-flex",
   $nest: {
@@ -16042,17 +15777,17 @@ cssRule("i-count-down", {
       position: "relative",
       $nest: {
         "a": {
-          color: Theme38.text.primary,
-          fontFamily: Theme38.typography.fontFamily
+          color: Theme37.text.primary,
+          fontFamily: Theme37.typography.fontFamily
         },
         ".title": {
-          color: Theme38.text.primary,
+          color: Theme37.text.primary,
           margin: "20px",
           display: "inline-block"
         },
         ".count-number": {
-          color: Theme38.text.primary,
-          fontFamily: Theme38.typography.fontFamily
+          color: Theme37.text.primary,
+          fontFamily: Theme37.typography.fontFamily
         }
       }
     }
@@ -16146,7 +15881,7 @@ CountDown = __decorateClass([
 ], CountDown);
 
 // packages/loading/src/style/loading.css.ts
-var Theme39 = theme_exports.ThemeVars;
+var Theme38 = theme_exports.ThemeVars;
 var spinnerAnim3 = keyframes({
   "0%": {
     transform: "rotate(0deg)"
@@ -16215,7 +15950,7 @@ cssRule("i-loading", {
           height: "100vh",
           opacity: 0.8,
           position: "absolute",
-          backgroundColor: Theme39.background.default
+          backgroundColor: Theme38.background.default
         }
       }
     },
@@ -16226,8 +15961,8 @@ cssRule("i-loading", {
     ".i-loading-spinner_text": {
       fontSize: "1rem",
       display: "block",
-      color: Theme39.text.primary,
-      fontFamily: Theme39.typography.fontFamily,
+      color: Theme38.text.primary,
+      fontFamily: Theme38.typography.fontFamily,
       opacity: 1
     },
     ".i-loading-spinner_icon": {
@@ -16255,7 +15990,7 @@ cssRule("i-loading", {
 });
 
 // packages/loading/src/loading.ts
-var Theme40 = theme_exports.ThemeVars;
+var Theme39 = theme_exports.ThemeVars;
 var defaultValues4 = {
   spinning: true,
   caption: "Loading...",
@@ -16320,7 +16055,7 @@ var Loading = class extends Control {
       if (!this._iconElm) {
         this._iconElm = new Icon();
         this._iconElm.init();
-        this._iconElm.fill = Theme40.text.primary;
+        this._iconElm.fill = Theme39.text.primary;
       }
       this._iconElm.name = value;
       this._iconWrapperElm.appendChild(this._iconElm);
@@ -16406,11 +16141,11 @@ Loading = __decorateClass([
 ], Loading);
 
 // packages/table/src/style/table.css.ts
-var Theme41 = theme_exports.ThemeVars;
+var Theme40 = theme_exports.ThemeVars;
 cssRule("i-table", {
-  fontFamily: Theme41.typography.fontFamily,
-  fontSize: Theme41.typography.fontSize,
-  color: Theme41.text.primary,
+  fontFamily: Theme40.typography.fontFamily,
+  fontSize: Theme40.typography.fontSize,
+  color: Theme40.text.primary,
   display: "block",
   $nest: {
     "> .i-table-container": {
@@ -16433,26 +16168,26 @@ cssRule("i-table", {
     ".i-table-header>tr>th": {
       fontWeight: 600,
       transition: "background .3s ease",
-      borderBottom: `1px solid ${Theme41.divider}`
+      borderBottom: `1px solid ${Theme40.divider}`
     },
     ".i-table-body>tr>td": {
-      borderBottom: `1px solid ${Theme41.divider}`,
+      borderBottom: `1px solid ${Theme40.divider}`,
       transition: "background .3s ease"
     },
     "tr:hover td": {
-      background: Theme41.background.paper,
-      color: Theme41.text.secondary
+      background: Theme40.background.paper,
+      color: Theme40.text.secondary
     },
     "&.i-table--bordered": {
       $nest: {
         "> .i-table-container > table": {
-          borderTop: `1px solid ${Theme41.divider}`,
-          borderLeft: `1px solid ${Theme41.divider}`,
+          borderTop: `1px solid ${Theme40.divider}`,
+          borderLeft: `1px solid ${Theme40.divider}`,
           borderRadius: "2px"
         },
         "> .i-table-container > table .i-table-cell": {
-          borderRight: `1px solid ${Theme41.divider} !important`,
-          borderBottom: `1px solid ${Theme41.divider}`
+          borderRight: `1px solid ${Theme40.divider} !important`,
+          borderBottom: `1px solid ${Theme40.divider}`
         }
       }
     },
@@ -16473,7 +16208,7 @@ cssRule("i-table", {
           cursor: "pointer"
         },
         ".sort-icon.sort-icon--active > svg": {
-          fill: Theme41.colors.primary.main
+          fill: Theme40.colors.primary.main
         },
         ".sort-icon.sort-icon--desc": {
           marginTop: -5
@@ -16501,12 +16236,12 @@ cssRule("i-table", {
           display: "inline-block"
         },
         "i-icon svg": {
-          fill: Theme41.text.primary
+          fill: Theme40.text.primary
         }
       }
     },
     ".i-table-row--child > td": {
-      borderRight: `1px solid ${Theme41.divider}`
+      borderRight: `1px solid ${Theme40.divider}`
     },
     "@media (max-width: 767px)": {
       $nest: {
@@ -16526,7 +16261,7 @@ cssRule("i-table", {
 });
 
 // packages/table/src/tableColumn.ts
-var Theme42 = theme_exports.ThemeVars;
+var Theme41 = theme_exports.ThemeVars;
 var TableColumn = class extends Control {
   constructor(parent, options) {
     super(parent, options);
@@ -16595,7 +16330,7 @@ var TableColumn = class extends Control {
         name: "caret-up",
         width: 14,
         height: 14,
-        fill: Theme42.text.primary
+        fill: Theme41.text.primary
       });
       this.ascElm.classList.add("sort-icon", "sort-icon--asc");
       this.ascElm.onClick = () => this.sortOrder = this.sortOrder === "asc" ? null : "asc";
@@ -16603,7 +16338,7 @@ var TableColumn = class extends Control {
         name: "caret-down",
         width: 14,
         height: 14,
-        fill: Theme42.text.primary
+        fill: Theme41.text.primary
       });
       this.descElm.classList.add("sort-icon", "sort-icon--desc");
       this.descElm.onClick = () => this.sortOrder = this.sortOrder === "desc" ? null : "desc";
@@ -16730,7 +16465,7 @@ var filterBy = (list, value, columnKey) => {
 };
 
 // packages/table/src/table.ts
-var Theme43 = theme_exports.ThemeVars;
+var Theme42 = theme_exports.ThemeVars;
 var pageSize = 10;
 var Table = class extends Control {
   constructor(parent, options) {
@@ -16754,6 +16489,8 @@ var Table = class extends Control {
       rowExpandable: true
     };
     this.sortConfig = { key: "", value: null };
+    if (options == null ? void 0 : options.onRenderEmptyData)
+      this.onRenderEmptyData = options.onRenderEmptyData;
   }
   updatePagination() {
     let size = typeof this.paging === "object" && this.paging.pageSize || pageSize;
@@ -17034,17 +16771,17 @@ var Table = class extends Control {
             tdChild.appendChild(expandElm);
         }
       });
-      this.emptyElm && (this.emptyElm.style.display = "none");
     } else {
       const rowElm = this.createElement("tr", this.tBodyElm);
       const tdElm = this.createElement("td", rowElm);
       tdElm.setAttribute("colspan", `${this.columnLength + (this.hasExpandColumn ? 1 : 0)}`);
       tdElm.classList.add("text-center");
-      if (this.emptyElm) {
-        this.emptyElm.style.display = "block";
-        tdElm.appendChild(this.emptyElm);
+      if (this.onRenderEmptyData && typeof this.onRenderEmptyData === "function") {
+        this.onRenderEmptyData(tdElm);
       } else {
-        tdElm.textContent = "No data";
+        const label = this.createElement("span");
+        label.textContent = "No data";
+        tdElm.appendChild(label);
       }
     }
     this.firstLoad = false;
@@ -17071,15 +16808,6 @@ var Table = class extends Control {
   }
   init() {
     if (!this.tableElm) {
-      const emptySlotElm = this.querySelector('i-slot[name="empty"]');
-      this.emptyElm = this.createElement("div", this);
-      this.emptyElm.classList.add("i-table--empty");
-      if (emptySlotElm) {
-        this.emptyElm.appendChild(emptySlotElm);
-      } else {
-        this.emptyElm.textContent = "No data";
-      }
-      this.emptyElm.style.display = "none";
       this.classList.add("i-table");
       this.wrapperElm = this.createElement("div", this);
       this.wrapperElm.classList.add("i-table-container");
@@ -17104,131 +16832,8 @@ Table = __decorateClass([
   customElements2("i-table")
 ], Table);
 
-// packages/table/src/tableHeader.ts
-var TableHeader = class extends Control {
-  constructor(parent, options) {
-    super(parent, options);
-  }
-  get columns() {
-    return this._columns;
-  }
-  set columns(value) {
-    this._columns = value;
-    this.renderHeader();
-  }
-  renderHeader() {
-    this.tHeadElm.innerHTML = "";
-    const rowElm = this.createElement("tr", this.tHeadElm);
-    this.columns.forEach((column, colIndex) => {
-      const thElm = this.createElement("th", rowElm);
-      thElm.classList.add("i-table-cell");
-      thElm.innerHTML = column.title;
-      rowElm.appendChild(thElm);
-    });
-  }
-  init() {
-    if (!this.tableElm) {
-      this.classList.add("i-table-header");
-      this.columns = this.attrs.columns || [];
-      super.init();
-    }
-  }
-  static async create(options, parent) {
-    let component = new this(parent, options);
-    component.init();
-    return component;
-  }
-};
-TableHeader = __decorateClass([
-  customElements2("i-table-header")
-], TableHeader);
-
-// packages/spinner/src/style/spinner.css.ts
-var Theme44 = theme_exports.ThemeVars;
-var ldsRing = keyframes({
-  "0%": {
-    transform: "rotate(0deg)"
-  },
-  "100%": {
-    transform: "rotate(360deg)"
-  }
-});
-cssRule("i-spinner", {
-  display: "block",
-  position: "fixed",
-  width: "100%",
-  height: "100%",
-  zIndex: "9999",
-  $nest: {
-    "&.hidden": {
-      display: "none"
-    },
-    "div.spinner": {
-      top: "50%",
-      left: "50%",
-      position: "fixed",
-      $nest: {
-        "div": {
-          display: "block",
-          position: "absolute",
-          width: "64px",
-          height: "64px",
-          margin: "8px",
-          border: "8px solid #fff",
-          borderRadius: "50%",
-          animation: `${ldsRing} 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite`,
-          borderColor: "#0c1234 transparent transparent transparent",
-          boxSizing: "border-box",
-          $nest: {
-            "&:nth-child(1)": {
-              animationDelay: "-0.45s"
-            },
-            "&:nth-child(2)": {
-              animationDelay: "-0.3s"
-            },
-            "&:nth-child(3)": {
-              animationDelay: "-0.15s"
-            }
-          }
-        }
-      }
-    }
-  }
-});
-
-// packages/spinner/src/spinner.ts
-var Spinner = class extends Control {
-  constructor(parent, options) {
-    super(parent, options);
-  }
-  hide() {
-    this.classList.add("hidden");
-  }
-  show() {
-    this.classList.remove("hidden");
-  }
-  init() {
-    super.init();
-    const spinnerDiv = this.createElement("div");
-    spinnerDiv.classList.add("spinner");
-    for (let i = 0; i < 4; i++) {
-      spinnerDiv.appendChild(this.createElement("div"));
-    }
-    this.appendChild(spinnerDiv);
-    this.classList.add("hidden");
-  }
-  static async create(options, parent) {
-    let component = new this(parent, options);
-    component.init();
-    return component;
-  }
-};
-Spinner = __decorateClass([
-  customElements2("i-spinner")
-], Spinner);
-
 // packages/carousel/src/style/carousel.css.ts
-var Theme45 = theme_exports.ThemeVars;
+var Theme43 = theme_exports.ThemeVars;
 cssRule("i-carousel-slider", {
   display: "block",
   position: "relative",
@@ -17262,12 +16867,12 @@ cssRule("i-carousel-slider", {
           width: "0.8rem",
           height: "0.8rem",
           backgroundColor: "transparent",
-          border: `2px solid ${Theme45.colors.primary.main}`,
+          border: `2px solid ${Theme43.colors.primary.main}`,
           borderRadius: "50%",
           transition: "background-color 0.35s ease-in-out"
         },
         ".--active > span": {
-          backgroundColor: Theme45.colors.primary.main
+          backgroundColor: Theme43.colors.primary.main
         }
       }
     }

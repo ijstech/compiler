@@ -56,7 +56,7 @@ export default \`
     ${es5}
     ${dom}
 \``);
-    await copyFile(Path.resolve(__dirname, '../packages/components/dist/index.js'), Path.resolve(__dirname, '../dist/lib/components/index.js'));
+    await copyDir(Path.resolve(__dirname, '../packages/components/dist'), Path.resolve(__dirname, '../dist/lib/components'));
     await copyFile(Path.resolve(__dirname, '../packages/components/types/index.d.ts'), Path.resolve(__dirname, '../dist/lib/components/index.d.ts'));
     content = await readFile(Path.resolve(__dirname, '../node_modules/typescript/lib/typescript.js'));
     await writeFile(Path.resolve(__dirname, '../dist/lib/typescript/index.js'), 

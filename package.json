@@ -11,6 +11,7 @@
     },
     "scripts": {
         "build": "rm -rf types && rm -rf dist && node tools/bundle.js && tsc && tsc --P tsconfig.bundle.json && rm -rf bundle",
+        "build:test": "tsc --P tsconfig.test.json",
         "serve": "node tools/serve",
         "test": "mocha --exit --require ts-node/register test/*.spec.ts"
     }
