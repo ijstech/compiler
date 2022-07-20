@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<head>
+    <title>Compiler</title>
+    <script src="/dist/lib/components/index.js"></script>
+</head>
+<html>
+    <script>
+        window.addEventListener("message", function(event){            
+            if (event.data && event.data[0] == '{'){
+                let data = JSON.parse(event.data);
+                if (data.script){
+                    document.body.innerHTML = '';
+                    let options = {
+                        script: data.script
+                    }
+                    application.loadModule('index.js', options)            
+                }
+            }
+        }, false)
+    </script>
+    <body>        
+    </body>
+</html>

@@ -1,3 +1,21 @@
+define("test1", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.test1 = void 0;
+    function test1() {
+        return "test1";
+    }
+    exports.test1 = test1;
+});
+define("lib/test2", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.test2 = void 0;
+    function test2() {
+        return 1;
+    }
+    exports.test2 = test2;
+});
 define("hello", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -10,15 +28,13 @@ define("hello", ["require", "exports"], function (require, exports) {
 define("form", ["require", "exports", "@ijstech/components", "hello"], function (require, exports, components_1, hello_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    class Hello extends components_1.Module {
-        buttonClick() {
-            alert(hello_1.hello());
+    class DemoForm extends components_1.Module {
+        hello() {
+            hello_1.hello();
         }
-        ;
         render() {
             return this.$render("i-panel", null,
-                this.$render("i-button", { onClick: this.buttonClick }));
+                this.$render("i-button", { caption: "Hello" }));
         }
     }
-    exports.default = Hello;
 });

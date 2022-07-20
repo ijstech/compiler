@@ -16,6 +16,7 @@
         "forceConsistentCasingInFileNames": true,
         "strictPropertyInitialization": false,
         "paths": {
+            "@ijstech/compiler": ["./src"],
             "@ijstech/components": ["packages/components"]
         }
     },

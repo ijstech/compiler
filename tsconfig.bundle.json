@@ -20,6 +20,6 @@
         }
     },
     "include": [
-        "bundle/*.ts"
+        "src/*.ts"
     ]
 }

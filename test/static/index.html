@@ -10,68 +10,28 @@
         <!-- <pre id="result"></pre>
         <pre id="script"></pre> -->
         <script>
-            let script = `
-import {Module} from '@ijstech/components';
-export default class Hello extends Module{
-    buttonClick(){
-        alert('hello')
-    };
-    render(){
-        return <i-panel>
-            <i-button width={80} height={25} caption="Hello World" onClick={this.buttonClick}></i-button>
-        </i-panel>
-    }
-}
-            `;
             async function init(){
                 let module = await application.loadModule('/editor/editor.js');
             };
             init();
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', async () => {
-                    return;
-                    console.dir('##load')
-                    let result = await navigator.serviceWorker.register('/worker.js');
-                    console.dir(result)
-                    navigator.serviceWorker.ready.then(async (registration) => {
-                        console.dir('#ready')         
-                        console.log(registration.active);               
-                        let content = await fetch('http://localhost:8081/test');
-                        let img = await content.text();
-                        document.getElementById('button1').insertAdjacentHTML('beforeend', `<img src="${img}"></img>`)
-                    });                    
-                });
-            };
-            window.doFetch = async function(){                
-                try{
-                    let content = await fetch('http://localhost:8081/test');
-                    let txt = await content.text();
-                    alert(txt);
-                }
-                catch(err){
-                    console.dir(err)
-                }
-            }
-            window.run = async function(){                
-                let content = await fetch('/dist/lib/components/index.d.ts');
-                let dts = await content.text();                
-                let Compiler = require('@ijstech/compiler').Compiler;
-                let compiler = new Compiler();
-                compiler.addPackage('@ijstech/components', {
-                    dts: {
-                        'index.d.ts': dts
-                    },
-                    version: ''
-                });
-                compiler.addContent('index.tsx', script);
-                let result = await compiler.compile();
-                application.loadModule('', {
-                    script: result.script['index.js']
-                });
-            };
+            // window.run = async function(){                
+            //     let content = await fetch('/dist/lib/components/index.d.ts');
+            //     let dts = await content.text();                
+            //     let Compiler = require('@ijstech/compiler').Compiler;
+            //     let compiler = new Compiler();
+            //     compiler.addPackage('@ijstech/components', {
+            //         dts: {
+            //             'index.d.ts': dts
+            //         },
+            //         version: ''
+            //     });
+            //     compiler.addFile('index.tsx', script);
+            //     let result = await compiler.compile();
+            //     application.loadModule('', {
+            //         script: result.script['index.js']
+            //     });
+            // };
             // test();            
-        </script>        
-        <!-- <button id='button1' onclick="doFetch()">Fetch</button> -->
-        <!-- <button id='button2' onclick="run()">Run</button> -->
+        </script>
     </body>
 </html>

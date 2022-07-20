@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {        
+        "baseUrl": ".",        
+        "target": "ES2017",        
+        "declaration": true,
+        "emitDeclarationOnly": true,
+        "declarationDir": "src/lib",        
+        "removeComments": true,
+        "strict": false,
+        "esModuleInterop": false,
+        "noLib": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "strictPropertyInitialization": false,        
+    },
+    "include": [
+        "bundle/*.ts"
+    ]
+}

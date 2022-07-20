@@ -1,93 +1,229 @@
-///<amd-module name='code-editor'/>
 import {
-    application,
-    CodeEditor,
-    ComboBox,
-    customElements,
-    Styles,
-    Module,
+  CodeEditor,
+  Control,
+  Module,
+  Panel,  
+  Switch,
+  Styles,
+  Tab,
+  Tabs,
+  TreeView,
+  TreeNode,
+  Iframe
 } from '@ijstech/components';
+import {Compiler} from '@ijstech/compiler';
+import Samples from './samples';
 
- Styles.Theme.applyTheme(Styles.Theme.darkTheme);
-const __dirname = application.currentModuleDir;
+Styles.Theme.applyTheme(Styles.Theme.darkTheme);
+
+interface ITreeNodeData {
+  fileName: string,
+  content: string,
+  editor?: CodeEditor,
+  tab?: Tab
+}
 export default class CodeEditorModule extends Module {
-    private edtCode: CodeEditor
+  private edtCodeTemp?: CodeEditor;
+  private tabCodeTemp?: Tab;  
+  private tsEditors: Tabs;
 
-    addLib() {
-        // this.edtCode.addLib('@ijstech/components', dts);
+  private swPreview: Switch;
+  private pnlPreview: Panel;
+  private tvFiles: TreeView;
+  private ifrPreview: Iframe;
+  private _compiler: Compiler;
+    
+  async loadFiles() {
+    this.tvFiles.clear();    
+    let fileNodes: {[idx: string]:TreeNode} = {};
+    let self = this;
+    async function addFileNode(paths: string[]){
+      let name: string = '';            
+      // let items = fileName.split('/');
+      let node: TreeNode|null = null;
+      for (let i = 0; i < paths.length; i ++){
+        name = name + '/' + paths[i];          
+        if (!fileNodes[name]){
+          node = await self.tvFiles.add(node, paths[i]);
+          fileNodes[name] = node;
+        }
+        else
+          node = fileNodes[name];        
+      };
+      return node;
+    }
+    let files = [];
+    for (let fileName in Samples)
+      files.push({
+        paths: fileName.split('/'),
+        content: Samples[fileName]
+      })
+    files.sort((item1, item2)=>{
+      if (item1.paths.length > item2.paths.length)
+        return -1
+      else if (item1.paths.length < item2.paths.length)
+        return 1
+      else
+        return 0
+    });
+    for (let i = 0; i < files.length; i ++){
+      let node = await addFileNode(files[i].paths);
+      if (node)
+        node.tag = {
+          fileName: files[i].paths.join('/'),
+          content: files[i].content
+        }
+    };    
+  };
+  async fileImporter(fileName: string): Promise<{fileName: string, content: string} | null>{
+    if (fileName == '@ijstech/components'){
+      let res = await fetch('/dist/lib/components/index.d.ts');
+      let content = await res.text();
+      CodeEditor.addLib(fileName, content);
+      return {
+        fileName: 'index.d.ts',
+        content: content
+      }
+    }
+    else{      
+      if (Samples[fileName + '.ts'])
+        fileName = fileName + '.ts'
+      else if (Samples[fileName + '.tsx'])
+        fileName = Samples[fileName + '.tsx']
+      else if (Samples[fileName + '.d.ts'])
+        fileName = Samples[fileName + '.d.ts']
+      else
+        return null;
+      CodeEditor.addFile(fileName, Samples[fileName]);
+      return {
+        fileName: fileName,
+        content: Samples[fileName]
+      };
     };
-    run() {
-
-    };
-    init() {
-        super.init();
-        this.addLib();
-    };
-    render(): any {
-        return (
-            <i-panel id='pnlMain' dock='fill'>
-                <i-panel height={40} dock='top' padding={{ right: 4 }}>
-                    <i-panel dock='left'>
-                        <i-button caption="run" height={30} width={40} margin={{ top: 5 }} onClick={this.run}></i-button>
-                    </i-panel>
-                </i-panel>
-                <i-panel id='pnlSidebar' width={40} dock='left' padding={{ left: 4 }}>
-                    <i-tabs id="toolbarTabs" vertical activePageIndex={0} dock="fill" class="toolbars">
-                        <i-tab
-                            data-tooltip="Explorer (Ctrl + Shift + E)"
-                            data-placement="right"
-                            tabSheetId="tab-folder"
-                        // onClick={(source: any, event: Event) => this.onToolbarTab(event, 0)}
-                        >
-                            <i-image url={`${__dirname}/img/files.svg`} width="20"></i-image>
-                        </i-tab>
-                        <i-tab
-                            data-tooltip="Search (Ctrl + Shift + F)"
-                            data-placement="right"
-                        >
-                            <i-image url={`${__dirname}/img/search.svg`} width="20"></i-image>
-                        </i-tab>
-                        <i-tab
-                            data-tooltip="Source Control (Ctrl + Shift + G) - 1 pending changes"
-                            data-placement="right"
-                        >
-                            <i-image url={`${__dirname}/img/source-control.svg`} width="20"></i-image>
-                        </i-tab>
-                        <i-tab
-                            data-tooltip="Sync"
-                            data-placement="right"
-                        >
-                            <i-icon width={16} height={16} name="sync-alt" fill="#c5c5c5" ></i-icon>
-                        </i-tab>
-                    </i-tabs>
-                </i-panel>
-                <i-panel dock='fill' resizer={true}>
-                    <i-tabs dock='top' height={40} resizer={true}>
-                        <i-tab
-                            caption='file1.tsx'
-                            data-tooltip="Sync"
-                            data-placement="right"
-                        >
-                        </i-tab>
-                        <i-tab
-                            caption='file2.tsx'
-                            data-tooltip="Sync"
-                            data-placement="right"
-                        >
-                        </i-tab>
-                    </i-tabs> 
-                    <i-panel id='pnlCode' dock='fill'>
-                        <i-code-editor
-                            id="edtCode"
-                            dock='fill'
-                            language='tsx'
-                        ></i-code-editor>
-                    </i-panel>
-                </i-panel>                               
-                <i-panel id='pnlPreview' dock='right' width='50%' resizer={true}>
-
-                </i-panel>
+  }
+  handleFileChange(target: Control, event: Event){    
+    console.dir(target);
+    console.dir(event);    
+    let fileName: string = target.tag?.fileName;
+    if (fileName)
+      Samples[fileName] = (target as CodeEditor).value;
+  }  
+  handleTogglePreview(){    
+    this.pnlPreview.visible = this.swPreview.checked;
+    this.refresh();
+  }
+  get compiler(): Compiler{
+    if (!this._compiler)
+      this._compiler = new Compiler();
+    return this._compiler;
+  }
+  async handleTreeViewClick(){
+    if (this.tvFiles.activeItem){
+      let tag: ITreeNodeData = this.tvFiles.activeItem.tag;
+      if (tag && tag.fileName){
+        if (tag.tab)
+          return tag.tab.active()
+        else{
+          if (!this.tsEditors.activeTab || !this.tabCodeTemp){
+            this.tabCodeTemp = this.tsEditors.add();            
+          };
+          if (!this.edtCodeTemp){
+            this.edtCodeTemp = new CodeEditor(this.tabCodeTemp);
+            this.edtCodeTemp.onChange = this.handleFileChange;
+            this.edtCodeTemp.dock = 'fill';
+          };          
+          let model = await CodeEditor.getFileModel(tag.fileName);
+          if (!model){
+            let deps = await this.compiler.getDependencies(tag.fileName, tag.content, this.fileImporter);            
+            model = await CodeEditor.addFile(tag.fileName, tag.content)
+          };                    
+          this.tabCodeTemp.title = tag.fileName;
+          this.tabCodeTemp.tag = {treeNode: this.tvFiles.activeItem}
+          this.edtCodeTemp.tag = {fileName:tag.fileName};
+          this.edtCodeTemp.loadContent(tag.content, 'typescript', tag.fileName);
+          this.tabCodeTemp.caption = tag.fileName.split('/').pop() || 'Untitled';
+          this.tabCodeTemp.active();
+        }
+      }
+    }
+  }
+  async run(){
+    await this.ifrPreview.reload();
+    let compiler = new Compiler();
+    await compiler.addFile('src/index.tsx', Samples['src/index.tsx'], this.fileImporter)
+    let result = await compiler.compile();
+    console.dir(result);
+    let contentWindow = (this.ifrPreview as any).iframeElm.contentWindow;
+    contentWindow.postMessage(JSON.stringify({script: result.script['index.js']}));
+  }
+  handleTreeViewDblClick(){
+    let nodeData: ITreeNodeData = this.tvFiles.activeItem?.tag;
+    if (this.tabCodeTemp && nodeData && !nodeData.tab){
+      this.tabCodeTemp.font.style = 'normal';
+      nodeData.tab = this.tabCodeTemp;
+      nodeData.editor = this.edtCodeTemp;
+      this.tabCodeTemp = undefined;
+      this.edtCodeTemp = undefined;
+    }
+  }
+  handleEditorTabClose(target: Tabs, tab: Tab){
+    if (tab.tag && tab.tag.treeNode){
+      tab.tag.treeNode.tag.tab = null;
+    }
+    if (!this.tsEditors.activeTab){
+      this.tabCodeTemp = undefined;
+      this.edtCodeTemp = undefined;
+    }
+  }
+  reload(){
+    this.ifrPreview.reload();
+  }
+  protected async init(){
+    await super.init();
+    this.loadFiles();
+  }
+  render(): any {
+    return (
+      <i-panel id='pnlMain' dock='fill'>        
+        <i-panel height={40} dock='top'>                    
+          <i-panel dock='left'>
+            <i-button caption="Run" icon="caret-right" height={30} width={140} margin={{top:5,left:4}} onClick={this.run}></i-button>
+          </i-panel>
+          <i-panel dock='right' width={140} padding={{top:4,bottom:4}}>
+            <i-hstack>
+              <i-label caption='Preview' width={60}></i-label>
+              <i-switch checkedText='on' uncheckedText='off' id='swPreview' width={80} checked={true} onChanged={this.handleTogglePreview}></i-switch>            
+            </i-hstack>            
+          </i-panel>          
+        </i-panel>        
+        <i-panel dock='left' width={180} resizer={true}>
+          <i-tabs mode='vertical' dock='fill' width={80}>
+            <i-tab icon={{name:'file-code',fill:'white'}}>
+              <i-tree-view id='tvFiles' dock='fill' onClick={this.handleTreeViewClick} onDblClick={this.handleTreeViewDblClick}></i-tree-view>
+            </i-tab>
+            <i-tab icon={{name:'search',fill:'white'}}></i-tab>
+            <i-tab icon={{name:'code-branch',fill:'white'}}></i-tab>
+          </i-tabs>
+        </i-panel>
+        <i-panel id='pnlCode' dock='fill'>
+          <i-tabs id = 'tsEditors' dock='fill' draggable={true} closable={true} onTabClosed={this.handleEditorTabClose}>
+            <i-tab id = 'tabCodeTemp' caption='untitled'>
+              <i-code-editor id="edtCodeTemp" dock='fill' onChange={this.handleFileChange}></i-code-editor>
+            </i-tab>
+          </i-tabs>          
+        </i-panel>
+        <i-panel id='pnlPreview' dock='right' width='50%' resizer={true}>
+          <i-panel dock='top' height={30} padding={{top:5,bottom:5}}>
+            <i-panel dock='left' width={80}>
+            <i-button icon='angle-left' width={20} height={20}></i-button>
+            <i-button icon='angle-right' margin={{left:4}} width={20} height={20}></i-button>
+            <i-button icon='redo' margin={{left:4}} width={20} height={20} onClick={this.reload}></i-button>
             </i-panel>
-        );
-    };
+            <i-input dock='fill' value='https://localhost' margin={{right:10}}></i-input>            
+          </i-panel>
+          <i-iframe id='ifrPreview' url='/launcher.html' dock='fill'></i-iframe>
+        </i-panel>
+      </i-panel>
+    )
+  };
 };

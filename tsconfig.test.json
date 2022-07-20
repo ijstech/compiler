@@ -6,19 +6,21 @@
         "target": "ES2017",
         "moduleResolution": "node",        
         "module": "amd",        
-        "removeComments": true,
+        "outFile": "bundle/editor.js",
+        "removeComments": true,        
         "strict": true,
         "jsx": "react",
-        "jsxFactory": "this.$render",
+        "jsxFactory": "global.$JSX",
         "esModuleInterop": true,
-        "skipLibCheck": true,
+        "skipLibCheck": true,        
         "forceConsistentCasingInFileNames": true,
         "strictPropertyInitialization": false,
         "paths": {
+            "@ijstech/compiler": ["."],
             "@ijstech/components": ["packages/components"]
         }
     },
     "include": [
-        "test/static/**/*.tsx"
+        "test/static/editor/*.tsx"
     ]
 }

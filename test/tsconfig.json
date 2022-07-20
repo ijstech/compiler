@@ -9,13 +9,19 @@
         "strict": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
+        "jsx": "react",
+        "jsxFactory": "global.$render",
         "forceConsistentCasingInFileNames": true,
         "strictPropertyInitialization": false,
         "paths": {
+            "@ijstech/compiler": ["../src"],
             "@ijstech/components": ["../packages/components"]
         }
     },
     "include": [
-        "*.ts"
+        "static/**/.ts",
+        "static/**/*.tsx",
+        "scripts/*.tsx",
+        "scripts/*.ts"
     ]
 }
