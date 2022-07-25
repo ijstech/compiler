@@ -78,6 +78,7 @@ define("editor", ["require", "exports", "@ijstech/components", "@ijstech/compile
                     };
             }
             ;
+            console.log('tv', this.tvFiles);
         }
         ;
         async fileImporter(fileName) {
@@ -124,7 +125,50 @@ define("editor", ["require", "exports", "@ijstech/components", "@ijstech/compile
                 this._compiler = new compiler_1.Compiler();
             return this._compiler;
         }
+        getLanguageByFileName(fileName) {
+            let language = 'txt';
+            const extension = fileName.substr(fileName.lastIndexOf('.'));
+            switch (extension) {
+                case '.txt':
+                    language = 'txt';
+                    break;
+                case '.css':
+                case '.sass':
+                case '.scss':
+                case '.less':
+                    language = 'css';
+                    break;
+                case '.json':
+                    language = 'json';
+                    break;
+                case '.js':
+                case '.jsx':
+                    language = 'javascript';
+                    break;
+                case '.ts':
+                case '.tsx':
+                    language = 'typescript';
+                    break;
+                case '.sol':
+                    language = 'solidity';
+                    break;
+                case '.md':
+                    language = 'markdown';
+                    break;
+                case '.html':
+                    language = 'html';
+                    break;
+                case '.xml':
+                    language = 'xml';
+                    break;
+                default:
+                    language = 'txt';
+                    break;
+            }
+            return language;
+        }
         async handleTreeViewClick() {
+            console.log('handleTreeViewClick');
             if (this.tvFiles.activeItem) {
                 let tag = this.tvFiles.activeItem.tag;
                 if (tag && tag.fileName) {
@@ -150,7 +194,8 @@ define("editor", ["require", "exports", "@ijstech/components", "@ijstech/compile
                         this.tabCodeTemp.title = tag.fileName;
                         this.tabCodeTemp.tag = { treeNode: this.tvFiles.activeItem };
                         this.edtCodeTemp.tag = { fileName: tag.fileName };
-                        this.edtCodeTemp.loadContent(tag.content, 'typescript', tag.fileName);
+                        const language = this.getLanguageByFileName(tag.fileName);
+                        this.edtCodeTemp.loadContent(tag.content, language, tag.fileName);
                         this.tabCodeTemp.caption = tag.fileName.split('/').pop() || 'Untitled';
                         this.tabCodeTemp.active();
                     }
@@ -194,6 +239,7 @@ define("editor", ["require", "exports", "@ijstech/components", "@ijstech/compile
             this.loadFiles();
         }
         render() {
+            console.log('editor render');
             return (this.$render("i-panel", { id: 'pnlMain', dock: 'fill' },
                 this.$render("i-panel", { height: 40, dock: 'top' },
                     this.$render("i-panel", { dock: 'left' },
