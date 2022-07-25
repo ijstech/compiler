@@ -13,8 +13,10 @@ import {
 } from '@ijstech/components'
 import { Compiler } from '@ijstech/compiler'
 import Samples from './samples'
+import './editor.css'
 
 Styles.Theme.applyTheme(Styles.Theme.darkTheme)
+const Theme = Styles.Theme.ThemeVars
 
 interface ITreeNodeData {
   fileName: string
@@ -22,6 +24,7 @@ interface ITreeNodeData {
   editor?: CodeEditor
   tab?: Tab
 }
+
 export default class CodeEditorModule extends Module {
   private edtCodeTemp?: CodeEditor
   private tabCodeTemp?: Tab
@@ -70,6 +73,7 @@ export default class CodeEditorModule extends Module {
         }
     }
   }
+
   async fileImporter(
     fileName: string
   ): Promise<{ fileName: string; content: string } | null> {
@@ -94,20 +98,24 @@ export default class CodeEditorModule extends Module {
       }
     }
   }
+
   handleFileChange(target: Control, event: Event) {
     console.dir(target)
     console.dir(event)
     let fileName: string = target.tag?.fileName
     if (fileName) Samples[fileName] = (target as CodeEditor).value
   }
+
   handleTogglePreview() {
     this.pnlPreview.visible = this.swPreview.checked
     this.refresh()
   }
+
   get compiler(): Compiler {
     if (!this._compiler) this._compiler = new Compiler()
     return this._compiler
   }
+
   async handleTreeViewClick() {
     if (this.tvFiles.activeItem) {
       let tag: ITreeNodeData = this.tvFiles.activeItem.tag
@@ -141,6 +149,7 @@ export default class CodeEditorModule extends Module {
       }
     }
   }
+
   async run() {
     await this.ifrPreview.reload()
     let compiler = new Compiler()
@@ -156,6 +165,7 @@ export default class CodeEditorModule extends Module {
       JSON.stringify({ script: result.script['index.js'] })
     )
   }
+
   handleTreeViewDblClick() {
     let nodeData: ITreeNodeData = this.tvFiles.activeItem?.tag
     if (this.tabCodeTemp && nodeData && !nodeData.tab) {
@@ -166,6 +176,7 @@ export default class CodeEditorModule extends Module {
       this.edtCodeTemp = undefined
     }
   }
+
   handleEditorTabClose(target: Tabs, tab: Tab) {
     if (tab.tag && tab.tag.treeNode) {
       tab.tag.treeNode.tag.tab = null
@@ -175,23 +186,26 @@ export default class CodeEditorModule extends Module {
       this.edtCodeTemp = undefined
     }
   }
+
   reload() {
     this.ifrPreview.reload()
   }
+
   protected async init() {
     await super.init()
     this.loadFiles()
   }
+
   render(): any {
     return (
       <i-panel id="pnlMain" dock="fill">
-        <i-panel height={40} dock="top">
-          <i-panel dock="left">
+        <i-panel id="header" height={30} dock="top">
+          <i-panel dock="right">
             <i-button
               caption="Run"
               icon="caret-right"
               height={30}
-              width={140}
+              width={100}
               margin={{ top: 5, left: 4 }}
               onClick={this.run}
             ></i-button>
@@ -210,20 +224,47 @@ export default class CodeEditorModule extends Module {
             </i-hstack>
           </i-panel>
         </i-panel>
-        <i-panel dock="left" width={180} resizer={true}>
+
+        <i-panel id="toolbarTabs" dock="left" width={348} resizer={true}>
           <i-tabs mode="vertical" dock="fill" width={80}>
-            <i-tab icon={{ name: 'file-code', fill: 'white' }}>
-              <i-tree-view
-                id="tvFiles"
-                dock="fill"
-                onClick={this.handleTreeViewClick}
-                onDblClick={this.handleTreeViewDblClick}
-              ></i-tree-view>
+            <i-tab
+              icon={{ name: 'file-code', fill: 'white', width: 20, height: 20 }}
+            >
+              <i-vstack padding={{ top: 8, left: 8, right: 8, bottom: 8 }}>
+                <i-hstack
+                  horizontalAlignment="space-between"
+                  marginBottom={5}
+                  verticalAlignment="center"
+                >
+                  <i-label
+                    caption="EXPLORER"
+                    font={{ size: '12px', color: Theme.text.secondary }}
+                  ></i-label>
+                </i-hstack>
+                <i-vstack class="project-sidebar" width="100%">
+                  <i-tree-view
+                    id="tvFiles"
+                    dock="fill"
+                    onClick={this.handleTreeViewClick}
+                    onDblClick={this.handleTreeViewDblClick}
+                  ></i-tree-view>
+                </i-vstack>
+              </i-vstack>
             </i-tab>
-            <i-tab icon={{ name: 'search', fill: 'white' }}></i-tab>
-            <i-tab icon={{ name: 'code-branch', fill: 'white' }}></i-tab>
+            <i-tab
+              icon={{ name: 'search', fill: 'white', width: 20, height: 20 }}
+            ></i-tab>
+            <i-tab
+              icon={{
+                name: 'code-branch',
+                fill: 'white',
+                width: 20,
+                height: 20,
+              }}
+            ></i-tab>
           </i-tabs>
         </i-panel>
+
         <i-panel id="pnlCode" dock="fill">
           <i-tabs
             id="tsEditors"
@@ -241,7 +282,8 @@ export default class CodeEditorModule extends Module {
             </i-tab>
           </i-tabs>
         </i-panel>
-        <i-panel id="pnlPreview" dock="right" width="50%" resizer={true}>
+
+        <i-panel id="pnlPreview" dock="right" width="35%" resizer={true}>
           <i-panel dock="top" height={30} padding={{ top: 5, bottom: 5 }}>
             <i-panel dock="left" width={80}>
               <i-button icon="angle-left" width={20} height={20}></i-button>
