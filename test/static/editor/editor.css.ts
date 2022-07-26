@@ -14,10 +14,6 @@ Styles.cssRule('i-module--1', {
           background: '#333',
         },
 
-        '.tabs-content': {
-          background: '#252526',
-        },
-
         'i-tab': {
           background: 'transparent',
           border: 0,
@@ -38,6 +34,63 @@ Styles.cssRule('i-module--1', {
               width: '48px',
               height: '48px',
               padding: 0,
+            },
+          },
+        },
+
+        '.tabs-content': {
+          background: '#252526',
+
+          $nest: {
+            '.toolbar-label': {
+              padding: '0 8px',
+
+              $nest: {
+                div: {
+                  paddingLeft: '12px',
+                  fontSize: '11px',
+                  color: 'rgb(187, 187, 187)',
+                  lineHeight: '35px',
+                },
+              },
+            },
+
+            '.toolbar-workspace': {
+              padding: '0 20px',
+
+              $nest: {
+                div: {
+                  fontSize: '12px',
+                  lineHeight: '22px',
+                  fontWeight: 700,
+                  color: '#ccc',
+                },
+              },
+            },
+
+            '.project-sidebar': {
+              $nest: {
+                'i-tree-view': {
+                  paddingLeft: '4px',
+
+                  $nest: {
+                    'i-tree-node': {
+                      paddingLeft: '14px',
+                    },
+
+                    '.i-tree-node_content': {
+                      lineHeight: '22px',
+                      paddingLeft: 0,
+                    },
+
+                    '.i-tree-node_label': {
+                      paddingLeft: '4px',
+                      fontSize: '13.5px',
+                      color: '#ccc',
+                    },
+                  },
+                },
+              },
             },
           },
         },

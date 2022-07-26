@@ -230,15 +230,14 @@ export default class CodeEditorModule extends Module {
             <i-tab
               icon={{ name: 'file-code', fill: 'white', width: 20, height: 20 }}
             >
-              <i-vstack padding={{ top: 8, left: 8, right: 8, bottom: 8 }}>
-                <i-hstack
-                  horizontalAlignment="space-between"
-                  marginBottom={5}
-                  verticalAlignment="center"
-                >
+              <i-vstack>
+                <i-hstack>
+                  <i-label class="toolbar-label" caption="EXPLORER"></i-label>
+                </i-hstack>
+                <i-hstack>
                   <i-label
-                    caption="EXPLORER"
-                    font={{ size: '12px', color: Theme.text.secondary }}
+                    class="toolbar-workspace"
+                    caption="WORKSPACE"
                   ></i-label>
                 </i-hstack>
                 <i-vstack class="project-sidebar" width="100%">
