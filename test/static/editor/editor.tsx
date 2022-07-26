@@ -15,6 +15,7 @@ import {
 import { Compiler } from '@ijstech/compiler'
 import Samples from './samples'
 import './editor.css'
+import { GitHubAPI } from './github/GitHubAPI'
 
 Styles.Theme.applyTheme(Styles.Theme.darkTheme)
 const Theme = Styles.Theme.ThemeVars
@@ -37,7 +38,7 @@ export default class CodeEditorModule extends Module {
   private ifrPreview: Iframe
   private _compiler: Compiler
 
-  async loadFiles() {
+  async loadFiles(fileTree: any[]) {
     this.tvFiles.clear()
     let fileNodes: { [idx: string]: TreeNode } = {}
     let self = this
@@ -56,12 +57,13 @@ export default class CodeEditorModule extends Module {
       return node
     }
 
-    let files = []
-    for (let fileName in Samples)
-      files.push({
-        paths: fileName.split('/'),
-        content: Samples[fileName],
-      })
+    let files: any[] = []
+    fileTree.forEach((file) => {
+      if (file.type !== 'tree')
+        files.push({
+          paths: file.path.split('/'),
+        })
+    })
     files.sort((item1, item2) => {
       if (item1.paths.length > item2.paths.length) return -1
       else if (item1.paths.length < item2.paths.length) return 1
@@ -72,7 +74,7 @@ export default class CodeEditorModule extends Module {
       if (node)
         node.tag = {
           fileName: files[i].paths.join('/'),
-          content: files[i].content,
+          content: files[i].paths.join('/'),
         }
     }
     console.log('tv', this.tvFiles)
@@ -242,7 +244,23 @@ export default class CodeEditorModule extends Module {
 
   protected async init() {
     await super.init()
-    this.loadFiles()
+    const gha = new GitHubAPI(
+      'mike-yuen',
+      'scbook',
+      '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'
+    )
+    const fileTree = await gha.getFileTree(
+      '5c86eb58c6bc8f0c766736f038d7c1ab86cc1619',
+      true
+    )
+    console.log('------', fileTree)
+    // if (files.tree?.length) {
+    //   for (let node of files.tree) {
+    //     const file = await gha.getFile(node.path)
+    //     console.log('--------', file)
+    //   }
+    // }
+    if (fileTree.tree?.length) this.loadFiles(fileTree.tree)
   }
 
   render(): any {
@@ -288,7 +306,11 @@ export default class CodeEditorModule extends Module {
                     caption="WORKSPACE"
                   ></i-label>
                 </i-hstack>
-                <i-vstack class="project-sidebar" width="100%">
+                <i-vstack
+                  class="project-sidebar"
+                  width="100%"
+                  height="calc(100vh - 22px - 35px - 30px)"
+                >
                   <i-tree-view
                     id="tvFiles"
                     dock="fill"
