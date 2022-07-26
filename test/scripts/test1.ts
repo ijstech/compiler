@@ -1,3 +1,3 @@
-export function test1(): string{
-    return "test1";
+export function test1(): string {
+  return 'test1'
 }

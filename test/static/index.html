@@ -1,22 +1,24 @@
 <!DOCTYPE html>
+
 <head>
     <title>Compiler</title>
     <script src="/dist/lib/components/index.js"></script>
     <script src="/dist/lib/typescript/index.js"></script>
-    <script src="/dist/index.js"></script>    
+    <script src="/dist/index.js"></script>
 </head>
 <html>
-    <body>
-        <!-- <pre id="result"></pre>
+
+<body>
+    <!-- <pre id="result"></pre>
         <pre id="script"></pre> -->
-        <script>
-            async function init(){
-                let module = await application.loadModule('/editor/editor.js');
-            };
-            init();
-            // window.run = async function(){                
+    <script>
+        async function init() {
+            let module = await application.loadModule('/editor/editor.js');
+        };
+        init();
+            // window.run = async function(){
             //     let content = await fetch('/dist/lib/components/index.d.ts');
-            //     let dts = await content.text();                
+            //     let dts = await content.text();
             //     let Compiler = require('@ijstech/compiler').Compiler;
             //     let compiler = new Compiler();
             //     compiler.addPackage('@ijstech/components', {
@@ -32,6 +34,7 @@
             //     });
             // };
             // test();            
-        </script>
-    </body>
+    </script>
+</body>
+
 </html>
