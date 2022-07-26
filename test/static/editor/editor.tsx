@@ -246,16 +246,15 @@ export default class CodeEditorModule extends Module {
   }
 
   render(): any {
-    console.log('editor render')
     return (
       <i-panel id="pnlMain" dock="fill">
-        <i-panel height={40} dock="top">
-          <i-panel dock="left">
+        <i-panel id="header" height={30} dock="top">
+          <i-panel dock="right">
             <i-button
               caption="Run"
               icon="caret-right"
               height={30}
-              width={140}
+              width={100}
               margin={{ top: 5, left: 4 }}
               onClick={this.run}
             ></i-button>
@@ -274,18 +273,42 @@ export default class CodeEditorModule extends Module {
             </i-hstack>
           </i-panel>
         </i-panel>
-        <i-panel dock="left" width={180} resizer={true}>
+        <i-panel id="toolbarTabs" dock="left" width={348} resizer={true}>
           <i-tabs mode="vertical" dock="fill" width={80}>
-            <i-tab icon={{ name: 'file-code', fill: 'white' }}>
-              <i-tree-view
-                id="tvFiles"
-                dock="fill"
-                onClick={this.handleTreeViewClick}
-                onDblClick={this.handleTreeViewDblClick}
-              ></i-tree-view>
+            <i-tab
+              icon={{ name: 'file-code', fill: 'white', width: 20, height: 20 }}
+            >
+              <i-vstack>
+                <i-hstack>
+                  <i-label class="toolbar-label" caption="EXPLORER"></i-label>
+                </i-hstack>
+                <i-hstack>
+                  <i-label
+                    class="toolbar-workspace"
+                    caption="WORKSPACE"
+                  ></i-label>
+                </i-hstack>
+                <i-vstack class="project-sidebar" width="100%">
+                  <i-tree-view
+                    id="tvFiles"
+                    dock="fill"
+                    onClick={this.handleTreeViewClick}
+                    onDblClick={this.handleTreeViewDblClick}
+                  ></i-tree-view>
+                </i-vstack>
+              </i-vstack>
             </i-tab>
-            <i-tab icon={{ name: 'search', fill: 'white' }}></i-tab>
-            <i-tab icon={{ name: 'code-branch', fill: 'white' }}></i-tab>
+            <i-tab
+              icon={{ name: 'search', fill: 'white', width: 20, height: 20 }}
+            ></i-tab>
+            <i-tab
+              icon={{
+                name: 'code-branch',
+                fill: 'white',
+                width: 20,
+                height: 20,
+              }}
+            ></i-tab>
           </i-tabs>
         </i-panel>
         <i-panel id="pnlCode" dock="fill">
@@ -305,7 +328,7 @@ export default class CodeEditorModule extends Module {
             </i-tab>
           </i-tabs>
         </i-panel>
-        <i-panel id="pnlPreview" dock="right" width="50%" resizer={true}>
+        <i-panel id="pnlPreview" dock="right" width="35%" resizer={true}>
           <i-panel dock="top" height={30} padding={{ top: 5, bottom: 5 }}>
             <i-panel dock="left" width={80}>
               <i-button icon="angle-left" width={20} height={20}></i-button>
