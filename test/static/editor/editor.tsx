@@ -38,6 +38,8 @@ export default class CodeEditorModule extends Module {
   private ifrPreview: Iframe
   private _compiler: Compiler
 
+  private _gha: GitHubAPI;
+
   async loadFiles(fileTree: any[]) {
     this.tvFiles.clear()
     let fileNodes: { [idx: string]: TreeNode } = {}
@@ -77,7 +79,6 @@ export default class CodeEditorModule extends Module {
           content: files[i].paths.join('/'),
         }
     }
-    console.log('tv', this.tvFiles)
   }
 
   async fileImporter(
@@ -106,8 +107,6 @@ export default class CodeEditorModule extends Module {
   }
 
   handleFileChange(target: Control, event: Event) {
-    console.dir(target)
-    console.dir(event)
     let fileName: string = target.tag?.fileName
     if (fileName) Samples[fileName] = (target as CodeEditor).value
   }
@@ -166,7 +165,6 @@ export default class CodeEditorModule extends Module {
   }
 
   async handleTreeViewClick() {
-    console.log('handleTreeViewClick')
     if (this.tvFiles.activeItem) {
       let tag: ITreeNodeData = this.tvFiles.activeItem.tag
       if (tag && tag.fileName) {
@@ -193,7 +191,8 @@ export default class CodeEditorModule extends Module {
           this.tabCodeTemp.tag = { treeNode: this.tvFiles.activeItem }
           this.edtCodeTemp.tag = { fileName: tag.fileName }
           const language = this.getLanguageByFileName(tag.fileName)
-          this.edtCodeTemp.loadContent(tag.content, language, tag.fileName)
+          const content = await this._gha.getFile(tag.fileName);
+          this.edtCodeTemp.loadContent(content.content, language, tag.fileName)
           this.tabCodeTemp.caption = tag.fileName.split('/').pop() || 'Untitled'
           this.tabCodeTemp.active()
         }
@@ -210,7 +209,6 @@ export default class CodeEditorModule extends Module {
       this.fileImporter
     )
     let result = await compiler.compile()
-    console.dir(result)
     let contentWindow = (this.ifrPreview as any).iframeElm.contentWindow
     contentWindow.postMessage(
       JSON.stringify({ script: result.script['index.js'] })
@@ -244,16 +242,15 @@ export default class CodeEditorModule extends Module {
 
   protected async init() {
     await super.init()
-    const gha = new GitHubAPI(
+    this._gha = new GitHubAPI(
       'mike-yuen',
       'scbook',
       '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'
     )
-    const fileTree = await gha.getFileTree(
+    const fileTree = await this._gha.getFileTree(
       '5c86eb58c6bc8f0c766736f038d7c1ab86cc1619',
       true
     )
-    console.log('------', fileTree)
     // if (files.tree?.length) {
     //   for (let node of files.tree) {
     //     const file = await gha.getFile(node.path)
