@@ -13,6 +13,7 @@ import {
   LanguageType,
 } from '@ijstech/components'
 import { Compiler } from '@ijstech/compiler'
+
 import Samples from './samples'
 import './editor.css'
 import { GitHubAPI } from './github/GitHubAPI'
@@ -38,7 +39,7 @@ export default class CodeEditorModule extends Module {
   private ifrPreview: Iframe
   private _compiler: Compiler
 
-  private _gha: GitHubAPI;
+  private _gha: GitHubAPI
 
   async loadFiles(fileTree: any[]) {
     this.tvFiles.clear()
@@ -191,7 +192,7 @@ export default class CodeEditorModule extends Module {
           this.tabCodeTemp.tag = { treeNode: this.tvFiles.activeItem }
           this.edtCodeTemp.tag = { fileName: tag.fileName }
           const language = this.getLanguageByFileName(tag.fileName)
-          const content = await this._gha.getFile(tag.fileName);
+          const content = await this._gha.getFile(tag.fileName)
           this.edtCodeTemp.loadContent(content.content, language, tag.fileName)
           this.tabCodeTemp.caption = tag.fileName.split('/').pop() || 'Untitled'
           this.tabCodeTemp.active()
@@ -288,6 +289,7 @@ export default class CodeEditorModule extends Module {
             </i-hstack>
           </i-panel>
         </i-panel>
+
         <i-panel id="toolbarTabs" dock="left" width={348} resizer={true}>
           <i-tabs mode="vertical" dock="fill" width={80}>
             <i-tab
@@ -317,9 +319,25 @@ export default class CodeEditorModule extends Module {
                 </i-vstack>
               </i-vstack>
             </i-tab>
+
             <i-tab
               icon={{ name: 'search', fill: 'white', width: 20, height: 20 }}
-            ></i-tab>
+            >
+              <i-vstack>
+                <i-hstack>
+                  <i-label class="toolbar-label" caption="SEARCH"></i-label>
+                </i-hstack>
+
+                <i-vstack
+                  class="project-sidebar"
+                  width="100%"
+                  height="calc(100vh - 22px - 35px - 30px)"
+                >
+                  <editor-search></editor-search>
+                </i-vstack>
+              </i-vstack>
+            </i-tab>
+
             <i-tab
               icon={{
                 name: 'code-branch',
@@ -330,6 +348,7 @@ export default class CodeEditorModule extends Module {
             ></i-tab>
           </i-tabs>
         </i-panel>
+
         <i-panel id="pnlCode" dock="fill">
           <i-tabs
             id="tsEditors"
@@ -347,6 +366,7 @@ export default class CodeEditorModule extends Module {
             </i-tab>
           </i-tabs>
         </i-panel>
+
         <i-panel id="pnlPreview" dock="right" width="35%" resizer={true}>
           <i-panel dock="top" height={30} padding={{ top: 5, bottom: 5 }}>
             <i-panel dock="left" width={80}>
