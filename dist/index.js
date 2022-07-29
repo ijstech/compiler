@@ -15294,7 +15294,7 @@ define("@ijstech/compiler", ["require", "exports", "@ijstech/compiler/lib", "typ
         }
         ;
         async importDependencies(fileName, content, fileImporter, result) {
-            let ast = typescript_1.default.createSourceFile(fileName, content, typescript_1.default.ScriptTarget.ES2015, true);
+            let ast = typescript_1.default.createSourceFile(fileName, content, typescript_1.default.ScriptTarget.ES2017, true);
             result = result || [];
             for (let i = 0; i < ast.statements.length; i++) {
                 let node = ast.statements[i];
@@ -15407,7 +15407,7 @@ define("@ijstech/compiler", ["require", "exports", "@ijstech/compiler/lib", "typ
         }
         ;
         async getDependencies(fileName, content, fileImporter, result) {
-            let ast = typescript_1.default.createSourceFile(fileName, content, typescript_1.default.ScriptTarget.ES2015, true);
+            let ast = typescript_1.default.createSourceFile(fileName, content, typescript_1.default.ScriptTarget.ES2017, true);
             result = result || [];
             for (let i = 0; i < ast.statements.length; i++) {
                 let node = ast.statements[i];
