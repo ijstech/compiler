@@ -6,19 +6,16 @@ import {
     TreeNode,
     Control,
     Markdown,
-    Loading,
     LibPath,
     RequireJS,
     Iframe,
     Styles,
 } from '@ijstech/components';
 
-export { DocsEditor } from './components/editor';
 export { DocsHeader } from './components/header';
 export { DocsNavigator } from './components/navigator';
 export { DocsPaging } from './components/paging';
 import './index.css';
-import {CodeEditor} from "@ijstech/*code-editor/src/code-editor";
 const Theme = Styles.Theme.ThemeVars;
 
 const slugify = (str: string) => {
@@ -141,7 +138,6 @@ RequireJS.config({
 @customModule
 @customElements('i-docs-site')
 export class DocsSite extends Module {
-    private docsEditor: any; // DocsEditor
     private docsHeader: any; // DocsHeader;
     private docsNavigator: any; // DocsNavigation;
     private docsPaging: any;
@@ -153,8 +149,6 @@ export class DocsSite extends Module {
     private mdViewer: Markdown;
     private isNavOpened = true;
     private forceUpdate: boolean = true;
-    private spinner: Loading;
-    private spinnerTimer: any;
     private runFrame: Iframe;
     private isPageLoading: boolean = false;
     private pageLoadingCounter: number = 0;
@@ -485,18 +479,6 @@ export class DocsSite extends Module {
         if (treeNode) this.activeNode(treeNode);
     }
 
-    showSpinner() {
-        clearTimeout(this.spinnerTimer);
-        this.spinnerTimer = setTimeout(() => {
-            this.spinner.spinning = true;
-        }, 2000);
-    }
-
-    hideSpinner() {
-        clearTimeout(this.spinnerTimer);
-        this.spinner.spinning = false;
-    }
-
     bindEvents() {
         window.addEventListener('popstate', async (e) => {
             await this.loadPage();
@@ -604,7 +586,6 @@ export class DocsSite extends Module {
             this.mdViewer.beforeRender(processedMd);
             await this.sleep(200);
             this.addBtnEvent();
-            this.docsEditor.setValue(this.currentNode.text);
             if(this.hljs)
                 this.hljs.highlightAll();
             for (const ref of document.querySelectorAll('a.internal-link')) {
@@ -724,11 +705,9 @@ export class DocsSite extends Module {
         return new Promise(async (resolve, reject) => {
             let menuText: any = '';
             if (this.forceUpdate || !window.localStorage?.getItem('$$scbook_menu')) {
-                this.showSpinner();
                 const response = await this.retryLoadFile(`${this.entrypoint}/SUMMARY.md`);
                 menuText = await response.text();
                 window.localStorage?.setItem(`$$scbook_menu`, menuText);
-                this.hideSpinner();
             } else {
                 menuText = window.localStorage?.getItem('$$scbook_menu');
             }
@@ -752,11 +731,9 @@ export class DocsSite extends Module {
         return new Promise(async (resolve, reject) => {
             let text: any = '';
             if (this.forceUpdate || !window.localStorage?.getItem(`$$scbook_${slug}`)) {
-                this.showSpinner();
                 const response = await this.retryLoadFile(`${this.entrypoint}/${file}`);
                 text = await response.text();
                 window.localStorage?.setItem(`$$scbook_${slug}`, text);
-                this.hideSpinner();
             } else {
                 text = window.localStorage?.getItem(`$$scbook_${slug}`);
             }
@@ -889,11 +866,6 @@ export class DocsSite extends Module {
                     <i-docs-navigator id="docsNavigator"></i-docs-navigator>
                     <i-panel class="docs-container">
                         <i-panel class="content">
-                            <i-loading id="spinner" spinning={false} overlay caption="Fetching content from IPFS...">
-                                <i-markdown id="mdViewer"></i-markdown>
-                                <i-docs-editor id="docsEditor" class="hidden"></i-docs-editor>
-                                <i-paging id="docsPaging"></i-paging>
-                            </i-loading>
                         </i-panel>
 
                         <i-panel class="right-nav"></i-panel>

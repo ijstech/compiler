@@ -82,7 +82,7 @@ export class Compiler {
         let ast = TS.createSourceFile(
             fileName,
             content,
-            TS.ScriptTarget.ES2015,
+            TS.ScriptTarget.ES2017,
             true
         );
         result = result || [];
@@ -195,7 +195,7 @@ export class Compiler {
         let ast = TS.createSourceFile(
             fileName,
             content,
-            TS.ScriptTarget.ES2015,
+            TS.ScriptTarget.ES2017,
             true
         );
         result = result || [];

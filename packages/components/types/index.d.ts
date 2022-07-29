@@ -2877,7 +2877,7 @@ declare module "@ijstech/*base/src/component" {
         left?: string | number;
     }
     export type BorderSides = 'top' | 'right' | 'bottom' | 'left';
-    export interface IFlex {
+    export interface IStack {
         basis?: string;
         grow?: string;
         shrink?: string;
@@ -2893,13 +2893,11 @@ declare module "@ijstech/*base/src/component" {
         protected _left: number | string;
         protected options: any;
         protected defaults: any;
-        protected initialized: boolean;
-        protected _initCallback: any;
+        initialized: boolean;
         protected attrs: any;
         constructor(parent?: Component, options?: any, defaults?: any);
-        protected connectedCallback(): Promise<void>;
-        protected disconnectCallback(): void;
-        protected controlReady(): Promise<void>;
+        connectedCallback(): void;
+        disconnectCallback(): void;
         createElement(tagName: string, parentElm?: HTMLElement): HTMLElement;
         getValue(target: any, paths: string[], idx?: number): any;
         getAttribute(name: string, removeAfter?: boolean, defaultValue?: any): any;
@@ -2907,13 +2905,12 @@ declare module "@ijstech/*base/src/component" {
         getStyleAttribute(name: string, removeAfter?: boolean, defaultValue?: any): string;
         get id(): string;
         set id(value: string);
-        protected init(): Promise<void>;
+        protected init(): void;
     }
 }
 declare module "@ijstech/*base/src/style/base.css" {
     import { BorderStylesSideType, IBorder, IBorderSideStyles } from "@ijstech/*base/@ijstech/components";
     export const disabledStyle: string;
-    export const contentCenterStyle: string;
     export const containerStyle: string;
     export const getBorderSideStyleClass: (side: BorderStylesSideType, value: IBorderSideStyles) => string;
     export const getBorderStyleClass: (value: IBorder) => string;
@@ -2956,9 +2953,9 @@ declare module "@ijstech/*tooltip/src/tooltip" {
         set placement(value: PlacementType);
         get maxWidth(): string;
         set maxWidth(value: string);
-        show(elm: HTMLElement): void;
-        close(): void;
-        onHandleClick(elm: HTMLElement): void;
+        private show;
+        private close;
+        private onHandleClick;
         private renderTooltip;
         private initEvents;
     }
@@ -2967,10 +2964,16 @@ declare module "@ijstech/*tooltip/@ijstech/components" {
     export { Tooltip, ITooltip } from "@ijstech/*tooltip/src/tooltip";
 }
 declare module "@ijstech/*base/src/control" {
-    import { Component, IFlex, ISpace } from "@ijstech/*base/src/component";
+    import { Component, IStack, IFont, ISpace } from "@ijstech/*base/src/component";
     import { notifyEventCallback } from "@ijstech/*base/@ijstech/components";
     export type DockStyle = 'none' | 'bottom' | 'center' | 'fill' | 'left' | 'right' | 'top';
     export type LineHeightType = string | number | 'normal' | 'initial' | 'inherit';
+    export type DisplayType = 'inline-block' | 'block' | 'inline-flex' | 'flex' | 'inline' | 'initial' | 'inherit';
+    export interface IMediaQuery<T> {
+        minWidth?: string | number;
+        maxWidth?: string | number;
+        properties: T;
+    }
     export type SpaceProps = 'margin' | 'padding';
     class SpaceValue implements ISpace {
         private _value;
@@ -3051,9 +3054,9 @@ declare module "@ijstech/*base/src/control" {
         rowSpan?: number;
         horizontalAlignment?: "stretch" | "start" | "end" | "center";
         verticalAlignment?: "stretch" | "start" | "end" | "center";
+        area?: string;
     }
     export class Control extends Component {
-        controls: Control[];
         protected _enabled: boolean;
         protected _onClick: notifyEventCallback;
         protected _onDblClick: notifyEventCallback;
@@ -3071,44 +3074,34 @@ declare module "@ijstech/*base/src/control" {
         protected _anchorRight: boolean;
         protected _anchorBottom: boolean;
         protected _visible: boolean;
-        protected _contentCenter: boolean;
         protected _margin: SpaceValue;
         protected _padding: SpaceValue;
-        protected _flex: string | IFlex;
+        protected _stack: IStack;
         protected _grid: IGrid;
         protected _lineHeight: LineHeightType;
-        protected _parent: Control | undefined;
+        protected _parent: Container | undefined;
         protected _dock: DockStyle;
-        protected _linkTo: string;
+        protected _linkTo: Control;
         protected _border: Border;
         protected _resizer: ContainerResizer;
         private _tooltip;
+        protected _font: IFont;
+        protected _display: DisplayType;
         _container?: HTMLElement;
         tag: any;
+        protected static create(options?: any, parent?: Container, defaults?: any): Promise<Control>;
         constructor(parent?: Control, options?: any, defaults?: any);
-        get color(): string;
-        set color(value: string);
-        getMarginStyle(): {
-            top: number;
-            right: number;
-            bottom: number;
-            left: number;
-        };
-        getPaddingStyle(): {
-            top: number;
-            right: number;
-            bottom: number;
-            left: number;
-        };
+        private getMarginStyle;
+        private getPaddingStyle;
         get margin(): ISpace;
         set margin(value: ISpace);
-        protected addChildControl(control: Control): void;
-        protected removeChildControl(control: Control): void;
-        get parent(): Control | undefined;
-        set parent(value: Control | undefined);
+        get padding(): ISpace;
+        set padding(value: ISpace);
+        get parent(): Container | undefined;
+        set parent(value: Container | undefined);
         protected getSpacingValue(value: string | number): string;
-        protected connectedCallback(): Promise<void>;
-        protected disconnectCallback(): void;
+        connectedCallback(): void;
+        disconnectCallback(): void;
         protected getParentHeight(): number;
         protected getParentWidth(): number;
         protected getParentOccupiedLeft(): number;
@@ -3135,7 +3128,8 @@ declare module "@ijstech/*base/src/control" {
         refresh(): void;
         get resizable(): boolean;
         protected setProperty(propName: string, value: any): void;
-        protected init(): Promise<void>;
+        protected setAttributeToProperty<P extends keyof Control>(propertyName: P): void;
+        protected init(): void;
         calculatePositon(): void;
         protected setPosition(prop: any, value: any): void;
         get height(): number | string;
@@ -3149,21 +3143,25 @@ declare module "@ijstech/*base/src/control" {
         set visible(value: boolean);
         get width(): number | string;
         set width(value: number | string);
-        get flex(): string | IFlex;
-        set flex(value: string | IFlex);
+        get stack(): IStack;
+        set stack(value: IStack);
         get grid(): IGrid;
         set grid(value: IGrid);
         get background(): string;
         set background(value: string);
         get lineHeight(): LineHeightType;
         set lineHeight(value: LineHeightType);
-        get linkTo(): string;
-        set linkTo(value: string);
+        get linkTo(): Control;
+        set linkTo(value: Control);
         get minHeight(): string | number;
         set minHeight(value: string | number);
         get border(): Border;
         set border(value: IBorder);
         get tooltip(): any;
+        get font(): IFont;
+        set font(value: IFont);
+        get display(): DisplayType;
+        set display(value: DisplayType);
     }
     export class ContainerResizer {
         private target;
@@ -3182,11 +3180,10 @@ declare module "@ijstech/*base/src/control" {
         private get resizer();
     }
     export class Container extends Control {
-        get padding(): ISpace;
-        set padding(value: ISpace);
+        controls: Control[];
         get resizer(): boolean;
         set resizer(value: boolean);
-        protected init(): Promise<void>;
+        protected init(): void;
         protected refreshControls(): void;
         refresh(skipRefreshControls?: boolean): void;
     }
@@ -3199,10 +3196,10 @@ declare module "@ijstech/*base/src/types" {
 }
 declare module "@ijstech/*base/@ijstech/components" {
     export { Observe, Unobserve, ClearObservers, Observables, isObservable, observable } from "@ijstech/*base/src/observable";
-    export { IFont, Component, BorderSides, ISpace, IFlex, FontStyle } from "@ijstech/*base/src/component";
-    export { IBorder, BorderStylesSideType, IBorderSideStyles } from "@ijstech/*base/src/control";
-    import { IFlex, ISpace } from "@ijstech/*base/src/component";
-    import { Control, Container, DockStyle, LineHeightType, IBorder, IGrid } from "@ijstech/*base/src/control";
+    export { IFont, Component, BorderSides, ISpace, IStack, FontStyle } from "@ijstech/*base/src/component";
+    export { IBorder, BorderStylesSideType, IBorderSideStyles, IMediaQuery } from "@ijstech/*base/src/control";
+    import { IStack, IFont, ISpace } from "@ijstech/*base/src/component";
+    import { Control, Container, DockStyle, LineHeightType, IBorder, IGrid, DisplayType } from "@ijstech/*base/src/control";
     import { ITooltip } from "@ijstech/*tooltip/@ijstech/components";
     export { Control, Container };
     export * as Types from "@ijstech/*base/src/types";
@@ -3215,9 +3212,8 @@ declare module "@ijstech/*base/@ijstech/components" {
     };
     export type notifyEventCallback = (target: Control, event: Event) => void;
     export interface ControlElement {
-        bottom?: number;
         class?: string;
-        color?: string;
+        bottom?: number;
         dock?: DockStyle;
         enabled?: boolean;
         height?: number | string;
@@ -3235,19 +3231,19 @@ declare module "@ijstech/*base/@ijstech/components" {
         paddingRight?: number;
         paddingTop?: number;
         right?: number;
-        title?: string;
         top?: number;
         visible?: boolean;
         width?: number | string;
-        contentCenter?: boolean;
         margin?: ISpace;
         padding?: ISpace;
-        flex?: string | IFlex;
+        stack?: IStack;
         grid?: IGrid;
         background?: string;
         lineHeight?: LineHeightType;
         linkTo?: string;
         border?: IBorder;
+        font?: IFont;
+        display?: DisplayType;
         tooltip?: ITooltip | string;
         onClick?: notifyEventCallback;
         onDblClick?: notifyEventCallback;
@@ -3277,7 +3273,7 @@ declare module "@ijstech/*module/src/module" {
         private $render;
         static create(options?: ModuleElement, parent?: Container, defaults?: ModuleElement): Promise<Module>;
         constructor(parent?: Container, options?: any, defaults?: any);
-        protected init(): Promise<void>;
+        init(): void;
         flattenArray(arr: any[]): any;
         _render(...params: any[]): HTMLElement;
         render(): void;
@@ -3363,7 +3359,7 @@ declare module "@ijstech/*checkbox/src/checkbox" {
         set checked(value: boolean);
         _handleChange(source: any, event?: Event): void;
         addClass(value: boolean, className: string): void;
-        protected init(): Promise<void>;
+        init(): void;
         static create(options?: CheckboxElement, parent?: Control): Promise<Checkbox>;
     }
 }
@@ -3451,6 +3447,7 @@ declare module "@ijstech/*application/@ijstech/components" {
         loadPackage(packageName: string, modulePath: string, options?: IModuleOptions): Promise<boolean>;
         loadModule(modulePath: string, options?: IHasDependencies): Promise<Module | null>;
         newModule(modulePath: string, options?: IHasDependencies): Promise<Module | null>;
+        copyToClipboard(value: string): Promise<boolean>;
     }
     export const application: Application;
     export { EventBus, IEventBus } from "@ijstech/*application/src/event-bus";
@@ -3518,8 +3515,8 @@ declare module "@ijstech/*image/src/image" {
         };
         drawImageBox(): void;
         cropImage(url: string): HTMLCanvasElement | undefined;
-        protected init(): Promise<void>;
-        protected connectedCallback(): Promise<void>;
+        init(): Promise<void>;
+        connectedCallback(): void;
         static create(options?: ImageElement, parent?: Control): Promise<Image>;
     }
 }
@@ -3536,6 +3533,7 @@ declare module "@ijstech/*icon/src/icon" {
         name?: IconName;
         fill?: Types.Color;
         image?: ImageElement;
+        spin?: boolean;
     }
     global {
         namespace JSX {
@@ -3549,14 +3547,17 @@ declare module "@ijstech/*icon/src/icon" {
         private _name;
         private _size;
         private _image;
+        private _spin;
         constructor(parent?: Control, options?: any);
-        protected init(): Promise<void>;
+        init(): Promise<void>;
         get fill(): Types.Color;
         set fill(color: Types.Color);
         get name(): IconName;
         set name(value: IconName);
         get image(): Image;
         set image(image: Image);
+        get spin(): boolean;
+        set spin(value: boolean);
         private _updateIcon;
         static create(options?: IconElement, parent?: Control): Promise<Icon>;
     }
@@ -3567,14 +3568,12 @@ declare module "@ijstech/*icon/@ijstech/components" {
 declare module "@ijstech/*button/src/style/button.css" { }
 declare module "@ijstech/*button/src/button" {
     import { Control, Container, ControlElement } from "@ijstech/*base/@ijstech/components";
-    import { IconName } from "@ijstech/*icon/@ijstech/components";
+    import { Icon, IconElement } from "@ijstech/*icon/@ijstech/components";
     import "@ijstech/*button/src/style/button.css";
-    export type IconPositionType = 'left' | 'right';
     export interface ButtonElement extends ControlElement {
         caption?: string;
-        icon?: IconName;
-        iconPosition?: IconPositionType;
-        loading?: boolean;
+        icon?: IconElement;
+        rightIcon?: IconElement;
     }
     global {
         namespace JSX {
@@ -3585,96 +3584,27 @@ declare module "@ijstech/*button/src/button" {
     }
     export class Button extends Control {
         private captionElm;
-        private iconElm;
         private _icon;
-        private _loading;
-        private _previousEnabled;
-        private iconPosition;
+        private _rightIcon;
         static create(options?: ButtonElement, parent?: Container): Promise<Button>;
         constructor(parent?: Control, options?: ButtonElement);
         get caption(): string;
         set caption(value: string);
-        get icon(): IconName;
-        set icon(name: IconName);
-        private createIconElm;
-        get loading(): boolean;
-        set loading(value: boolean);
-        protected init(): Promise<void>;
+        get icon(): Icon;
+        set icon(value: Icon);
+        get rightIcon(): Icon;
+        set rightIcon(value: Icon);
+        private get isSpinning();
+        private prependIcon;
+        private appendIcon;
+        private updateButton;
+        _handleClick(event: Event): boolean;
+        refresh(): void;
+        init(): void;
     }
 }
 declare module "@ijstech/*button/@ijstech/components" {
     export { Button, ButtonElement } from "@ijstech/*button/src/button";
-}
-declare module "@ijstech/*dropdown-button/src/style/dropdown-button.css" { }
-declare module "@ijstech/*dropdown-button/src/dropdown-button" {
-    import { Control, ControlElement } from "@ijstech/*base/@ijstech/components";
-    import { IconName } from "@ijstech/*icon/@ijstech/components";
-    import "@ijstech/*dropdown-button/src/style/dropdown-button.css";
-    export type PlacementType = 'bottom' | 'bottomLeft' | 'bottomRight' | 'top' | 'topLeft' | 'topRight';
-    export interface DropdownItemElement extends ControlElement {
-        caption?: string;
-        loading?: boolean;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ["i-dropdown-item"]: DropdownItemElement;
-            }
-        }
-    }
-    export class DropdownItem extends Control {
-        private captionElm;
-        private loadingElm;
-        private _loading;
-        private _prevEnabled;
-        get loading(): boolean;
-        set loading(value: boolean);
-        _handleClick(event: Event): boolean;
-        constructor(parent?: Control, options?: any);
-        protected init(): Promise<void>;
-        static create(options?: DropdownItemElement, parent?: Control): Promise<DropdownItem>;
-    }
-    export interface DropdownButtonElement extends ControlElement {
-        caption?: string;
-        icon?: IconName;
-        body?: boolean;
-        placement?: PlacementType;
-        popperClass?: string;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ["i-dropdown-button"]: DropdownButtonElement;
-            }
-        }
-    }
-    export class DropdownButton extends Control {
-        private captionElm;
-        private buttonElm;
-        private iconElm;
-        private dropdownElm;
-        private _body;
-        private _placement;
-        private isDropdownShown;
-        constructor(parent?: Control, options?: any);
-        get caption(): string;
-        set caption(value: string);
-        get body(): boolean;
-        set body(value: boolean);
-        get placement(): PlacementType;
-        set placement(value: PlacementType);
-        appendItems(value: DropdownItem | DropdownItem[]): void;
-        private openList;
-        handleClose(): void;
-        private toggleList;
-        private positionAt;
-        _handleClick(event: Event): boolean;
-        protected init(): Promise<void>;
-        static create(options?: DropdownButtonElement, parent?: Control): Promise<DropdownButton>;
-    }
-}
-declare module "@ijstech/*dropdown-button/@ijstech/components" {
-    export { DropdownItem, DropdownItemElement, DropdownButton, DropdownButtonElement } from "@ijstech/*dropdown-button/src/dropdown-button";
 }
 declare module "@ijstech/*code-editor/src/editor.api" {
     global {
@@ -6677,7 +6607,7 @@ declare module "@ijstech/*code-editor/src/code-editor" {
         static getFileModel: typeof getFileModel;
         static updateFile: typeof updateFile;
         get monaco(): Monaco;
-        protected init(): Promise<void>;
+        init(): void;
         get editor(): IMonaco.editor.IStandaloneCodeEditor;
         get language(): LanguageType;
         set language(value: LanguageType);
@@ -6686,7 +6616,6 @@ declare module "@ijstech/*code-editor/src/code-editor" {
         updateOptions(options: IMonaco.editor.IEditorOptions): void;
         get value(): string;
         set value(value: string);
-        static create(options?: CodeEditorElement, parent?: Control): Promise<CodeEditor>;
     }
 }
 declare module "@ijstech/*code-editor/src/diff-editor" {
@@ -6721,7 +6650,7 @@ declare module "@ijstech/*code-editor/src/diff-editor" {
         static addFile: typeof addFile;
         static getFileModel: typeof getFileModel;
         static updateFile: typeof updateFile;
-        protected init(): Promise<void>;
+        init(): void;
         get editor(): IMonaco.editor.IDiffEditor;
         get language(): LanguageType;
         set language(value: LanguageType);
@@ -6734,7 +6663,6 @@ declare module "@ijstech/*code-editor/src/diff-editor" {
         set originalValue(value: string);
         get modifiedValue(): string;
         set modifiedValue(value: string);
-        static create(options?: CodeDiffEditorElement, parent?: Control): Promise<CodeDiffEditor>;
     }
 }
 declare module "@ijstech/*code-editor/@ijstech/components" {
@@ -6811,7 +6739,7 @@ declare module "@ijstech/*combo-box/src/combo-box" {
         private escapeRegExp;
         private renderItems;
         private onItemClick;
-        protected init(): Promise<void>;
+        init(): void;
         disconnectCallback(): void;
         static create(options?: ComboBoxElement, parent?: Control): Promise<ComboBox>;
     }
@@ -6823,12 +6751,13 @@ declare module "@ijstech/*datepicker/src/style/datepicker.css" { }
 declare module "@ijstech/*datepicker/src/datepicker" {
     import { ControlElement, Control } from "@ijstech/*base/@ijstech/components";
     import "@ijstech/*datepicker/src/style/datepicker.css";
+    type dateType = 'date' | 'dateTime' | 'time';
     export interface DatepickerElement extends ControlElement {
         caption?: string;
         captionWidth?: number;
         value?: string;
         placeholder?: string;
-        type?: string;
+        type?: dateType;
         dateFormat?: string;
     }
     global {
@@ -6855,6 +6784,7 @@ declare module "@ijstech/*datepicker/src/datepicker" {
         private toggleIconElm;
         private datepickerElm;
         constructor(parent?: Control, options?: any);
+        _handleClick(event: Event): boolean;
         get caption(): string;
         set caption(value: string);
         get captionWidth(): number;
@@ -6877,7 +6807,7 @@ declare module "@ijstech/*datepicker/src/datepicker" {
         _dateInputMask: (event: KeyboardEvent) => void;
         _onFocus: () => void;
         _isValidDateFormat: () => void;
-        protected init(): Promise<void>;
+        init(): Promise<void>;
         static create(options?: DatepickerElement, parent?: Control): Promise<Datepicker>;
     }
 }
@@ -6920,6 +6850,7 @@ declare module "@ijstech/*range/src/range" {
         private tooltipElm;
         onChange: any;
         onMouseUp: any;
+        onKeyUp: any;
         private callback;
         private tipFormatter;
         private _tooltipVisible;
@@ -6943,7 +6874,7 @@ declare module "@ijstech/*range/src/range" {
         onSliderChange(): void;
         renderLabels(): void;
         onUpdateTooltip(init: boolean): void;
-        protected init(): Promise<void>;
+        init(): void;
         static create(options?: RangeElement, parent?: Control): Promise<Range>;
     }
 }
@@ -6997,7 +6928,7 @@ declare module "@ijstech/*radio/src/radio" {
         set checked(value: boolean);
         _handleChange(source: any, event?: Event): void;
         updateCheckedUI(elms: HTMLCollection | any[]): void;
-        protected init(): Promise<void>;
+        init(): void;
         static create(options?: RadioElement, parent?: Control): Promise<Radio>;
     }
     export class RadioGroup extends Control {
@@ -7009,7 +6940,7 @@ declare module "@ijstech/*radio/src/radio" {
         set value(value: string);
         _handleChange(source: any, event?: Event): void;
         updateUI(inputElm: HTMLInputElement): void;
-        protected init(): Promise<void>;
+        init(): void;
         static create(options?: RadioGroupElement, parent?: Control): Promise<RadioGroup>;
     }
 }
@@ -7104,7 +7035,7 @@ declare module "@ijstech/*input/src/input" {
         _handleOnBlur(event: Event): void;
         _handleOnFocus(event: Event): void;
         _clearValue(): void;
-        protected init(): Promise<void>;
+        init(): void;
         static create(options?: InputElement, parent?: Control): Promise<Input>;
     }
 }
@@ -7136,7 +7067,7 @@ declare module "@ijstech/*markdown/src/markdown" {
         beforeRender(text: string): Promise<void>;
         processText(text: string): Promise<string>;
         loadLib(): Promise<unknown>;
-        protected init(): Promise<void>;
+        init(): void;
     }
 }
 declare module "@ijstech/*markdown/@ijstech/components" {
@@ -7156,8 +7087,6 @@ declare module "@ijstech/*tab/src/tab" {
         draggable?: boolean;
         mode?: TabModeType;
         onChanged?: TabsEventCallback;
-        onTabAdded?: TabsEventCallback;
-        onTabClosed?: TabsEventCallback;
     }
     export interface TabElement extends ContainerElement {
         caption?: string;
@@ -7186,8 +7115,6 @@ declare module "@ijstech/*tab/src/tab" {
         private accumTabIndex;
         private curDragTab;
         onChanged: TabsEventCallback;
-        onTabAdded: TabsEventCallback;
-        onTabClosed: TabsEventCallback;
         constructor(parent?: Container, options?: any);
         get activeTab(): Tab;
         set activeTab(item: Tab);
@@ -7200,7 +7127,7 @@ declare module "@ijstech/*tab/src/tab" {
         set draggable(value: boolean);
         get mode(): TabModeType;
         set mode(type: TabModeType);
-        add(options?: ITab): Tab;
+        add(options?: ITab): Promise<Tab>;
         delete(tab: Tab): void;
         private appendTab;
         private handleTagDrag;
@@ -7209,18 +7136,15 @@ declare module "@ijstech/*tab/src/tab" {
         private dragOverHandler;
         private dropHandler;
         refresh(): void;
-        protected init(): Promise<void>;
+        init(): void;
         static create(options?: TabsElement, parent?: Container): Promise<Tabs>;
     }
     export class Tab extends Container {
         private tabContainer;
         private captionElm;
-        private _contentElm;
         private _icon;
         protected _parent: Tabs;
         active(): void;
-        protected addChildControl(control: Control): void;
-        protected removeChildControl(control: Control): void;
         get caption(): string;
         set caption(value: string);
         get index(): number;
@@ -7230,7 +7154,7 @@ declare module "@ijstech/*tab/src/tab" {
         set font(value: IFont);
         _handleClick(event: Event): boolean;
         private handleCloseTab;
-        protected init(): Promise<void>;
+        init(): Promise<void>;
         static create(options?: TabElement, parent?: Control): Promise<Tab>;
     }
 }
@@ -7260,7 +7184,7 @@ declare module "@ijstech/*markdown-editor/src/markdown-editor" {
         private onViewPreview;
         getValue(): string;
         setValue(value: string): void;
-        protected init(): Promise<void>;
+        init(): Promise<void>;
     }
 }
 declare module "@ijstech/*markdown-editor/@ijstech/components" {
@@ -7326,7 +7250,7 @@ declare module "@ijstech/*menu/src/menu-item" {
         private activeItem;
         renderItem(): void;
         addEvent(): void;
-        protected init(): Promise<void>;
+        init(): void;
         static create(options?: MenuItemElement, parent?: Control): Promise<MenuItem>;
     }
 }
@@ -7402,7 +7326,7 @@ declare module "@ijstech/*menu/src/menu" {
         setActiveItem(isActive: boolean): void;
         renderItems(items: IMenuItem[]): void;
         append(...nodes: (string | Node)[]): void;
-        protected init(): Promise<void>;
+        init(): Promise<void>;
         disconnectedCallback(): void;
         static create(options?: MenuElement, parent?: Control): Promise<Menu>;
     }
@@ -7411,18 +7335,42 @@ declare module "@ijstech/*menu/@ijstech/components" {
     export { Menu, IMenuItem, MenuElement } from "@ijstech/*menu/src/menu";
     export { MenuItem, MenuItemElement } from "@ijstech/*menu/src/menu-item";
 }
+declare module "@ijstech/*link/src/style/link.css" { }
+declare module "@ijstech/*link/src/link" {
+    import { Control, ControlElement } from "@ijstech/*base/@ijstech/components";
+    import "@ijstech/*link/src/style/link.css";
+    type TagertType = 'self' | 'blank' | 'parent' | 'top';
+    export interface LinkElement extends ControlElement {
+        href?: string;
+        target?: string;
+    }
+    export class Link extends Control {
+        private _href;
+        private _target;
+        private _linkElm;
+        constructor(parent?: Control, options?: any);
+        get href(): string;
+        set href(value: string);
+        get target(): TagertType;
+        set target(value: TagertType);
+        append(children: Control | HTMLElement): void;
+        _handleClick(event: Event, stopPropagation?: boolean): boolean;
+        init(): void;
+        static create(options?: LinkElement, parent?: Control): Promise<Link>;
+    }
+}
+declare module "@ijstech/*link/@ijstech/components" {
+    export { Link, LinkElement } from "@ijstech/*link/src/link";
+}
 declare module "@ijstech/*label/src/style/label.css" {
     export const captionStyle: string;
 }
 declare module "@ijstech/*label/src/label" {
-    import { Control, ControlElement, IFont } from "@ijstech/*base/@ijstech/components";
-    export type DisplayType = 'inline-block' | 'block' | 'inline-flex' | 'flex' | 'inline';
+    import { Control, ControlElement } from "@ijstech/*base/@ijstech/components";
+    import { Link, LinkElement } from "@ijstech/*link/@ijstech/components";
     export interface LabelElement extends ControlElement {
         caption?: string;
-        displayType?: DisplayType;
-        style?: string;
-        font?: IFont;
-        ellipsis?: boolean;
+        link?: LinkElement;
     }
     global {
         namespace JSX {
@@ -7432,18 +7380,16 @@ declare module "@ijstech/*label/src/label" {
         }
     }
     export class Label extends Control {
-        private captionDiv;
+        private captionSpan;
+        private _link;
         constructor(parent?: Control, options?: any);
         get caption(): string;
         set caption(value: string);
-        get font(): IFont;
-        set font(value: IFont);
+        get link(): Link;
+        set link(value: Link);
         set height(value: number);
         set width(value: number);
-        get displayType(): DisplayType;
-        set displayType(value: DisplayType);
-        protected init(): Promise<void>;
-        protected connectedCallback(): Promise<void>;
+        init(): void;
         static create(options?: LabelElement, parent?: Control): Promise<Label>;
     }
 }
@@ -7532,7 +7478,7 @@ declare module "@ijstech/*tree-view/src/treeView" {
         private renderTreeNode;
         private renderTree;
         private renderActions;
-        protected init(): Promise<void>;
+        init(): void;
         static create(options?: TreeViewElement, parent?: Control): Promise<TreeView>;
     }
     export class TreeNode extends Control {
@@ -7576,7 +7522,7 @@ declare module "@ijstech/*tree-view/src/treeView" {
         appendNode(childNode: TreeNode): void;
         initChildNodeElm(): void;
         _handleClick(event: Event): boolean;
-        protected init(): Promise<void>;
+        init(): Promise<void>;
         static create(options?: TreeNodeElement, parent?: Control): Promise<TreeNode>;
     }
 }
@@ -7612,7 +7558,7 @@ declare module "@ijstech/*search/src/search" {
         autoSuggest(keyword: string): any;
         private renderSuggestion;
         private initMiniSearch;
-        protected init(): Promise<void>;
+        init(): Promise<void>;
         static create(options?: SearchElement, parent?: Control): Promise<Search>;
     }
 }
@@ -7633,7 +7579,7 @@ declare module "@ijstech/*slot/src/slot" {
     }
     export class Slot extends Control {
         constructor(parent?: Control, options?: any);
-        protected init(): Promise<void>;
+        init(): void;
     }
 }
 declare module "@ijstech/*slot/@ijstech/components" {
@@ -7646,8 +7592,6 @@ declare module "@ijstech/*switch/src/switch" {
     export interface SwitchElement extends ControlElement {
         checkedThumbColor?: string;
         uncheckedThumbColor?: string;
-        checkedThumbIcon?: string;
-        uncheckedThumbIcon?: string;
         checkedThumbText?: string;
         uncheckedThumbText?: string;
         checkedTrackColor?: string;
@@ -7672,15 +7616,37 @@ declare module "@ijstech/*switch/src/switch" {
         private rippleElm;
         private trackElm;
         private _checked;
-        private checkedThumbColor;
-        private uncheckedThumbColor;
-        private checkedTrackColor;
-        private uncheckedTrackColor;
+        private _checkedThumbColor;
+        private _uncheckedThumbColor;
+        private _checkedTrackColor;
+        private _uncheckedTrackColor;
+        private _checkedText;
+        private _uncheckedText;
+        private _checkedThumbText;
+        private _uncheckedThumbText;
         onChanged: notifyEventCallback;
         constructor(parent?: Control, options?: any);
         get checked(): boolean;
         set checked(value: boolean);
-        protected init(): Promise<void>;
+        get checkedThumbColor(): string;
+        set checkedThumbColor(value: string);
+        get uncheckedThumbColor(): string;
+        set uncheckedThumbColor(value: string);
+        get checkedTrackColor(): string;
+        set checkedTrackColor(value: string);
+        get uncheckedTrackColor(): string;
+        set uncheckedTrackColor(value: string);
+        get checkedText(): string;
+        set checkedText(value: string);
+        get uncheckedText(): string;
+        set uncheckedText(value: string);
+        get checkedThumbText(): string;
+        set checkedThumbText(value: string);
+        get uncheckedThumbText(): string;
+        set uncheckedThumbText(value: string);
+        protected setAttributeToProperty<P extends keyof Switch>(propertyName: P): void;
+        _handleClick(event: Event): boolean;
+        init(): void;
         static create(options?: SwitchElement, parent?: Control): Promise<Switch>;
     }
 }
@@ -7689,19 +7655,25 @@ declare module "@ijstech/*switch/@ijstech/components" {
 }
 declare module "@ijstech/*modal/src/style/modal.css" {
     export const wrapperStyle: string;
+    export const noBackdropStyle: string;
     export const visibleStyle: string;
     export const modalStyle: string;
     export const titleStyle: string;
 }
 declare module "@ijstech/*modal/src/modal" {
-    import { Control, ControlElement, notifyEventCallback } from "@ijstech/*base/@ijstech/components";
-    import { IconName } from "@ijstech/*icon/@ijstech/components";
+    import { Control, ControlElement, Container } from "@ijstech/*base/@ijstech/components";
+    import { Icon, IconElement } from "@ijstech/*icon/@ijstech/components";
+    type modalPopupPlacementType = 'center' | 'bottom' | 'bottomLeft' | 'bottomRight' | 'top' | 'topLeft' | 'topRight';
+    type eventCallback = (target: Control) => void;
     export interface ModalElement extends ControlElement {
         title?: string;
-        showClose?: boolean;
-        closeIcon?: IconName;
-        onShow?: notifyEventCallback;
-        onClose?: any;
+        showBackdrop?: boolean;
+        closeIcon?: IconElement;
+        popupPlacement?: modalPopupPlacementType;
+        closeOnBackdropClick?: boolean;
+        item?: Control;
+        onOpen?: eventCallback;
+        onClose?: eventCallback;
     }
     global {
         namespace JSX {
@@ -7710,137 +7682,247 @@ declare module "@ijstech/*modal/src/modal" {
             }
         }
     }
-    export class Modal extends Control {
+    export class Modal extends Container {
         private wrapperDiv;
         private titleSpan;
         private modalDiv;
-        private contentDiv;
-        private buttonContainerDiv;
-        protected _onShow: notifyEventCallback;
-        onClose: any;
+        private _icon;
+        private _placement;
+        private _closeOnBackdropClick;
+        private _showBackdrop;
+        protected _onOpen: eventCallback;
+        onClose: eventCallback;
         constructor(parent?: Control, options?: any);
         get visible(): boolean;
         set visible(value: boolean);
-        get onShow(): notifyEventCallback;
-        set onShow(callback: notifyEventCallback);
+        get onOpen(): any;
+        set onOpen(callback: any);
         get title(): string;
         set title(value: string);
         set width(value: number | string);
+        get popupPlacement(): modalPopupPlacementType;
+        set popupPlacement(value: modalPopupPlacementType);
+        get icon(): Icon;
+        set icon(elm: Icon);
+        get closeOnBackdropClick(): boolean;
+        set closeOnBackdropClick(value: boolean);
+        get showBackdrop(): boolean;
+        set showBackdrop(value: boolean);
+        get item(): Control;
+        set item(value: Control);
+        private positionAt;
+        private positionAtFix;
+        private positionAtAbsolute;
         protected _handleOnShow(event: Event): void;
         _handleClick(event: Event): boolean;
-        protected init(): Promise<void>;
-        protected connectedCallback(): Promise<void>;
-        static create(options?: ModalElement, parent?: Control): Promise<Modal>;
+        private updateModal;
+        init(): Promise<void>;
+        static create(options?: ModalElement, parent?: Container): Promise<Modal>;
     }
 }
 declare module "@ijstech/*modal/@ijstech/components" {
     export { Modal, ModalElement } from "@ijstech/*modal/src/modal";
 }
-declare module "@ijstech/*divider/src/style/divider.css" { }
-declare module "@ijstech/*divider/src/divider" {
-    import { Control, ControlElement, Types } from "@ijstech/*base/@ijstech/components";
-    import "@ijstech/*divider/src/style/divider.css";
-    type DirectionType = 'horizontal' | 'vertical';
-    type BorderType = 'none' | 'hidden' | 'solid' | 'dotted' | 'inset' | 'dashed' | 'double' | 'groove' | 'ridge' | 'outset';
-    type PositionType = 'left' | 'right' | 'center';
-    export interface DividerElement extends ControlElement {
-        direction?: DirectionType;
-        borderStyle?: BorderType;
-        borderRadius?: number | string;
-        contentPosition?: PositionType;
-        fill?: Types.Color;
+declare module "@ijstech/*chart/src/chart" {
+    import { Control } from "@ijstech/*base/@ijstech/components";
+    export class Chart<T> extends Control {
+        private _data;
+        private _timeCreated;
+        private _chartIns;
+        constructor(parent?: Control, options?: any);
+        get data(): T;
+        set data(value: T);
+        private get dataObj();
+        showLoading(): void;
+        drawChart(): void;
+        updateChartOptions(): void;
+        resize(): void;
+        init(): void;
+    }
+}
+declare module "@ijstech/*chart/src/lineChart" {
+    import { Control, ControlElement } from "@ijstech/*base/@ijstech/components";
+    import { Chart } from "@ijstech/*chart/src/chart";
+    export interface LineEchartElement extends ControlElement {
+        data?: any;
     }
     global {
         namespace JSX {
             interface IntrinsicElements {
-                ['i-divider']: DividerElement;
+                ['i-line-chart']: LineEchartElement;
             }
         }
     }
-    export class Divider extends Control {
-        private wrapperElm;
-        private contentElm;
-        private _direction;
-        private _borderRadius;
+    export class LineChart extends Chart<any> {
         constructor(parent?: Control, options?: any);
-        set borderStyle(value: BorderType);
-        get borderStyle(): BorderType;
-        set borderRadius(value: number | string);
-        get borderRadius(): number | string;
-        set fill(color: Types.Color);
-        get fill(): Types.Color;
-        set direction(value: DirectionType);
-        get direction(): DirectionType;
-        get height(): number | string;
-        set height(value: number | string);
-        get width(): number | string;
-        set width(value: number | string);
-        get borderTypePos(): string;
-        protected connectedCallback(): Promise<void>;
-        protected init(): Promise<void>;
-        static create(options?: DividerElement, parent?: Control): Promise<Divider>;
+        init(): void;
     }
 }
-declare module "@ijstech/*divider/@ijstech/components" {
-    export { Divider, DividerElement } from "@ijstech/*divider/src/divider";
-}
-declare module "@ijstech/*clipboard/src/style/clipboard.css" { }
-declare module "@ijstech/*clipboard/src/clipboard" {
-    import { Control, ControlElement, Types } from "@ijstech/*base/@ijstech/components";
-    import "@ijstech/*clipboard/src/style/clipboard.css";
-    import { IconName } from "@ijstech/*icon/@ijstech/components";
-    export interface ClipboardElement extends ControlElement {
-        succeedCaption?: string;
-        failedCaption?: string;
-        value?: string;
-        icon?: IconName;
-        hasBorder?: boolean;
-        succeedIcon?: boolean;
-        failedIcon?: boolean;
+declare module "@ijstech/*chart/src/barChart" {
+    import { Control, ControlElement } from "@ijstech/*base/@ijstech/components";
+    import { Chart } from "@ijstech/*chart/src/chart";
+    export interface IBarChartAxisTick {
+        show?: boolean;
+    }
+    export interface IBarChartAxisLineStyle {
+        type?: string;
+    }
+    export interface IBarChartAxisLine {
+        show?: boolean;
+        lineStyle?: IBarChartAxisLineStyle;
+    }
+    export interface IBarChartAxisSplitLine {
+        show?: boolean;
+        lineStyle?: IBarChartAxisLineStyle;
+    }
+    export interface IBarChartAxisLabel {
+        color?: string;
+        fontSize?: number;
+        fontFamily?: string;
+    }
+    export interface IBarChartAxisNameTextStyle {
+        fontSize?: number;
+        color?: string;
+    }
+    export interface IBarChartAxis {
+        type?: string;
+        name?: string;
+        nameGap?: number;
+        nameTextStyle?: IBarChartAxisNameTextStyle;
+        boundaryGap?: boolean;
+        data?: string[];
+        min?: number;
+        max?: number;
+        axisTick?: IBarChartAxisTick;
+        axisLabel?: IBarChartAxisLabel;
+        axisLine?: IBarChartAxisLine;
+        splitLine?: IBarChartAxisSplitLine;
+    }
+    export interface IBarChartSeriesLabel {
+        show: boolean;
+        position: string;
+    }
+    export interface IBarChartSeries {
+        type?: string;
+        name?: string;
+        data?: any[];
+        label?: IBarChartSeriesLabel;
+    }
+    export interface IBarChartData {
+        xAxis?: IBarChartAxis;
+        yAxis?: IBarChartAxis;
+        color?: string[];
+        series?: IBarChartSeries[];
+    }
+    export interface BarEchartElement extends ControlElement {
+        data?: IBarChartData;
     }
     global {
         namespace JSX {
             interface IntrinsicElements {
-                ['i-clipboard']: ClipboardElement;
+                ['i-bar-chart']: BarEchartElement;
             }
         }
     }
-    export class Clipboard extends Control {
-        private _value;
-        private _icon;
-        private _copyIcon;
-        private _succeedCaption;
-        private _failedCaption;
-        private _hasBorder;
-        private iconElm;
-        private lbElm;
-        private timer;
-        private _succeedIcon;
+    export class BarChart extends Chart<IBarChartData> {
         constructor(parent?: Control, options?: any);
-        get value(): any;
-        set value(value: any);
-        get icon(): IconName;
-        set icon(value: IconName);
-        private _createIcon;
-        updateIcon(name: IconName, color: Types.Color): void;
-        get succeedCaption(): string;
-        set succeedCaption(value: string);
-        get failedCaption(): string;
-        set failedCaption(value: string);
-        get hasBorder(): boolean;
-        set hasBorder(value: boolean);
-        set succeedIcon(value: IconName);
-        get succeedIcon(): IconName;
-        private _handleCopy;
-        private _setCopy;
-        private _showMessage;
-        disconnectCallback(): void;
-        protected init(): Promise<void>;
-        static create(options?: ClipboardElement, parent?: Control): Promise<Clipboard>;
+        init(): void;
     }
 }
-declare module "@ijstech/*clipboard/@ijstech/components" {
-    export { Clipboard, ClipboardElement } from "@ijstech/*clipboard/src/clipboard";
+declare module "@ijstech/*chart/src/barStackChart" {
+    import { Control, ControlElement } from "@ijstech/*base/@ijstech/components";
+    import { Chart } from "@ijstech/*chart/src/chart";
+    export interface BarEchartElement extends ControlElement {
+        data?: any;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-bar-stack-chart']: BarEchartElement;
+            }
+        }
+    }
+    export class BarStackChart extends Chart<any> {
+        constructor(parent?: Control, options?: any);
+        init(): void;
+    }
+}
+declare module "@ijstech/*chart/src/pieChart" {
+    import { Control, ControlElement } from "@ijstech/*base/@ijstech/components";
+    import { Chart } from "@ijstech/*chart/src/chart";
+    export interface IPieChartTooltip {
+        trigger?: string;
+        formatter?: string;
+    }
+    export interface IPieChartSeries {
+        type?: string;
+        radius?: string[];
+        avoidLabelOverlap?: boolean;
+        data?: any[];
+    }
+    export interface IPieChartData {
+        tooltip?: IPieChartTooltip;
+        series?: IPieChartSeries[];
+    }
+    export interface PieEchartElement extends ControlElement {
+        data?: IPieChartData;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-pie-chart']: PieEchartElement;
+            }
+        }
+    }
+    export class PieChart extends Chart<IPieChartData> {
+        constructor(parent?: Control, options?: any);
+        init(): void;
+    }
+}
+declare module "@ijstech/*chart/src/scatterChart" {
+    import { Control, ControlElement } from "@ijstech/*base/@ijstech/components";
+    import { Chart } from "@ijstech/*chart/src/chart";
+    export interface ScatterChartElement extends ControlElement {
+        data?: any;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-scatter-chart']: ScatterChartElement;
+            }
+        }
+    }
+    export class ScatterChart extends Chart<any> {
+        constructor(parent?: Control, options?: any);
+        init(): void;
+    }
+}
+declare module "@ijstech/*chart/src/scatterLineChart" {
+    import { Control, ControlElement } from "@ijstech/*base/@ijstech/components";
+    import { Chart } from "@ijstech/*chart/src/chart";
+    export interface ScatterLineChartElement extends ControlElement {
+        data?: any;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-scatter-line-chart']: ScatterLineChartElement;
+            }
+        }
+    }
+    export class ScatterLineChart extends Chart<any> {
+        constructor(parent?: Control, options?: any);
+        init(): void;
+    }
+}
+declare module "@ijstech/*chart/@ijstech/components" {
+    export { Chart } from "@ijstech/*chart/src/chart";
+    export { LineChart } from "@ijstech/*chart/src/lineChart";
+    export { BarChart } from "@ijstech/*chart/src/barChart";
+    export { BarStackChart } from "@ijstech/*chart/src/barStackChart";
+    export { PieChart } from "@ijstech/*chart/src/pieChart";
+    export { ScatterChart } from "@ijstech/*chart/src/scatterChart";
+    export { ScatterLineChart } from "@ijstech/*chart/src/scatterLineChart";
 }
 declare module "@ijstech/*upload/src/style/upload.css" { }
 declare module "@ijstech/*upload/src/upload" {
@@ -7865,7 +7947,7 @@ declare module "@ijstech/*upload/src/upload" {
         beforeUpload?: any;
         canRemovePreview?: boolean;
     }
-    export interface UploadDragElement extends ControlElement {
+    interface UploadDragElement extends ControlElement {
         fileList?: string;
         caption?: string;
         disabled?: boolean;
@@ -7878,25 +7960,6 @@ declare module "@ijstech/*upload/src/upload" {
                 ['i-upload-drag']: UploadDragElement;
             }
         }
-    }
-    export class UploadDrag extends Control {
-        private _wrapperElm;
-        private _labelElm;
-        private _caption;
-        private _disabled;
-        onDrop: any;
-        private counter;
-        constructor(parent?: Control, options?: any);
-        get caption(): string;
-        set caption(value: string);
-        get disabled(): boolean;
-        set disabled(value: boolean);
-        handleOnDragEnter(source: any, event?: Event): void;
-        handleOnDragOver(source: any, event?: Event): void;
-        handleOnDragLeave(source: any, event?: Event): void;
-        handleOnDrop(source: any, event?: Event): void;
-        protected init(): Promise<void>;
-        static create(options?: UploadDragElement, parent?: Control): Promise<UploadDrag>;
     }
     export class Upload extends Control {
         private _wrapperElm;
@@ -7957,12 +8020,12 @@ declare module "@ijstech/*upload/src/upload" {
         proccessFiles(files: FileList): void;
         checkBeforeUpload(file: File): void;
         post(rawFile: File): void;
-        updateFileListUI(files: FileList): Promise<void>;
+        updateFileListUI(files: FileList): void;
         handleRemove(file: File): void;
         handleRemoveImagePreview: (event: Event) => void;
         resetInput(): void;
         cropImage(file: File): HTMLCanvasElement | undefined;
-        protected init(): Promise<void>;
+        init(): void;
         static create(options?: UploadElement, parent?: Control): Promise<Upload>;
     }
 }
@@ -7989,20 +8052,21 @@ declare module "@ijstech/*iframe/src/iframe" {
         constructor(parent?: Control, options?: any);
         get url(): string;
         set url(value: string);
-        reload(): Promise<void>;
-        protected init(): Promise<void>;
+        init(): void;
         static create(options?: IframeElement, parent?: Control): Promise<Iframe>;
-        postMessage(message: string): void;
     }
 }
 declare module "@ijstech/*iframe/@ijstech/components" {
     export { Iframe, IframeElement } from "@ijstech/*iframe/src/iframe";
 }
 declare module "@ijstech/*layout/src/style/panel.css" {
+    import { IGridLayoutMediaQuery, IStackMediaQuery, StackDirectionType } from "@ijstech/*layout/@ijstech/components";
     export const panelStyle: string;
     export const overflowStyle: string;
     export const vStackStyle: string;
     export const hStackStyle: string;
+    export const getStackDirectionStyleClass: (direction: StackDirectionType) => string;
+    export const getStackMediaQueriesStyleClass: (mediaQueries: IStackMediaQuery[]) => string;
     export const justifyContentStartStyle: string;
     export const justifyContentCenterStyle: string;
     export const justifyContentEndStyle: string;
@@ -8011,18 +8075,33 @@ declare module "@ijstech/*layout/src/style/panel.css" {
     export const alignItemsStartStyle: string;
     export const alignItemsCenterStyle: string;
     export const alignItemsEndStyle: string;
+    export const getTemplateColumnsStyleClass: (columns: string[]) => string;
+    export const getTemplateRowsStyleClass: (rows: string[]) => string;
+    export const getTemplateAreasStyleClass: (templateAreas: string[][]) => string;
+    export const getGridLayoutMediaQueriesStyleClass: (mediaQueries: IGridLayoutMediaQuery[]) => string;
 }
 declare module "@ijstech/*layout/src/stack" {
-    import { Container, ContainerElement } from "@ijstech/*base/@ijstech/components";
+    import { Container, ContainerElement, IMediaQuery } from "@ijstech/*base/@ijstech/components";
+    export interface IStackMediaQueryProps {
+        direction?: StackDirectionType;
+    }
+    export type IStackMediaQuery = IMediaQuery<IStackMediaQueryProps>;
     export type StackWrapType = 'nowrap' | 'wrap' | 'wrap-reverse' | 'initial' | 'inherit';
+    export type StackDirectionType = 'horizontal' | 'vertical';
+    export type StackJustifyContentType = "start" | "center" | "end" | "space-between";
+    export type StackAlignItemsType = "stretch" | "start" | "center" | "end";
     export interface StackLayoutElement extends ContainerElement {
         gap?: number | string;
         wrap?: StackWrapType;
+        direction?: StackDirectionType;
+        justifyContent?: StackJustifyContentType;
+        alignItems?: StackAlignItemsType;
+        mediaQueries?: IStackMediaQuery[];
     }
-    export type HStackHAlignmentType = "start" | "center" | "end" | "space-between";
-    export type HStackVAlignmentType = "stretch" | "start" | "center" | "end";
-    export type VStackHAlignmentType = "stretch" | "start" | "center" | "end";
-    export type VStackVAlignmentType = "start" | "center" | "end" | "space-between";
+    export type HStackHAlignmentType = StackJustifyContentType;
+    export type HStackVAlignmentType = StackAlignItemsType;
+    export type VStackHAlignmentType = StackAlignItemsType;
+    export type VStackVAlignmentType = StackJustifyContentType;
     export interface HStackElement extends StackLayoutElement {
         horizontalAlignment?: HStackHAlignmentType;
         verticalAlignment?: HStackVAlignmentType;
@@ -8030,6 +8109,13 @@ declare module "@ijstech/*layout/src/stack" {
     export interface VStackElement extends StackLayoutElement {
         horizontalAlignment?: VStackHAlignmentType;
         verticalAlignment?: VStackVAlignmentType;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-stack']: StackLayoutElement;
+            }
+        }
     }
     global {
         namespace JSX {
@@ -8045,16 +8131,31 @@ declare module "@ijstech/*layout/src/stack" {
             }
         }
     }
+    export type StackLayoutAlignmentType<T extends StackDirectionType> = T extends 'horizontal' ? HStackHAlignmentType : VStackHAlignmentType;
+    export type StackVerticalAlignmentType<T extends StackDirectionType> = T extends 'horizontal' ? HStackVAlignmentType : VStackVAlignmentType;
     export class StackLayout extends Container {
         private _gap;
         private _wrap;
+        private _direction;
+        private _justifyContent;
+        private _alignItems;
+        private _mediaQueries;
         constructor(parent?: Container, options?: any);
         static create(options?: StackLayoutElement, parent?: Container): Promise<StackLayout>;
+        get direction(): StackDirectionType;
+        set direction(value: StackDirectionType);
+        get justifyContent(): StackJustifyContentType;
+        set justifyContent(value: StackJustifyContentType);
+        get alignItems(): StackAlignItemsType;
+        set alignItems(value: StackAlignItemsType);
         get gap(): number | string;
         set gap(value: number | string);
         get wrap(): StackWrapType;
         set wrap(value: StackWrapType);
-        protected init(): Promise<void>;
+        get mediaQueries(): IStackMediaQuery[];
+        set mediaQueries(value: IStackMediaQuery[]);
+        protected setAttributeToProperty<P extends keyof StackLayout>(propertyName: P): void;
+        init(): void;
     }
     export class HStack extends StackLayout {
         private _horizontalAlignment;
@@ -8064,7 +8165,8 @@ declare module "@ijstech/*layout/src/stack" {
         set horizontalAlignment(value: HStackHAlignmentType);
         get verticalAlignment(): HStackVAlignmentType;
         set verticalAlignment(value: HStackVAlignmentType);
-        protected init(): Promise<void>;
+        protected setAttributeToProperty<P extends keyof HStack>(propertyName: P): void;
+        init(): void;
         static create(options?: HStackElement, parent?: Container): Promise<HStack>;
     }
     export class VStack extends StackLayout {
@@ -8075,7 +8177,8 @@ declare module "@ijstech/*layout/src/stack" {
         set horizontalAlignment(value: VStackHAlignmentType);
         get verticalAlignment(): VStackVAlignmentType;
         set verticalAlignment(value: VStackVAlignmentType);
-        protected init(): Promise<void>;
+        protected setAttributeToProperty<P extends keyof VStack>(propertyName: P): void;
+        init(): void;
         static create(options?: VStackElement, parent?: Container): Promise<VStack>;
     }
 }
@@ -8092,44 +8195,76 @@ declare module "@ijstech/*layout/src/panel" {
     }
     export class Panel extends Container {
         constructor(parent?: Control, options?: any);
-        protected init(): Promise<void>;
+        init(): void;
+        connectedCallback(): void;
         static create(options?: PanelElement, parent?: Control): Promise<Panel>;
     }
 }
 declare module "@ijstech/*layout/src/grid" {
-    import { Control, ControlElement, Container } from "@ijstech/*base/@ijstech/components";
+    import { Control, ControlElement, Container, IMediaQuery } from "@ijstech/*base/@ijstech/components";
     export interface IGap {
         row?: string | number;
         column?: string | number;
     }
+    export interface IGridLayoutMediaQueryProps {
+        templateColumns?: string[];
+        templateRows?: string[];
+        templateAreas?: string[][];
+    }
+    export type IGridLayoutMediaQuery = IMediaQuery<IGridLayoutMediaQueryProps>;
     export type GridLayoutHorizontalAlignmentType = "stretch" | "start" | "end" | "center";
     export type GridLayoutVerticalAlignmentType = "stretch" | "start" | "end" | "center" | "baseline";
     export interface GridLayoutElement extends ControlElement {
         templateColumns?: string[];
         templateRows?: string[];
+        templateAreas?: string[][];
+        autoColumnSize?: string;
+        autoRowSize?: string;
+        columnsPerRow?: number;
         gap?: IGap;
         horizontalAlignment?: GridLayoutHorizontalAlignmentType;
         verticalAlignment?: GridLayoutVerticalAlignmentType;
+        autoFillInHoles?: boolean;
+        mediaQueries?: IGridLayoutMediaQuery[];
     }
     export class GridLayout extends Container {
         private _templateColumns;
         private _templateRows;
+        private _templateAreas;
+        private _autoColumnSize;
+        private _autoRowSize;
+        protected _columnsPerRow: number;
         private _gap;
         private _horizontalAlignment;
         private _verticalAlignment;
+        private _autoFillInHoles;
+        private _mediaQueries;
         constructor(parent?: Control, options?: any);
         static create(options?: GridLayoutElement, parent?: Container): Promise<GridLayout>;
         get templateColumns(): string[];
         set templateColumns(columns: string[]);
         get templateRows(): string[];
         set templateRows(rows: string[]);
+        get templateAreas(): string[][];
+        set templateAreas(value: string[][]);
+        get autoColumnSize(): string;
+        set autoColumnSize(value: string);
+        get autoRowSize(): string;
+        set autoRowSize(value: string);
+        get columnsPerRow(): number;
+        set columnsPerRow(value: number);
         get gap(): IGap;
         set gap(value: IGap);
         get horizontalAlignment(): GridLayoutHorizontalAlignmentType;
         set horizontalAlignment(value: GridLayoutHorizontalAlignmentType);
         get verticalAlignment(): GridLayoutVerticalAlignmentType;
         set verticalAlignment(value: GridLayoutVerticalAlignmentType);
-        protected init(): Promise<void>;
+        get autoFillInHoles(): boolean;
+        set autoFillInHoles(value: boolean);
+        get mediaQueries(): IGridLayoutMediaQuery[];
+        set mediaQueries(value: IGridLayoutMediaQuery[]);
+        protected setAttributeToProperty<P extends keyof GridLayout>(propertyName: P): void;
+        init(): void;
     }
     global {
         namespace JSX {
@@ -8143,15 +8278,23 @@ declare module "@ijstech/*layout/src/card" {
     import { Container } from "@ijstech/*base/@ijstech/components";
     import { GridLayout, GridLayoutElement } from "@ijstech/*layout/src/grid";
     export interface CardLayoutElement extends GridLayoutElement {
-        cardMinWidth: number | string;
+        cardMinWidth?: number | string;
+        cardHeight?: number | string;
     }
     export class CardLayout extends GridLayout {
         private _cardMinWidth;
+        private _cardHeight;
         constructor(parent?: Container, options?: any);
         static create(options?: CardLayoutElement, parent?: Container): Promise<CardLayout>;
         get cardMinWidth(): number | string;
         set cardMinWidth(value: number | string);
-        protected init(): Promise<void>;
+        get columnsPerRow(): number;
+        set columnsPerRow(value: number);
+        get cardHeight(): number | string;
+        set cardHeight(value: number | string);
+        updateGridTemplateColumns(): void;
+        protected setAttributeToProperty<P extends keyof CardLayout>(propertyName: P): void;
+        init(): void;
     }
     global {
         namespace JSX {
@@ -8162,10 +8305,10 @@ declare module "@ijstech/*layout/src/card" {
     }
 }
 declare module "@ijstech/*layout/@ijstech/components" {
-    export { StackLayout, VStack, VStackElement, HStack, HStackElement } from "@ijstech/*layout/src/stack";
+    export { StackDirectionType, StackLayout, VStack, VStackElement, HStack, HStackElement, IStackMediaQuery } from "@ijstech/*layout/src/stack";
     export { Panel, PanelElement } from "@ijstech/*layout/src/panel";
     export { CardLayout, CardLayoutElement } from "@ijstech/*layout/src/card";
-    export { GridLayout, GridLayoutElement } from "@ijstech/*layout/src/grid";
+    export { IGridLayoutMediaQuery, GridLayout, GridLayoutElement } from "@ijstech/*layout/src/grid";
 }
 declare module "@ijstech/*pagination/src/style/pagination.css" { }
 declare module "@ijstech/*pagination/src/pagination" {
@@ -8223,7 +8366,7 @@ declare module "@ijstech/*pagination/src/pagination" {
         private updatePagers;
         private renderPageItem;
         private hideNexPrev;
-        protected init(): Promise<void>;
+        init(): void;
         static create(options?: PaginationElement, parent?: Control): Promise<Pagination>;
     }
 }
@@ -8249,16 +8392,10 @@ declare module "@ijstech/*progress/src/progress" {
         onRenderStart?: any;
         onRenderEnd?: any;
     }
-    export interface ProgressItemElement extends ControlElement {
-        percent?: number;
-        status?: ProgressStatus;
-        data?: string;
-    }
     global {
         namespace JSX {
             interface IntrinsicElements {
                 ['i-progress']: ProgressElement;
-                ['i-progress-item']: ProgressItemElement;
             }
         }
     }
@@ -8320,194 +8457,12 @@ declare module "@ijstech/*progress/src/progress" {
         renderCircle(): void;
         renderCircleInner(): void;
         updateCircleInner(): void;
-        protected init(): Promise<void>;
+        init(): void;
         static create(options?: ProgressElement, parent?: Control): Promise<Progress>;
-    }
-    export class ProgressItem extends Control {
-        private _percent;
-        private _status;
-        private _popupData;
-        private _popupElm;
-        onRenderTooltip: any;
-        constructor(parent?: Control, options?: any);
-        get percent(): number;
-        set percent(value: number);
-        get status(): ProgressStatus;
-        set status(value: ProgressStatus);
-        get popupData(): string;
-        set popupData(value: string);
-        get parsedData(): any;
-        createPopupUI(list: any[]): string;
-        protected init(): Promise<void>;
-        static create(options?: ProgressItemElement, parent?: Control): Promise<ProgressItem>;
     }
 }
 declare module "@ijstech/*progress/@ijstech/components" {
-    export { Progress, ProgressItem } from "@ijstech/*progress/src/progress";
-}
-declare module "@ijstech/*link/src/style/link.css" { }
-declare module "@ijstech/*link/src/link" {
-    import { Control, ControlElement, IFont } from "@ijstech/*base/@ijstech/components";
-    import "@ijstech/*link/src/style/link.css";
-    export interface LinkElement extends ControlElement {
-        href?: string;
-        caption?: string;
-        target?: string;
-        font?: IFont;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-link']: LinkElement;
-            }
-        }
-    }
-    export class Link extends Control {
-        private _href;
-        private _caption;
-        private _linkElm;
-        constructor(parent?: Control, options?: any);
-        get href(): string;
-        set href(value: string);
-        get caption(): string;
-        set caption(value: string);
-        get font(): IFont;
-        set font(value: IFont);
-        protected init(): Promise<void>;
-        static create(options?: LinkElement, parent?: Control): Promise<Link>;
-    }
-}
-declare module "@ijstech/*link/@ijstech/components" {
-    export { Link, LinkElement } from "@ijstech/*link/src/link";
-}
-declare module "@ijstech/*list-view/src/style/listView.css" { }
-declare module "@ijstech/*list-view/src/listView" {
-    import { Control, ControlElement } from "@ijstech/*base/@ijstech/components";
-    import "@ijstech/*list-view/src/style/listView.css";
-    export type viewType = 'list' | 'grid';
-    export interface ListViewElement extends ControlElement {
-        type?: viewType;
-        columns?: number;
-        marginTop?: number;
-    }
-    export interface ListViewItemElement extends ControlElement {
-        imgUrl?: string;
-        data?: string;
-        borderless?: boolean;
-        blurredOverlay?: boolean;
-        background?: string;
-        stake?: number;
-        queryFee?: number;
-        unit?: string;
-        autoRender?: boolean;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-list-view']: ListViewElement;
-                ['i-list-view-item']: ListViewItemElement;
-            }
-        }
-    }
-    export class ListView extends Control {
-        private _type;
-        private _columns;
-        constructor(parent?: Control, options?: any);
-        get type(): viewType;
-        set type(value: viewType);
-        get columns(): number;
-        set columns(value: number);
-        set marginTop(value: number);
-        propComparator(prop: string, asc: boolean, ignoreCase: boolean): (a: Element, b: Element) => number;
-        sort(prop: string, asc?: boolean, ignoreCase?: boolean): void;
-        search(value: string): void;
-        protected init(): Promise<void>;
-        static create(options?: ListViewElement, parent?: Control): Promise<ListView>;
-    }
-    export class ListViewItem extends Control {
-        private _stake;
-        private _queryFee;
-        private _unit;
-        private _listBackground;
-        private _gridBackground;
-        private imageElm;
-        private blurElm;
-        data: any;
-        constructor(parent?: Control, options?: any);
-        set background(value: any);
-        updateBackground(type: viewType): void;
-        private parseValue;
-        private getContentStyle;
-        private setContent;
-        private setInfoContent;
-        private abbreviateNum;
-        getPropValue(prop: string): any;
-        protected init(): Promise<void>;
-        static create(options?: ListViewItemElement, parent?: Control): Promise<ListViewItem>;
-    }
-}
-declare module "@ijstech/*list-view/@ijstech/components" {
-    export { ListView, ListViewElement, ListViewItem, ListViewItemElement } from "@ijstech/*list-view/src/listView";
-}
-declare module "@ijstech/*loading/src/style/loading.css" { }
-declare module "@ijstech/*loading/src/loading" {
-    import { Control, ControlElement } from "@ijstech/*base/@ijstech/components";
-    import { IconName } from "@ijstech/*icon/@ijstech/components";
-    import "@ijstech/*loading/src/style/loading.css";
-    export type SizeType = 'small' | 'default' | 'large';
-    export interface LoadingElement extends ControlElement {
-        spinning?: boolean;
-        size?: SizeType;
-        icon?: IconName;
-        caption?: string;
-        body?: boolean;
-        imageUrl?: string;
-        textColor?: string;
-        overlay?: boolean;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-loading']: LoadingElement;
-            }
-        }
-    }
-    export class Loading extends Control {
-        private _size;
-        private _spinning;
-        private _caption;
-        private _icon;
-        private _wrapperElm;
-        private _iconElm;
-        private _iconWrapperElm;
-        private _body;
-        private _imageUrl;
-        private _overlayElm;
-        private _overlay;
-        constructor(parent?: Control, options?: any);
-        get spinning(): boolean;
-        set spinning(value: boolean);
-        get size(): SizeType;
-        set size(value: SizeType);
-        get caption(): string;
-        set caption(value: string);
-        get icon(): IconName;
-        set icon(value: IconName);
-        private createIcon;
-        get imageUrl(): string;
-        set imageUrl(value: string);
-        get body(): boolean;
-        set body(value: boolean);
-        get textColor(): string;
-        set textColor(value: string);
-        get overlay(): boolean;
-        set overlay(value: boolean);
-        protected init(): Promise<void>;
-        static create(options?: LoadingElement, parent?: Control): Promise<Loading>;
-    }
-}
-declare module "@ijstech/*loading/@ijstech/components" {
-    export { Loading, LoadingElement } from "@ijstech/*loading/src/loading";
+    export { Progress } from "@ijstech/*progress/src/progress";
 }
 declare module "@ijstech/*table/src/style/table.css" { }
 declare module "@ijstech/*table/src/tableColumn" {
@@ -8568,7 +8523,7 @@ declare module "@ijstech/*table/src/tableColumn" {
         get sortOrder(): null | SortDirection;
         set sortOrder(value: null | SortDirection);
         renderSort(): void;
-        protected init(): Promise<void>;
+        init(): Promise<void>;
         static create(options?: TableColumnElement, parent?: Control): Promise<TableColumn>;
     }
 }
@@ -8683,7 +8638,7 @@ declare module "@ijstech/*table/src/table" {
         private renderRow;
         private renderBody;
         private createTable;
-        protected init(): Promise<void>;
+        init(): void;
         static create(options?: TableElement, parent?: Control): Promise<Table>;
     }
 }
@@ -8731,7 +8686,7 @@ declare module "@ijstech/*carousel/src/carousel" {
         renderDotPagination(): void;
         onDotClick(index: number): void;
         setAutoplay(): void;
-        protected init(): Promise<void>;
+        init(): void;
         static create(options?: CarouselSliderElement, parent?: Control): Promise<CarouselSlider>;
     }
 }
@@ -8743,7 +8698,6 @@ declare module "@ijstech/components" {
     export { customModule, customElements, Component, Control, ControlElement, Container, Observe, Unobserve, ClearObservers, isObservable, observable, LibPath, RequireJS } from "@ijstech/*base/@ijstech/components";
     export { application, EventBus, IEventBus, IHasDependencies, IModuleOptions, IModuleRoute, IModuleMenuItem } from "@ijstech/*application/@ijstech/components";
     export { Button } from "@ijstech/*button/@ijstech/components";
-    export { DropdownButton, DropdownItem } from "@ijstech/*dropdown-button/@ijstech/components";
     export { CodeEditor, LanguageType, CodeDiffEditor } from "@ijstech/*code-editor/@ijstech/components";
     export { ComboBox } from "@ijstech/*combo-box/@ijstech/components";
     export { Input } from "@ijstech/*input/@ijstech/components";
@@ -8762,8 +8716,7 @@ declare module "@ijstech/components" {
     export { Modal } from "@ijstech/*modal/@ijstech/components";
     export { Checkbox } from "@ijstech/*checkbox/@ijstech/components";
     export { Datepicker } from "@ijstech/*datepicker/@ijstech/components";
-    export { Divider } from "@ijstech/*divider/@ijstech/components";
-    export { Clipboard } from "@ijstech/*clipboard/@ijstech/components";    
+    export { LineChart, BarChart, PieChart, ScatterChart, ScatterLineChart } from "@ijstech/*chart/@ijstech/components";
     export { Upload } from "@ijstech/*upload/@ijstech/components";
     export { Tabs, Tab } from "@ijstech/*tab/@ijstech/components";
     export { Iframe } from "@ijstech/*iframe/@ijstech/components";
@@ -8771,10 +8724,8 @@ declare module "@ijstech/components" {
     export { Radio, RadioGroup } from "@ijstech/*radio/@ijstech/components";
     export { Panel, VStack, HStack, CardLayout, GridLayout } from "@ijstech/*layout/@ijstech/components";
     export { Pagination } from "@ijstech/*pagination/@ijstech/components";
-    export { Progress, ProgressItem } from "@ijstech/*progress/@ijstech/components";
+    export { Progress } from "@ijstech/*progress/@ijstech/components";
     export { Link } from "@ijstech/*link/@ijstech/components";
-    export { ListView, ListViewItem } from "@ijstech/*list-view/@ijstech/components";
-    export { Loading } from "@ijstech/*loading/@ijstech/components";
     export { Table, TableColumn } from "@ijstech/*table/@ijstech/components";
     export { CarouselSlider } from "@ijstech/*carousel/@ijstech/components";
 }
@@ -8783,7 +8734,6 @@ declare module "src/launcher" {
     export { customModule, customElements, Component, Control, ControlElement, Container, Observe, Unobserve, ClearObservers, isObservable, observable, LibPath, RequireJS } from "@ijstech/*base/@ijstech/components";
     export { application, EventBus, IEventBus, IHasDependencies, IModuleOptions, IModuleRoute, IModuleMenuItem } from "@ijstech/*application/@ijstech/components";
     export { Button } from "@ijstech/*button/@ijstech/components";
-    export { DropdownButton, DropdownItem } from "@ijstech/*dropdown-button/@ijstech/components";
     export { CodeEditor, CodeDiffEditor } from "@ijstech/*code-editor/@ijstech/components";
     export { ComboBox } from "@ijstech/*combo-box/@ijstech/components";
     export { Input } from "@ijstech/*input/@ijstech/components";
@@ -8802,8 +8752,7 @@ declare module "src/launcher" {
     export { Modal } from "@ijstech/*modal/@ijstech/components";
     export { Checkbox } from "@ijstech/*checkbox/@ijstech/components";
     export { Datepicker } from "@ijstech/*datepicker/@ijstech/components";
-    export { Divider } from "@ijstech/*divider/@ijstech/components";
-    export { Clipboard } from "@ijstech/*clipboard/@ijstech/components";    
+    export { LineChart, BarChart, PieChart, ScatterChart, ScatterLineChart } from "@ijstech/*chart/@ijstech/components";
     export { Upload } from "@ijstech/*upload/@ijstech/components";
     export { Tabs, Tab } from "@ijstech/*tab/@ijstech/components";
     export { Iframe } from "@ijstech/*iframe/@ijstech/components";
@@ -8811,10 +8760,8 @@ declare module "src/launcher" {
     export { Radio, RadioGroup } from "@ijstech/*radio/@ijstech/components";
     export { Panel, VStack, HStack, CardLayout, GridLayout } from "@ijstech/*layout/@ijstech/components";
     export { Pagination } from "@ijstech/*pagination/@ijstech/components";
-    export { Progress, ProgressItem } from "@ijstech/*progress/@ijstech/components";
+    export { Progress } from "@ijstech/*progress/@ijstech/components";
     export { Link } from "@ijstech/*link/@ijstech/components";
-    export { ListView, ListViewItem } from "@ijstech/*list-view/@ijstech/components";
-    export { Loading } from "@ijstech/*loading/@ijstech/components";
     export { Table, TableColumn } from "@ijstech/*table/@ijstech/components";
     export { CarouselSlider } from "@ijstech/*carousel/@ijstech/components";
 }

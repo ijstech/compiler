@@ -1968,7 +1968,9 @@ var AMDLoader;
 
 define("@ijstech/components",(require, exports)=>{
 var __defProp = Object.defineProperty;
+var __defProps = Object.defineProperties;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
 var __getOwnPropSymbols = Object.getOwnPropertySymbols;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __propIsEnum = Object.prototype.propertyIsEnumerable;
@@ -1984,6 +1986,7 @@ var __spreadValues = (a, b) => {
     }
   return a;
 };
+var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
 var __markAsModule = (target) => __defProp(target, "__esModule", { value: true });
 var __export = (target, all) => {
   __markAsModule(target);
@@ -2008,7 +2011,6 @@ __export(exports, {
   CarouselSlider: () => CarouselSlider,
   Checkbox: () => Checkbox,
   ClearObservers: () => ClearObservers,
-  Clipboard: () => Clipboard,
   CodeDiffEditor: () => CodeDiffEditor,
   CodeEditor: () => CodeEditor,
   ComboBox: () => ComboBox,
@@ -2016,9 +2018,6 @@ __export(exports, {
   Container: () => Container,
   Control: () => Control,
   Datepicker: () => Datepicker,
-  Divider: () => Divider,
-  DropdownButton: () => DropdownButton,
-  DropdownItem: () => DropdownItem,
   EventBus: () => EventBus,
   GridLayout: () => GridLayout,
   HStack: () => HStack,
@@ -2030,9 +2029,6 @@ __export(exports, {
   LibPath: () => LibPath,
   LineChart: () => LineChart,
   Link: () => Link,
-  ListView: () => ListView,
-  ListViewItem: () => ListViewItem,
-  Loading: () => Loading,
   Markdown: () => Markdown,
   MarkdownEditor: () => MarkdownEditor,
   Menu: () => Menu,
@@ -2043,7 +2039,6 @@ __export(exports, {
   Panel: () => Panel,
   PieChart: () => PieChart,
   Progress: () => Progress,
-  ProgressItem: () => ProgressItem,
   Radio: () => Radio,
   RadioGroup: () => RadioGroup,
   Range: () => Range,
@@ -3789,26 +3784,20 @@ var Component = class extends HTMLElement {
   constructor(parent, options, defaults) {
     super();
     this.attrs = {};
+    this._parent = parent;
     this.options = options || {};
     this.defaults = defaults || {};
     initObservables(this);
   }
-  async connectedCallback() {
+  connectedCallback() {
     if (this.connected)
       return;
     this.connected = true;
-    if (!this.initialized) {
-      this.initialized = true;
-      await this.init();
-    }
+    if (!this.initialized)
+      this.init();
   }
   disconnectCallback() {
     this.connected = false;
-  }
-  async controlReady() {
-    if (this.initialized)
-      return;
-    await this.init();
   }
   createElement(tagName, parentElm) {
     let result = document.createElement(tagName);
@@ -3830,7 +3819,7 @@ var Component = class extends HTMLElement {
     else
       return value;
   }
-  getAttribute(name, removeAfter, defaultValue2) {
+  getAttribute(name, removeAfter, defaultValue) {
     if (this.options[name] != null)
       return this.options[name];
     else if (this.attrs[name] != null && this.attrs[name] != void 0) {
@@ -3855,16 +3844,16 @@ var Component = class extends HTMLElement {
         return this.defaults[name];
     }
     ;
-    return defaultValue2;
+    return defaultValue;
   }
-  getPositionAttribute(name, removeAfter, defaultValue2) {
-    let result = parseFloat(this.getAttribute(name, removeAfter, defaultValue2));
+  getPositionAttribute(name, removeAfter, defaultValue) {
+    let result = parseFloat(this.getAttribute(name, removeAfter, defaultValue));
     if (removeAfter && result)
       this.style[name] = result + "px";
     return result;
   }
-  getStyleAttribute(name, removeAfter, defaultValue2) {
-    let result = this.getAttribute(name, removeAfter, defaultValue2);
+  getStyleAttribute(name, removeAfter, defaultValue) {
+    let result = this.getAttribute(name, removeAfter, defaultValue);
     if (removeAfter && result)
       this.style[name] = result;
     return result;
@@ -3876,12 +3865,20 @@ var Component = class extends HTMLElement {
     this.options.id = value;
     this.setAttribute("id", value);
   }
-  async init() {
+  init() {
     this.initialized = true;
   }
 };
 
 // packages/base/src/style/base.css.ts
+var spinnerAnim = keyframes({
+  "0%": {
+    transform: "rotate(0deg)"
+  },
+  "100%": {
+    transform: "rotate(360deg)"
+  }
+});
 cssRule("body", {
   background: theme_exports.ThemeVars.background.default,
   backgroundAttachment: "fixed !important",
@@ -3930,10 +3927,61 @@ cssRule("body", {
     ".pointer": {
       cursor: "pointer"
     },
+    ".text-underline": {
+      textDecoration: "underline"
+    },
+    ".text-none i-link > a": {
+      textDecoration: "none"
+    },
     "@media only screen and (max-width: 767px)": {
       $nest: {
         "i-hstack": {
           flexWrap: "wrap"
+        }
+      }
+    },
+    ".i-loading-overlay": {
+      position: "absolute",
+      zIndex: 2e3,
+      margin: 0,
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+      transition: "opacity .3s",
+      background: theme_exports.ThemeVars.background.default,
+      $nest: {
+        "&:after": {
+          content: '""',
+          position: "absolute",
+          opacity: ".5",
+          width: "100%",
+          height: "100%"
+        },
+        ".i-loading-spinner_text": {
+          fontSize: "1rem",
+          color: theme_exports.ThemeVars.text.primary,
+          fontFamily: theme_exports.ThemeVars.typography.fontFamily,
+          marginTop: ".5rem"
+        },
+        ".i-loading-spinner_icon": {
+          display: "block",
+          animation: `${spinnerAnim} 2s linear infinite`,
+          $nest: {
+            "i-image": {
+              display: "block",
+              maxHeight: "100%",
+              maxWidth: "100%"
+            }
+          }
+        },
+        ".i-loading-spinner": {
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 9999,
+          padding: "1rem"
         }
       }
     }
@@ -3942,9 +3990,6 @@ cssRule("body", {
 var disabledStyle = style({
   opacity: 0.4,
   cursor: "default"
-});
-var contentCenterStyle = style({
-  margin: "0 auto"
 });
 var containerStyle = style({
   $nest: {
@@ -4325,7 +4370,7 @@ var Tooltip = class {
       clearTimeout(this.timeout);
       if (this.tooltipElm && document.body.contains(this.tooltipElm))
         document.body.removeChild(this.tooltipElm);
-    }, 500);
+    }, 200);
   }
   onHandleClick(elm) {
     this.show(elm);
@@ -4360,8 +4405,11 @@ var Tooltip = class {
     source.addEventListener("mousedown", (e) => {
       if (!this.content)
         return;
-      if (this.trigger === "click")
+      if (this.trigger === "click") {
         this.onHandleClick(source);
+      } else {
+        this.close();
+      }
     });
   }
 };
@@ -4386,14 +4434,12 @@ function refresh() {
     try {
       clearTimeout(_refreshTimeout);
       _refreshTimeout = void 0;
-      let width = window.innerWidth - 1;
-      let height = window.innerHeight - 1;
       for (let i = 0; i < document.body.childNodes.length; i++) {
         let node = document.body.childNodes[i];
         if (node instanceof Container) {
           node.style.position = "absolute";
-          node.style.width = width + "px";
-          node.style.height = height + "px";
+          node.style.width = "100%";
+          node.style.height = "100%";
           node.style.overflowX = "hidden";
           node.refresh();
         }
@@ -4624,7 +4670,6 @@ var Border = class {
 var Control = class extends Component {
   constructor(parent, options, defaults) {
     super(parent, options, defaults);
-    this.controls = [];
     this._enabled = true;
     this._paddingLeft = 0;
     this._paddingTop = 0;
@@ -4639,20 +4684,14 @@ var Control = class extends Component {
     this._anchorRight = false;
     this._anchorBottom = false;
     this._visible = true;
-    this._contentCenter = false;
-    this._parent = parent;
-    if (parent) {
-      if (parent.controls)
-        parent.controls.push(this);
-      parent.addChildControl(this);
-    }
-    ;
+    if (parent instanceof Container)
+      this.parent = parent;
   }
-  get color() {
-    return this.style.backgroundColor;
-  }
-  set color(value) {
-    this.style.backgroundColor = value;
+  static async create(options, parent, defaults) {
+    let self = new this(parent, options);
+    if (!self.initialized)
+      await self.init();
+    return self;
   }
   getMarginStyle() {
     const computedStyle = window.getComputedStyle(this);
@@ -4689,13 +4728,21 @@ var Control = class extends Component {
     this._marginRight = margin.right;
     this._marginBottom = margin.bottom;
   }
-  addChildControl(control) {
-    if (!control.parentNode)
-      this.appendChild(control);
+  get padding() {
+    return this._padding;
   }
-  removeChildControl(control) {
-    if (this.contains(this))
-      this.removeChild(control);
+  set padding(value) {
+    if (!this._padding)
+      this._padding = new SpaceValue(this, value, "padding");
+    else
+      this._padding.update(value);
+    const { top = 0, right = 0, bottom = 0, left = 0 } = value;
+    this.style.padding = `${this.getSpacingValue(top)} ${this.getSpacingValue(right)} ${this.getSpacingValue(bottom)} ${this.getSpacingValue(left)}`;
+    const padding = this.getPaddingStyle();
+    this._paddingLeft = padding.left;
+    this._paddingTop = padding.top;
+    this._paddingRight = padding.right;
+    this._paddingBottom = padding.bottom;
   }
   get parent() {
     return this._parent;
@@ -4703,19 +4750,18 @@ var Control = class extends Component {
   set parent(value) {
     if (this._parent != value) {
       if (this._parent) {
-        if (this._parent.controls)
-          this._parent.controls.splice(this._parent.controls.indexOf(this), 1);
-        this._parent.removeChildControl(this);
+        this._parent.controls.splice(this._parent.controls.indexOf(this), 1);
+        if (this._parent.contains(this))
+          this._parent.removeChild(this);
         if (!_refreshTimeout)
           this._parent.refresh();
       }
       ;
       this._parent = value;
       if (this._parent) {
-        if (this._parent.controls)
-          this._parent.controls.push(this);
+        this._parent.controls.push(this);
         if (this.parentNode != value) {
-          this._parent.addChildControl(this);
+          this._parent.appendChild(this);
           if (!_refreshTimeout)
             this._parent.refresh();
         }
@@ -4732,8 +4778,8 @@ var Control = class extends Component {
     const isValidUnit = ["px", "em", "rem", "%"].includes(unit);
     return isValidUnit ? value : `${number}px`;
   }
-  async connectedCallback() {
-    await super.connectedCallback();
+  connectedCallback() {
+    super.connectedCallback();
     refresh();
   }
   disconnectCallback() {
@@ -4992,21 +5038,22 @@ var Control = class extends Component {
       this.setAttribute(propName, value);
     }
   }
-  async init() {
-    if (this._parent)
-      this._parent.addChildControl(this);
+  setAttributeToProperty(propertyName) {
+    const prop = this.getAttribute(propertyName, true);
+    if (prop)
+      this[propertyName] = prop;
+  }
+  init() {
     super.init();
-    this.height = this.getAttribute("height", true);
-    this.left = this.getAttribute("left", true);
-    this.top = this.getAttribute("top", true);
-    this.right = this.getAttribute("right", true);
-    this.width = this.getAttribute("width", true);
-    this.dock = this.getAttribute("dock", true);
-    this.color = this.getAttribute("color", true);
-    const margin = this.getAttribute("margin", true);
-    if (margin)
-      this.margin = margin;
-    this.tag = this.getAttribute("tag", true);
+    this.setAttributeToProperty("height");
+    this.setAttributeToProperty("left");
+    this.setAttributeToProperty("top");
+    this.setAttributeToProperty("right");
+    this.setAttributeToProperty("width");
+    this.setAttributeToProperty("dock");
+    this.setAttributeToProperty("margin");
+    this.setAttributeToProperty("padding");
+    this.setAttributeToProperty("tag");
     this._marginLeft = this.getPositionAttribute("marginLeft", true, 0);
     this._marginTop = this.getPositionAttribute("marginTop", true, 0);
     this._marginRight = this.getPositionAttribute("marginRight", true, 0);
@@ -5015,17 +5062,9 @@ var Control = class extends Component {
     this._paddingTop = this.getPositionAttribute("paddingTop", true, 0);
     this._paddingRight = this.getPositionAttribute("paddingRight", true, 0);
     this._paddingBottom = this.getPositionAttribute("paddingBottom", true, 0);
-    this.maxWidth = this.getAttribute("maxWidth", true);
-    this._contentCenter = this.getAttribute("contentCenter", true, false);
-    if (this._contentCenter) {
-      this.classList.add(contentCenterStyle);
-    }
-    const flex = this.getAttribute("flex", true);
-    if (flex)
-      this.flex = flex;
-    const grid = this.getAttribute("grid", true);
-    if (grid)
-      this.grid = grid;
+    this.setAttributeToProperty("maxWidth");
+    this.setAttributeToProperty("stack");
+    this.setAttributeToProperty("grid");
     if (this._left != null || this._top != null)
       this.style.position = "absolute";
     if (this.getAttribute("enabled") !== false)
@@ -5034,16 +5073,19 @@ var Control = class extends Component {
       this.enabled = false;
     if (this.getAttribute("visible") == false)
       this.visible = false;
-    this.background = this.getAttribute("background", true);
-    this.lineHeight = this.getAttribute("lineHeight", true);
-    this.linkTo = this.getAttribute("linkTo", true);
-    this.minHeight = this.getAttribute("minHeight", true);
+    this.setAttributeToProperty("background");
+    this.setAttributeToProperty("lineHeight");
+    this.setAttributeToProperty("linkTo");
+    this.setAttributeToProperty("minHeight");
     const tooltip = this.getAttribute("tooltip", true);
     tooltip && (this._tooltip = new Tooltip(this));
+    const font = this.getAttribute("font", true);
+    font && (this.font = font);
     let border = this.getAttribute("border", true);
     if (border) {
       this._border = new Border(this, border);
     }
+    this.setAttributeToProperty("display");
   }
   calculatePositon() {
   }
@@ -5097,18 +5139,14 @@ var Control = class extends Component {
   set width(value) {
     this.setPosition("width", value);
   }
-  get flex() {
-    return this._flex;
+  get stack() {
+    return this._stack;
   }
-  set flex(value) {
-    this._flex = value;
-    if (typeof value === "string") {
-      this.style.flex = value;
-    } else {
-      this.style.flexBasis = value.basis || "";
-      this.style.flexGrow = value.grow || "";
-      this.style.flexShrink = value.shrink || "";
-    }
+  set stack(value) {
+    this._stack = value;
+    this.style.flexBasis = value.basis || "";
+    this.style.flexGrow = value.grow || "";
+    this.style.flexShrink = value.shrink || "";
   }
   get grid() {
     return this._grid;
@@ -5127,6 +5165,8 @@ var Control = class extends Component {
       this.style.gridRowStart = value.row.toString();
     else if (value.rowSpan)
       this.style.gridRow = "span " + value.rowSpan;
+    if (value.area)
+      this.style.gridArea = value.area;
   }
   get background() {
     return this.style.background;
@@ -5138,6 +5178,7 @@ var Control = class extends Component {
     return this._lineHeight;
   }
   set lineHeight(value) {
+    this._lineHeight = value;
     this.style.lineHeight = "" + value;
   }
   get linkTo() {
@@ -5170,6 +5211,29 @@ var Control = class extends Component {
       this._tooltip = new Tooltip(this);
     }
     return this._tooltip;
+  }
+  get font() {
+    return {
+      color: this.style.color,
+      name: this.style.fontFamily,
+      size: this.style.fontSize,
+      bold: this.style.fontStyle.indexOf("bold") >= 0,
+      style: this.style.fontStyle
+    };
+  }
+  set font(value) {
+    this.style.color = value.color || "";
+    this.style.fontSize = value.size || "";
+    this.style.fontWeight = value.bold ? "bold" : "";
+    this.style.fontFamily = value.name || "";
+    this.style.fontStyle = value.style || "";
+  }
+  get display() {
+    return this._display;
+  }
+  set display(value) {
+    this._display = value;
+    this.style.display = value;
   }
 };
 var ContainerResizer = class {
@@ -5264,21 +5328,9 @@ var ContainerResizer = class {
   }
 };
 var Container = class extends Control {
-  get padding() {
-    return this._padding;
-  }
-  set padding(value) {
-    if (!this._padding)
-      this._padding = new SpaceValue(this, value, "padding");
-    else
-      this._padding.update(value);
-    const { top = 0, right = 0, bottom = 0, left = 0 } = value;
-    this.style.padding = `${this.getSpacingValue(top)} ${this.getSpacingValue(right)} ${this.getSpacingValue(bottom)} ${this.getSpacingValue(left)}`;
-    const padding = this.getPaddingStyle();
-    this._paddingLeft = padding.left;
-    this._paddingTop = padding.top;
-    this._paddingRight = padding.right;
-    this._paddingBottom = padding.bottom;
+  constructor() {
+    super(...arguments);
+    this.controls = [];
   }
   get resizer() {
     return this.attrs["resizer"] == true;
@@ -5290,12 +5342,9 @@ var Container = class extends Control {
     if (this._resizer)
       this._resizer.reset();
   }
-  async init() {
+  init() {
     super.init();
     this.classList.add(containerStyle);
-    const padding = this.getAttribute("padding", true);
-    if (padding)
-      this.padding = padding;
     if (this.resizable && !this._resizer) {
       this._resizer = new ContainerResizer(this);
       this._resizer.reset();
@@ -5550,6 +5599,7 @@ var Checkbox = class extends Control {
   }
   set checked(value) {
     this._checked = value;
+    this.addClass(value, "is-checked");
     if (this.inputElm)
       this.inputElm.checked = value;
   }
@@ -5565,7 +5615,7 @@ var Checkbox = class extends Control {
     else
       this.classList.remove(className);
   }
-  async init() {
+  init() {
     if (!this.captionSpanElm) {
       this.value = this.getAttribute("value", true);
       this.wrapperElm = this.createElement("label", this);
@@ -5600,13 +5650,13 @@ var Checkbox = class extends Control {
         this.captionSpanElm.style.width = "0";
         this.onRender(this.wrapperElm);
       }
-      await super.init();
+      super.init();
     }
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 __decorateClass([
@@ -5634,7 +5684,6 @@ var GlobalEvents = class {
     if (control && !(control instanceof Checkbox)) {
       if (control.enabled) {
         if (control._handleClick(event)) {
-          event.preventDefault();
           event.stopPropagation();
         }
       }
@@ -5854,6 +5903,30 @@ var Application = class {
       }
     }
     return null;
+  }
+  async copyToClipboard(value) {
+    if (!value)
+      return false;
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(value);
+        return true;
+      } else {
+        const input = document.createElement("input");
+        input.value = value;
+        input.style.position = "fixed";
+        input.style.opacity = "0";
+        document.body.appendChild(input);
+        input.focus();
+        input.select();
+        const result = document.execCommand("copy");
+        document.body.removeChild(input);
+        return result;
+      }
+    } catch (err) {
+      console.log("debug: copy", err);
+      return false;
+    }
   }
 };
 window["application"] = Application.Instance;
@@ -6219,7 +6292,7 @@ var Image2 = class extends Control {
     return canvas;
   }
   async init() {
-    await super.init();
+    super.init();
     this._defaultUrl = this.getAttribute("defaultUrl", true, "");
     const dataUrlAttr = this.getAttribute("dataUrl", true);
     if (dataUrlAttr)
@@ -6233,7 +6306,7 @@ var Image2 = class extends Control {
     const cropAttr = this.getAttribute("crop", true);
     cropAttr && (this.crop = cropAttr);
   }
-  async connectedCallback() {
+  connectedCallback() {
     super.connectedCallback();
     if (!this._wrapCropElm)
       return;
@@ -6257,9 +6330,9 @@ var Image2 = class extends Control {
     };
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 Image2 = __decorateClass([
@@ -6268,12 +6341,24 @@ Image2 = __decorateClass([
 
 // packages/icon/src/style/icon.css.ts
 var Theme5 = theme_exports.ThemeVars;
+var spinnerAnim2 = keyframes({
+  "0%": {
+    transform: "rotate(0deg)"
+  },
+  "100%": {
+    transform: "rotate(360deg)"
+  }
+});
 cssRule("i-icon", {
+  display: "inline-block",
   $nest: {
     "svg": {
       verticalAlign: "top",
       width: "100%",
       height: "100%"
+    },
+    "&.is-spin": {
+      animation: `${spinnerAnim2} 2s linear infinite`
     }
   }
 });
@@ -6302,7 +6387,7 @@ var Icon = class extends Control {
   }
   async init() {
     if (!this.initialized) {
-      await super.init();
+      super.init();
       let fill = this.getAttribute("fill");
       if (fill)
         this.fill = fill;
@@ -6315,6 +6400,7 @@ var Icon = class extends Control {
         image.width = image.width || this.width || "16px";
         this.image = await Image2.create(image);
       }
+      this.spin = this.getAttribute("spin", true, false);
     }
   }
   get fill() {
@@ -6346,6 +6432,17 @@ var Icon = class extends Control {
     if (this._image)
       this.prepend(this._image);
   }
+  get spin() {
+    return this._spin;
+  }
+  set spin(value) {
+    this._spin = value;
+    if (value)
+      this.classList.add("is-spin");
+    else
+      this.classList.remove("is-spin");
+    this._parent && this._parent.refresh();
+  }
   _updateIcon() {
     if (this._name)
       this.innerHTML = `<svg><use xlink:href="#${this.name}"></use></svg>`;
@@ -6353,9 +6450,9 @@ var Icon = class extends Control {
       this.innerHTML = "";
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 Icon = __decorateClass([
@@ -6364,14 +6461,6 @@ Icon = __decorateClass([
 
 // packages/button/src/style/button.css.ts
 var Theme6 = theme_exports.ThemeVars;
-var spinnerAnim = keyframes({
-  "0%": {
-    transform: "rotate(0deg)"
-  },
-  "100%": {
-    transform: "rotate(360deg)"
-  }
-});
 cssRule("i-button", {
   background: Theme6.colors.primary.main,
   boxShadow: Theme6.shadows[2],
@@ -6382,6 +6471,7 @@ cssRule("i-button", {
   borderRadius: 4,
   fontFamily: Theme6.typography.fontFamily,
   fontSize: Theme6.typography.fontSize,
+  gap: 5,
   $nest: {
     "&:not(.disabled):hover": {
       cursor: "pointer",
@@ -6397,30 +6487,35 @@ cssRule("i-button", {
     "i-icon": {
       display: "inline-block",
       fill: Theme6.text.primary,
-      verticalAlign: "middle",
-      $nest: {
-        "&.loading-icon": {
-          animation: `${spinnerAnim} 2s linear infinite`
-        }
-      }
+      verticalAlign: "middle"
     },
     ".caption": {
       paddingRight: ".5rem"
+    },
+    "&.is-spinning, &.is-spinning:not(.disabled):hover, &.is-spinning:not(.disabled):focus": {
+      color: Theme6.text.disabled,
+      boxShadow: Theme6.shadows[0],
+      background: Theme6.action.disabledBackground,
+      cursor: "default"
     }
   }
 });
 
 // packages/button/src/button.ts
+var defaultIcon = {
+  width: 16,
+  height: 16,
+  fill: theme_exports.ThemeVars.text.primary
+};
 var Button = class extends Control {
   static async create(options, parent) {
     let self = new this(parent, options);
-    await self.controlReady();
+    if (!self.initialized)
+      await self.init();
     return self;
   }
   constructor(parent, options) {
-    super(parent, options, {
-      loading: false
-    });
+    super(parent, options);
   }
   get caption() {
     return this.captionElm.innerHTML;
@@ -6429,420 +6524,92 @@ var Button = class extends Control {
     this.captionElm.innerHTML = value;
   }
   get icon() {
-    if (!this.iconElm)
-      return "";
-    return this.iconElm.name;
+    if (!this._icon) {
+      this._icon = new Icon(this, defaultIcon);
+      this._icon.init();
+      this.prependIcon(this._icon);
+    }
+    return this._icon;
   }
-  set icon(name) {
-    if (!name) {
-      if (this.iconElm) {
-        this.iconElm.name = name;
-        this.iconElm.style.width = "0px";
-        this.iconElm.style.height = "0px";
-      }
+  set icon(value) {
+    if (this._icon && this.contains(this._icon))
+      this.removeChild(this._icon);
+    this._icon = value;
+    this.prependIcon(this._icon);
+  }
+  get rightIcon() {
+    if (!this._rightIcon) {
+      this._rightIcon = new Icon(this, __spreadProps(__spreadValues({}, defaultIcon), {
+        name: "spinner"
+      }));
+      this._rightIcon.init();
+      this._rightIcon.visible = true;
+      this.appendIcon(this._rightIcon);
+    }
+    return this._rightIcon;
+  }
+  set rightIcon(value) {
+    if (this._rightIcon && this.contains(this._rightIcon))
+      this.removeChild(this._rightIcon);
+    this._rightIcon = value;
+    this.appendIcon(this._rightIcon);
+  }
+  get isSpinning() {
+    return this._icon && this._icon.spin && this._icon.visible || this._rightIcon && this._rightIcon.spin && this._rightIcon.visible;
+  }
+  prependIcon(icon) {
+    if (!icon)
       return;
-    } else
-      this.createIconElm(name);
+    this.appendChild(icon);
+    this.captionElm && this.insertBefore(icon, this.captionElm);
   }
-  async createIconElm(name) {
-    if (!this.iconElm) {
-      let iconElm = await Icon.create();
-      if (!this.iconElm) {
-        this.iconElm = iconElm;
-        this.iconElm.style.width = +this.offsetHeight / 2 + "px";
-        this.iconElm.style.height = +this.offsetHeight / 2 + "px";
-        this.appendChild(this.iconElm);
-        if (this.captionElm && this.iconPosition === "left")
-          this.insertBefore(this.iconElm, this.captionElm);
-      }
-    }
-    ;
-    this.iconElm.name = name;
+  appendIcon(icon) {
+    if (!icon)
+      return;
+    this.appendChild(icon);
+    this.captionElm && this.insertBefore(this.captionElm, icon);
   }
-  get loading() {
-    return this._loading;
+  updateButton() {
+    if (this.isSpinning)
+      this.classList.add("is-spinning");
+    else
+      this.classList.remove("is-spinning");
   }
-  set loading(value) {
-    this._loading = value;
-    const previousEnabled = this._previousEnabled;
-    this._previousEnabled = this.enabled;
-    if (value) {
-      this.icon = "spinner";
-      this.iconElm && this.iconElm.classList.add("loading-icon");
-      this.enabled = false;
-    } else {
-      this.icon = this._icon;
-      this.iconElm && this.iconElm.classList.remove("loading-icon");
-      this.enabled = previousEnabled;
-    }
+  _handleClick(event) {
+    if (this.isSpinning || !this.enabled)
+      return false;
+    return super._handleClick(event);
   }
-  async init() {
+  refresh() {
+    super.refresh();
+    this.updateButton();
+  }
+  init() {
     if (!this.captionElm) {
       super.init();
-      this._previousEnabled = this.enabled;
       this.captionElm = this.createElement("span", this);
-      let caption = this.getAttribute("caption", true) || "";
+      let caption = this.getAttribute("caption", true, "");
       this.captionElm.innerHTML = caption;
-      this.iconPosition = this.getAttribute("iconPosition", true) || "left";
-      this._icon = this.getAttribute("icon", true);
-      this.icon = this._icon;
-      this.loading = this.getAttribute("loading", true);
+      let iconAttr = this.getAttribute("icon", true);
+      if (iconAttr) {
+        iconAttr = __spreadValues(__spreadValues({}, defaultIcon), iconAttr);
+        const icon = new Icon(this, iconAttr);
+        icon.init();
+        this.icon = icon;
+      }
+      let rightIconAttr = this.getAttribute("rightIcon", true);
+      if (rightIconAttr) {
+        rightIconAttr = __spreadValues(__spreadProps(__spreadValues({}, defaultIcon), { name: "spinner" }), rightIconAttr);
+        const icon = new Icon(this, rightIconAttr);
+        icon.init();
+        this.rightIcon = icon;
+      }
     }
   }
 };
 Button = __decorateClass([
   customElements2("i-button")
 ], Button);
-
-// packages/dropdown-button/src/style/dropdown-button.css.ts
-var Theme7 = theme_exports.ThemeVars;
-var spinnerAnim2 = keyframes({
-  "0%": {
-    transform: "rotate(0deg)"
-  },
-  "100%": {
-    transform: "rotate(360deg)"
-  }
-});
-cssRule("i-dropdown-button", {
-  fontFamily: Theme7.typography.fontFamily,
-  position: "relative",
-  $nest: {
-    "> *": {
-      boxSizing: "border-box"
-    },
-    ".caption": {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "flex-end",
-      width: "100%",
-      minWidth: 0,
-      margin: 0,
-      gap: "16px",
-      position: "relative"
-    },
-    ".button": {
-      display: "flex",
-      minWidth: 0,
-      margin: 0,
-      cursor: "pointer"
-    },
-    button: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      textAlign: "center",
-      height: "50px",
-      lineHeight: "50px",
-      width: "fit-content",
-      minWidth: "128px",
-      padding: "1rem 1.5rem",
-      color: "white",
-      backgroundColor: "#00c6f4",
-      borderRadius: "25px 0px 0px 25px",
-      border: 0,
-      borderRight: "1px solid white",
-      fontSize: "14px",
-      pointerEvents: "all",
-      opacity: 1,
-      boxShadow: "none",
-      transition: "all 0.3s ease 0s",
-      cursor: "pointer"
-    },
-    ".icon": {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      margin: 0,
-      minWidth: 0,
-      width: "50px",
-      height: "50px",
-      transition: "all 0.3s ease 0s",
-      backgroundColor: "#00c6f4",
-      borderRadius: "0px 25px 25px 0px",
-      borderLeft: "none",
-      $nest: {
-        "i-icon": {
-          height: "16px"
-        }
-      }
-    },
-    ".dropdown": {
-      display: "none",
-      flexDirection: "column",
-      position: "absolute",
-      top: "100%",
-      right: 0,
-      zIndex: 10,
-      appearance: "none",
-      padding: "1.5rem 1rem",
-      borderRadius: "4px",
-      width: "176px",
-      listStyleType: "none",
-      marginTop: "16px",
-      backgroundColor: "#00c6f4",
-      border: "1px solid rgba(255, 255, 255, 0.08)"
-    },
-    ".dropdown.show": {
-      display: "flex"
-    },
-    "i-dropdown-item": {
-      fontSize: "14px",
-      lineHeight: "20px",
-      margin: 0,
-      cursor: "pointer",
-      padding: "0.5rem 1rem",
-      transition: "all 0.3s ease 0s",
-      opacity: 0.88,
-      color: "white",
-      letterSpacing: 0,
-      borderRadius: "4px",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center"
-    },
-    ".loading-icon": {
-      animation: `${spinnerAnim2} 2s linear infinite`,
-      marginRight: "0.25rem",
-      fill: "#fff",
-      height: "16px",
-      width: "16px"
-    }
-  }
-});
-cssRule(".i-popper", {
-  fontFamily: Theme7.typography.fontFamily,
-  display: "none",
-  flexDirection: "column",
-  position: "absolute",
-  top: "100%",
-  zIndex: 10,
-  appearance: "none",
-  padding: "1.5rem 1rem",
-  borderRadius: "4px",
-  width: "176px",
-  listStyleType: "none",
-  marginTop: "16px",
-  background: "#00c6f4",
-  border: "1px solid rgba(255, 255, 255, 0.08)",
-  $nest: {
-    "&.show": {
-      display: "flex"
-    },
-    "i-dropdown-item": {
-      fontSize: "14px",
-      lineHeight: "20px",
-      margin: 0,
-      cursor: "pointer",
-      padding: "0.5rem 1rem",
-      transition: "all 0.3s ease 0s",
-      opacity: 0.88,
-      color: "white",
-      letterSpacing: 0,
-      borderRadius: "4px"
-    }
-  }
-});
-
-// packages/dropdown-button/src/dropdown-button.ts
-var DropdownItem = class extends Control {
-  get loading() {
-    return this._loading;
-  }
-  set loading(value) {
-    this._loading = value;
-    const prevEnabled = this._prevEnabled;
-    this._prevEnabled = this.enabled;
-    const elm = this.querySelector(".loading-icon");
-    if (value) {
-      if (this.loadingElm && !elm)
-        this.insertBefore(this.loadingElm, this.captionElm);
-      this.enabled = false;
-    } else {
-      if (elm)
-        this.removeChild(elm);
-      ;
-      this.enabled = prevEnabled;
-    }
-  }
-  _handleClick(event) {
-    return super._handleClick(event, true);
-  }
-  constructor(parent, options) {
-    super(parent, options);
-  }
-  async init() {
-    if (!this.captionElm) {
-      const caption = this.getAttribute("caption", true) || "";
-      this.captionElm = this.createElement("li", this);
-      this.captionElm.innerHTML = caption;
-      this._prevEnabled = this.enabled;
-      this.loadingElm = await Icon.create({ name: "spinner" });
-      this.loadingElm.classList.add("loading-icon");
-      this.insertBefore(this.loadingElm, this.captionElm);
-      this.loading = this.getAttribute("loading", true);
-      await super.init();
-    }
-  }
-  static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
-  }
-};
-DropdownItem = __decorateClass([
-  customElements2("i-dropdown-item")
-], DropdownItem);
-var DropdownButton = class extends Control {
-  constructor(parent, options) {
-    super(parent, options, {
-      body: false,
-      placement: "bottomLeft"
-    });
-    this.isDropdownShown = false;
-  }
-  get caption() {
-    const buttonElm = this.buttonElm.querySelector("button");
-    return (buttonElm == null ? void 0 : buttonElm.innerHTML) || "";
-  }
-  set caption(value) {
-    const buttonElm = this.buttonElm.querySelector("button");
-    buttonElm && (buttonElm.innerHTML = value || "");
-  }
-  get body() {
-    return this._body;
-  }
-  set body(value) {
-    this._body = value;
-  }
-  get placement() {
-    return this._placement;
-  }
-  set placement(value) {
-    this._placement = value;
-  }
-  appendItems(value) {
-    if (Array.isArray(value))
-      this.dropdownElm.append(...value);
-    else
-      this.dropdownElm.append(value);
-  }
-  openList() {
-    this.isDropdownShown = true;
-    this.dropdownElm.classList.add("show");
-  }
-  handleClose() {
-    this.isDropdownShown = false;
-    this.dropdownElm.classList.remove("show");
-  }
-  toggleList() {
-    this.isDropdownShown ? this.handleClose() : this.openList();
-  }
-  positionAt(placement, event) {
-    const parent = this.buttonElm;
-    const parentCoords = parent.getBoundingClientRect();
-    let left = 0;
-    let top = 0;
-    const pageY = event.pageY - event.offsetY + 10;
-    switch (placement) {
-      case "top":
-        top = pageY - this.dropdownElm.offsetHeight - parentCoords.height;
-        left = parentCoords.left + (parent.offsetWidth - this.dropdownElm.offsetWidth) / 2;
-        break;
-      case "topLeft":
-        top = pageY - this.dropdownElm.offsetHeight - parentCoords.height;
-        left = parentCoords.left;
-        break;
-      case "topRight":
-        top = pageY - this.dropdownElm.offsetHeight - parentCoords.height;
-        left = parentCoords.left + parent.offsetWidth - this.dropdownElm.offsetWidth;
-        break;
-      case "bottom":
-        top = pageY + parentCoords.height;
-        left = parentCoords.left + (parent.offsetWidth - this.dropdownElm.offsetWidth) / 2;
-        break;
-      case "bottomLeft":
-        top = pageY + parentCoords.height;
-        left = parentCoords.left;
-        break;
-      case "bottomRight":
-        top = pageY + parentCoords.height / 2;
-        left = parentCoords.left + parent.offsetWidth - this.dropdownElm.offsetWidth;
-        break;
-    }
-    left = left < 0 ? parentCoords.left : left;
-    top = top < 0 ? parentCoords.top : top;
-    this.dropdownElm.style.left = left + "px";
-    this.dropdownElm.style.top = top + "px";
-  }
-  _handleClick(event) {
-    this.toggleList();
-    if (this.body) {
-      this.dropdownElm.style.position = "absolute";
-      this.dropdownElm.style.zIndex = "999";
-      this.positionAt(this.placement, event);
-    }
-    ;
-    return super._handleClick(event);
-  }
-  async init() {
-    if (!this.captionElm) {
-      const caption = this.getAttribute("caption", true) || "";
-      this.captionElm = this.createElement("div", this);
-      this.captionElm.classList.add("caption");
-      this.buttonElm = this.createElement("div");
-      this.buttonElm.classList.add("button");
-      this.captionElm.appendChild(this.buttonElm);
-      const button = this.createElement("button");
-      this.buttonElm.appendChild(button);
-      this.caption = caption;
-      this.iconElm = this.createElement("div", this);
-      this.iconElm.classList.add("icon");
-      const iconAttr = this.getAttribute("icon", true, "angle-down");
-      const icon = new Icon(this, { name: iconAttr, fill: "white" });
-      this.iconElm.appendChild(icon);
-      this.buttonElm.appendChild(this.iconElm);
-      this.dropdownElm = this.createElement("ul");
-      this.dropdownElm.classList.add("dropdown");
-      this.captionElm.appendChild(this.dropdownElm);
-      const popperClass = this.getAttribute("popperClass", true) || "";
-      if (popperClass) {
-        const classArr = popperClass.split(" ");
-        this.dropdownElm.classList.add(classArr.join(","));
-      }
-      if (this.hasChildNodes()) {
-        const dropdownItems = Array.from(this.querySelectorAll("i-dropdown-button > i-dropdown-item"));
-        for (const dropdownItem of dropdownItems) {
-          this.dropdownElm.appendChild(dropdownItem);
-        }
-      }
-      this.placement = this.getAttribute("placement", true);
-      this.body = this.getAttribute("body", true) || false;
-      if (this.body) {
-        this.dropdownElm.classList.add("i-popper");
-        document.body.appendChild(this.dropdownElm);
-      } else {
-        this.appendChild(this.dropdownElm);
-      }
-      document.addEventListener("click", (e) => {
-        if (!this._enabled)
-          return false;
-        if (!this.contains(e.target)) {
-          this.handleClose();
-        }
-      });
-      await super.init();
-    }
-  }
-  static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
-  }
-};
-DropdownButton = __decorateClass([
-  customElements2("i-dropdown-button")
-], DropdownButton);
 
 // packages/code-editor/src/monaco.ts
 async function addFile(fileName, content) {
@@ -7027,9 +6794,9 @@ var CodeEditor = class extends Control {
   get monaco() {
     return window.monaco;
   }
-  async init() {
+  init() {
     if (!this.editor) {
-      await super.init();
+      super.init();
       this.language = this.getAttribute("language", true);
       this.style.display = "inline-block";
       if (this.language)
@@ -7151,11 +6918,6 @@ var CodeEditor = class extends Control {
     } else
       this.loadContent();
   }
-  static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
-  }
 };
 CodeEditor.addLib = addLib;
 CodeEditor.addFile = addFile;
@@ -7172,9 +6934,9 @@ var EditorType;
   EditorType2[EditorType2["original"] = 1] = "original";
 })(EditorType || (EditorType = {}));
 var CodeDiffEditor = class extends Control {
-  async init() {
+  init() {
     if (!this.editor) {
-      await super.init();
+      super.init();
       this.language = this.getAttribute("language", true);
       this.style.display = "inline-block";
     }
@@ -7284,11 +7046,6 @@ var CodeDiffEditor = class extends Control {
       this.loadContent(0);
     }
   }
-  static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
-  }
 };
 CodeDiffEditor.addLib = addLib;
 CodeDiffEditor.addFile = addFile;
@@ -7299,7 +7056,7 @@ CodeDiffEditor = __decorateClass([
 ], CodeDiffEditor);
 
 // packages/combo-box/src/style/combo-box.css.ts
-var Theme8 = theme_exports.ThemeVars;
+var Theme7 = theme_exports.ThemeVars;
 var ItemListStyle = style({
   display: "none",
   position: "absolute",
@@ -7327,21 +7084,21 @@ var ItemListStyle = style({
       cursor: "pointer"
     },
     "> ul > li .highlight": {
-      backgroundColor: Theme8.colors.warning.light
+      backgroundColor: Theme7.colors.warning.light
     },
     "> ul > li.matched": {
-      backgroundColor: Theme8.colors.primary.light
+      backgroundColor: Theme7.colors.primary.light
     },
     "> ul > li:hover": {
-      backgroundColor: Theme8.colors.primary.light
+      backgroundColor: Theme7.colors.primary.light
     }
   }
 });
 cssRule("i-combo-box", {
   position: "relative",
   display: "inline-flex!important",
-  fontFamily: Theme8.typography.fontFamily,
-  fontSize: Theme8.typography.fontSize,
+  fontFamily: Theme7.typography.fontFamily,
+  fontSize: Theme7.typography.fontSize,
   $nest: {
     "*": {
       boxSizing: "border-box"
@@ -7482,7 +7239,7 @@ var ComboBox = class extends Control {
       this.renderItems();
   }
   calculatePositon() {
-    let parentElement = document.querySelector(this.linkTo) || this;
+    let parentElement = this.linkTo || this;
     let rect = parentElement.getBoundingClientRect();
     const scrollTop = document.documentElement.scrollTop || window.pageYOffset;
     const scrollLeft = document.documentElement.scrollLeft || window.pageXOffset;
@@ -7561,7 +7318,7 @@ var ComboBox = class extends Control {
       this.onSelect(this.value);
     }
   }
-  async init() {
+  init() {
     if (!this.inputElm) {
       this.callback = this.getAttribute("parentCallback", true);
       this.onSelect = this.getAttribute("onSelect", true) || this.onSelect;
@@ -7623,7 +7380,7 @@ var ComboBox = class extends Control {
         }
       });
       this.enabled = this.getAttribute("enabled") !== false;
-      await super.init();
+      super.init();
       window.addEventListener("resize", this.calculatePositon.bind(this));
     }
   }
@@ -7631,9 +7388,9 @@ var ComboBox = class extends Control {
     window.removeEventListener("resize", this.calculatePositon.bind(this));
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 __decorateClass([
@@ -7644,11 +7401,11 @@ ComboBox = __decorateClass([
 ], ComboBox);
 
 // packages/datepicker/src/style/datepicker.css.ts
-var Theme9 = theme_exports.ThemeVars;
+var Theme8 = theme_exports.ThemeVars;
 cssRule("i-datepicker", {
   display: "inline-block",
-  fontFamily: Theme9.typography.fontFamily,
-  fontSize: Theme9.typography.fontSize,
+  fontFamily: Theme8.typography.fontFamily,
+  fontSize: Theme8.typography.fontSize,
   "$nest": {
     "*": {
       boxSizing: "border-box"
@@ -7658,7 +7415,7 @@ cssRule("i-datepicker", {
     },
     "> span > label": {
       boxSizing: "border-box",
-      color: Theme9.text.primary,
+      color: Theme8.text.primary,
       display: "inline-block",
       overflow: "hidden",
       whiteSpace: "nowrap",
@@ -7669,15 +7426,15 @@ cssRule("i-datepicker", {
     },
     "> input": {
       padding: "1px 0.5rem",
-      border: `0.5px solid ${Theme9.divider}`,
+      border: `0.5px solid ${Theme8.divider}`,
       boxSizing: "border-box",
       outline: "none"
     },
     "> input[type=text]:focus": {
-      borderColor: Theme9.colors.info.main
+      borderColor: Theme8.colors.info.main
     },
     "i-icon": {
-      fill: Theme9.colors.primary.contrastText
+      fill: Theme8.colors.primary.contrastText
     },
     ".datepicker-toggle": {
       display: "inline-block",
@@ -7813,6 +7570,9 @@ var Datepicker = class extends Control {
       }
     };
   }
+  _handleClick(event) {
+    return super._handleClick(event, true);
+  }
   get caption() {
     return this._caption;
   }
@@ -7941,13 +7701,13 @@ var Datepicker = class extends Control {
       this.datepickerElm.addEventListener("change", this._onDatePickerChange);
       this.captionWidth = parseInt(this.getAttribute("captionWidth", true) || defaultCaptionWidth);
       this.caption = this.getAttribute("caption", true);
-      await super.init();
+      super.init();
     }
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 __decorateClass([
@@ -7958,12 +7718,12 @@ Datepicker = __decorateClass([
 ], Datepicker);
 
 // packages/range/src/style/range.css.ts
-var Theme10 = theme_exports.ThemeVars;
+var Theme9 = theme_exports.ThemeVars;
 cssRule("i-range", {
   position: "relative",
   display: "inline-block",
-  fontFamily: Theme10.typography.fontFamily,
-  fontSize: Theme10.typography.fontSize,
+  fontFamily: Theme9.typography.fontFamily,
+  fontSize: Theme9.typography.fontSize,
   "$nest": {
     "*": {
       boxSizing: "border-box"
@@ -7973,7 +7733,7 @@ cssRule("i-range", {
     },
     "> span > label": {
       boxSizing: "border-box",
-      color: Theme10.text.primary,
+      color: Theme9.text.primary,
       display: "inline-block",
       overflow: "hidden",
       whiteSpace: "nowrap",
@@ -7990,7 +7750,7 @@ cssRule("i-range", {
       "-webkit-appearance": "none",
       appearance: "none",
       background: "#d3d3d3",
-      backgroundImage: `linear-gradient(${Theme10.colors.info.main}, ${Theme10.colors.info.main})`,
+      backgroundImage: `linear-gradient(${Theme9.colors.info.main}, ${Theme9.colors.info.main})`,
       backgroundSize: "0% 100%",
       backgroundRepeat: "no-repeat !important",
       borderRadius: "0.5rem",
@@ -8025,7 +7785,7 @@ cssRule("i-range", {
       "-webkit-appearance": "none",
       appearance: "none",
       marginTop: "-5px",
-      backgroundColor: Theme10.colors.info.main,
+      backgroundColor: Theme9.colors.info.main,
       borderRadius: "0.5rem",
       height: "1rem",
       width: "1rem"
@@ -8225,7 +7985,7 @@ var Range = class extends Control {
     this.tooltipElm.innerHTML = formattedValue;
     this.tooltipElm.style.left = (this._value - min) * 100 / (max - min) + "%";
   }
-  async init() {
+  init() {
     if (!this.captionSpanElm) {
       this.callback = this.getAttribute("parentCallback", true);
       const min = this.getAttribute("min", true) || 0;
@@ -8249,6 +8009,10 @@ var Range = class extends Control {
       this.inputElm.addEventListener("input", this.onSliderChange.bind(this));
       if (this.onMouseUp)
         this.inputElm.addEventListener("mouseup", () => {
+          this.onMouseUp(this, this.value);
+        });
+      if (this.onKeyUp)
+        this.inputElm.addEventListener("keyup", () => {
           this.onMouseUp(this, this.value);
         });
       this.tooltipElm = this.createElement("span", this.inputContainerElm);
@@ -8284,13 +8048,13 @@ var Range = class extends Control {
         this.renderLabels();
       }
       this.onUpdateTooltip(true);
-      await super.init();
+      super.init();
     }
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 __decorateClass([
@@ -8301,13 +8065,13 @@ Range = __decorateClass([
 ], Range);
 
 // packages/radio/src/radio.css.ts
-var Theme11 = theme_exports.ThemeVars;
+var Theme10 = theme_exports.ThemeVars;
 var captionStyle = style({
-  fontFamily: Theme11.typography.fontFamily,
-  fontSize: Theme11.typography.fontSize,
+  fontFamily: Theme10.typography.fontFamily,
+  fontSize: Theme10.typography.fontSize,
   "$nest": {
     "span": {
-      color: Theme11.text.primary
+      color: Theme10.text.primary
     }
   }
 });
@@ -8398,8 +8162,8 @@ var Radio = class extends Control {
       elm.classList.remove("is-checked");
     });
   }
-  async init() {
-    await super.init();
+  init() {
+    super.init();
     this.classList.add(captionStyle);
     this.callback = this.getAttribute("parentCallback", true);
     this.labelElm = this.createElement("label", this);
@@ -8427,9 +8191,9 @@ var Radio = class extends Control {
     this.inputElm.addEventListener("click", this._handleChange.bind(this));
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 __decorateClass([
@@ -8468,7 +8232,7 @@ var RadioGroup = class extends Control {
         inputElm.click();
     }
   }
-  async init() {
+  init() {
     this.classList.add("i-radio-group");
     this.setAttribute("role", "radiogroup");
     this.value = this.getAttribute("value");
@@ -8484,12 +8248,12 @@ var RadioGroup = class extends Control {
         }
       });
     }
-    await super.init();
+    super.init();
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 __decorateClass([
@@ -8500,18 +8264,18 @@ RadioGroup = __decorateClass([
 ], RadioGroup);
 
 // packages/input/src/style/input.css.ts
-var Theme12 = theme_exports.ThemeVars;
+var Theme11 = theme_exports.ThemeVars;
 cssRule("i-input", {
   display: "inline-block",
-  fontFamily: Theme12.typography.fontFamily,
-  fontSize: Theme12.typography.fontSize,
+  fontFamily: Theme11.typography.fontFamily,
+  fontSize: Theme11.typography.fontSize,
   "$nest": {
     "> span": {
       overflow: "hidden"
     },
     "> span > label": {
       boxSizing: "border-box",
-      color: Theme12.text.primary,
+      color: Theme11.text.primary,
       display: "inline-block",
       overflow: "hidden",
       whiteSpace: "nowrap",
@@ -8521,7 +8285,7 @@ cssRule("i-input", {
       height: "100%"
     },
     "> input": {
-      border: `0.5px solid ${Theme12.divider}`,
+      border: `0.5px solid ${Theme11.divider}`,
       boxSizing: "border-box",
       outline: "none"
     },
@@ -8697,7 +8461,7 @@ var Input = class extends Control {
       case "combobox":
         this._inputControl = new ComboBox(this, {
           value: this.attrs.value,
-          items: this.attrs.items,
+          items: this.getAttribute("items", true),
           width,
           height,
           enabled,
@@ -8739,12 +8503,13 @@ var Input = class extends Control {
           step: this.getAttribute("step", true),
           labels: this.getAttribute("labels", true),
           stepDots: this.getAttribute("stepDots", true),
-          tipFormatter: this.tipFormatter,
-          tooltipVisible: this.tooltipVisible,
+          tipFormatter: this.getAttribute("tipFormatter", true),
+          tooltipVisible: this.getAttribute("tooltipVisible", true),
           parentCallback: this._inputCallback
         });
         this._inputControl.onChange = this.onChange;
         this._inputControl.onMouseUp = this.onMouseUp;
+        this._inputControl.onKeyUp = this.onKeyUp;
         this.appendChild(this._inputControl);
         this.inputElm = this._inputControl.querySelector('input[type="range"]');
         break;
@@ -8856,7 +8621,7 @@ var Input = class extends Control {
     if (this.clearCallback)
       this.clearCallback();
   }
-  async init() {
+  init() {
     if (!this.inputType) {
       this._placeholder = this.getAttribute("placeholder", true);
       this.inputType = this.getAttribute("inputType", true);
@@ -8870,13 +8635,13 @@ var Input = class extends Control {
       if (this.value && this.clearIconElm)
         this.clearIconElm.classList.add("active");
       this.clearCallback = this.getAttribute("clearCallback", true) || this.clearCallback;
-      await super.init();
+      super.init();
     }
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 __decorateClass([
@@ -8887,12 +8652,12 @@ Input = __decorateClass([
 ], Input);
 
 // packages/markdown/src/style/markdown.css.ts
-var Theme13 = theme_exports.ThemeVars;
+var Theme12 = theme_exports.ThemeVars;
 cssRule("i-markdown", {
   display: "inline-block",
-  color: Theme13.text.primary,
-  fontFamily: Theme13.typography.fontFamily,
-  fontSize: Theme13.typography.fontSize,
+  color: Theme12.text.primary,
+  fontFamily: Theme12.typography.fontFamily,
+  fontSize: Theme12.typography.fontSize,
   $nest: {
     h1: {
       fontSize: "48px",
@@ -9116,8 +8881,8 @@ var Markdown = class extends Control {
       });
     });
   }
-  async init() {
-    await super.init();
+  init() {
+    super.init();
   }
 };
 Markdown = __decorateClass([
@@ -9125,7 +8890,7 @@ Markdown = __decorateClass([
 ], Markdown);
 
 // packages/tab/src/style/tab.css.ts
-var Theme14 = theme_exports.ThemeVars;
+var Theme13 = theme_exports.ThemeVars;
 cssRule("i-tabs", {
   display: "block",
   $nest: {
@@ -9196,7 +8961,7 @@ cssRule("i-tabs", {
           color: "#fff"
         },
         "&:not(.disabled).active.border": {
-          borderColor: `${Theme14.divider} ${Theme14.divider} #fff`,
+          borderColor: `${Theme13.divider} ${Theme13.divider} #fff`,
           borderBottomWidth: "1.5px"
         },
         ".tab-item": {
@@ -9345,8 +9110,8 @@ var Tabs = class extends Container {
       this.classList.remove("vertical");
     }
   }
-  add(options) {
-    const tab = new Tab(this, options);
+  async add(options) {
+    const tab = await Tab.create(options);
     if (options == null ? void 0 : options.children) {
       tab.append(options == null ? void 0 : options.children);
     }
@@ -9355,8 +9120,6 @@ var Tabs = class extends Container {
     }
     this.appendTab(tab);
     this.activeTab = tab;
-    if (this.onTabAdded)
-      this.onTabAdded(this, tab);
     return tab;
   }
   delete(tab) {
@@ -9386,7 +9149,6 @@ var Tabs = class extends Container {
       tab.id = `tab-${this.accumTabIndex++}`;
     this.tabsNavElm.appendChild(tab);
     const contentPane = this.createElement("div", this.tabsContentElm);
-    tab._contentElm = contentPane;
     contentPane.classList.add("content-pane");
     contentPane.style.display = "none";
     this.contentPanes.push(contentPane);
@@ -9455,9 +9217,9 @@ var Tabs = class extends Container {
       this.refreshControls();
     }
   }
-  async init() {
+  init() {
     if (!this.tabsNavElm) {
-      await super.init();
+      super.init();
       const _tabs = [];
       this.childNodes.forEach((node) => {
         if (node instanceof Tab) {
@@ -9493,9 +9255,9 @@ var Tabs = class extends Container {
     }
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 Tabs = __decorateClass([
@@ -9504,14 +9266,6 @@ Tabs = __decorateClass([
 var Tab = class extends Container {
   active() {
     this._parent.activeTab = this;
-  }
-  addChildControl(control) {
-    if (this._contentElm)
-      this._contentElm.appendChild(control);
-  }
-  removeChildControl(control) {
-    if (this._contentElm && this._contentElm.contains(control))
-      this._contentElm.removeChild(control);
   }
   get caption() {
     return this.captionElm.innerHTML;
@@ -9524,10 +9278,10 @@ var Tab = class extends Container {
   }
   get icon() {
     if (!this._icon) {
-      this._icon = new Icon(this, {
+      this._icon = Icon.create({
         width: 16,
         height: 16
-      });
+      }, this);
     }
     ;
     return this._icon;
@@ -9549,11 +9303,13 @@ var Tab = class extends Container {
     };
   }
   set font(value) {
-    this.captionElm.style.color = value.color || "";
-    this.captionElm.style.fontSize = value.size || "";
-    this.captionElm.style.fontWeight = value.bold ? "bold" : "";
-    this.captionElm.style.fontFamily = value.name || "";
-    this.captionElm.style.fontStyle = value.style || "";
+    if (this.captionElm) {
+      this.captionElm.style.color = value.color || "";
+      this.captionElm.style.fontSize = value.size || "";
+      this.captionElm.style.fontWeight = value.bold ? "bold" : "";
+      this.captionElm.style.fontFamily = value.name || "";
+      this.captionElm.style.fontStyle = value.style || "";
+    }
   }
   _handleClick(event) {
     if (!this._parent || !this.enabled || this._parent.activeTab.isSameNode(this))
@@ -9571,22 +9327,18 @@ var Tab = class extends Container {
     event.preventDefault();
     if (!this._parent || !this.enabled || !this._parent.closable)
       return;
+    const isActiveChange = this._parent.activeTab.isSameNode(this);
     this._parent.delete(this);
-    if (this._parent.onTabClosed)
-      this._parent.onTabClosed(this._parent, this);
-    if (this._parent.onChanged)
+    if (isActiveChange && this._parent.onChanged)
       this._parent.onChanged(this._parent, this._parent.activeTab);
   }
   async init() {
     if (!this.captionElm) {
-      await super.init();
+      super.init();
       this.tabContainer = this.createElement("div", this);
       this.tabContainer.classList.add("tab-item");
       this.captionElm = this.createElement("div", this.tabContainer);
       this.caption = this.getAttribute("caption", true) || "";
-      const font = this.getAttribute("font", true);
-      if (font)
-        this.font = font;
       const icon = this.getAttribute("icon", true);
       if (icon) {
         icon.height = icon.height || "16px";
@@ -9601,9 +9353,9 @@ var Tab = class extends Container {
     }
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 Tab = __decorateClass([
@@ -9611,7 +9363,7 @@ Tab = __decorateClass([
 ], Tab);
 
 // packages/markdown-editor/src/style/markdown-editor.css.ts
-var Theme15 = theme_exports.ThemeVars;
+var Theme14 = theme_exports.ThemeVars;
 cssRule("i-markdown-editor", {
   display: "block",
   $nest: {
@@ -9622,12 +9374,12 @@ cssRule("i-markdown-editor", {
     ".editor-tabs": {
       display: "block",
       position: "relative",
-      border: `1px solid ${Theme15.divider}`,
+      border: `1px solid ${Theme14.divider}`,
       borderRadius: "6px",
       $nest: {
         ".tabs": {
-          backgroundColor: Theme15.background.paper,
-          borderBottom: `1px solid ${Theme15.divider}`,
+          backgroundColor: Theme14.background.paper,
+          borderBottom: `1px solid ${Theme14.divider}`,
           borderTopLeftRadius: "6px",
           borderTopRightRadius: "6px",
           marginBottom: 0,
@@ -9653,32 +9405,32 @@ cssRule("i-markdown-editor", {
                 "i-icon": {
                   display: "inline-block",
                   verticalAlign: "middle",
-                  fill: Theme15.text.secondary
+                  fill: Theme14.text.secondary
                 },
                 "span": {
                   marginLeft: "6px",
                   fontSize: "14px",
                   lineHeight: "23px",
-                  color: Theme15.text.secondary,
+                  color: Theme14.text.secondary,
                   verticalAlign: "middle"
                 },
                 "&.active": {
                   borderTopLeftRadius: "6px",
                   borderTopRightRadius: "6px",
-                  backgroundColor: Theme15.colors.primary.main,
-                  borderColor: Theme15.divider,
+                  backgroundColor: Theme14.colors.primary.main,
+                  borderColor: Theme14.divider,
                   $nest: {
                     "&:first-of-type": {
                       borderColor: "transparent",
                       borderTopRightRadius: 0,
-                      borderRightColor: Theme15.divider
+                      borderRightColor: Theme14.divider
                     },
                     "i-icon": {
-                      fill: Theme15.text.primary
+                      fill: Theme14.text.primary
                     },
                     "span": {
                       fontWeight: 600,
-                      color: Theme15.text.primary
+                      color: Theme14.text.primary
                     }
                   }
                 }
@@ -9716,11 +9468,10 @@ var MarkdownEditor = class extends Control {
     }
   }
   async init() {
-    await super.init();
+    super.init();
     const container = this.createElement("div", this);
     container.classList.add("editor-container");
     this.tabs = await Tabs.create({
-      class: "editor-tabs",
       width: "auto"
     });
     container.appendChild(this.tabs);
@@ -9733,7 +9484,8 @@ var MarkdownEditor = class extends Control {
       icon: {
         name: "code",
         width: "16px",
-        height: "16px"
+        height: "16px",
+        fill: "currentColor"
       },
       children: this.mdEditor
     });
@@ -9743,7 +9495,8 @@ var MarkdownEditor = class extends Control {
       icon: {
         name: "eye",
         width: "16px",
-        height: "16px"
+        height: "16px",
+        fill: "currentColor"
       },
       children: this.mdPreviewer
     });
@@ -9756,11 +9509,11 @@ MarkdownEditor = __decorateClass([
 ], MarkdownEditor);
 
 // packages/menu/src/style/menu-item.css.ts
-var Theme16 = theme_exports.ThemeVars;
+var Theme15 = theme_exports.ThemeVars;
 var menuItemId = style({});
 cssRule("i-menu-item", {
-  fontFamily: Theme16.typography.fontFamily,
-  fontSize: Theme16.typography.fontSize,
+  fontFamily: Theme15.typography.fontFamily,
+  fontSize: Theme15.typography.fontSize,
   position: "relative",
   $nest: {
     "*": {
@@ -9779,7 +9532,7 @@ cssRule("i-menu-item", {
           display: "none"
         },
         "> .link": {
-          color: Theme16.text.primary,
+          color: Theme15.text.primary,
           margin: 0,
           padding: 0,
           border: 0,
@@ -9844,7 +9597,7 @@ cssRule("i-menu-item", {
             ".content": {
               fontSize: "14px",
               fontWeight: 400,
-              color: Theme16.text.primary,
+              color: Theme15.text.primary,
               opacity: 0.64
             }
           }
@@ -9874,7 +9627,7 @@ cssRule("i-menu-item", {
       height: "52px",
       transition: "all 0.3s ease 0s",
       opacity: 0.68,
-      color: Theme16.text.primary,
+      color: Theme15.text.primary,
       fontSize: "16px",
       letterSpacing: 0,
       lineHeight: "20px",
@@ -9923,7 +9676,7 @@ cssRule("i-menu-item", {
           margin: 0,
           minWidth: 0,
           gap: "16px",
-          color: `${Theme16.text.primary}f5`,
+          color: `${Theme15.text.primary}f5`,
           textDecoration: "none",
           $nest: {
             ".title": {
@@ -9935,7 +9688,7 @@ cssRule("i-menu-item", {
               fontSize: "16px",
               fontWeight: 600,
               letterSpacing: "0.4px",
-              color: `${Theme16.text.primary}f5`
+              color: `${Theme15.text.primary}f5`
             }
           }
         },
@@ -10203,7 +9956,7 @@ var MenuItem = class extends Control {
       });
     }
   }
-  async init() {
+  init() {
     if (!this.itemElm) {
       this.id = new Date().getTime() + "";
       this.title = this.getAttribute("title", true);
@@ -10214,13 +9967,13 @@ var MenuItem = class extends Control {
       this.hasChildren = this.getAttribute("hasChildren", true);
       this.isDropdown = this.getAttribute("isDropdown", true);
       this.renderItem();
-      await super.init();
+      super.init();
     }
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 MenuItem = __decorateClass([
@@ -10228,7 +9981,7 @@ MenuItem = __decorateClass([
 ], MenuItem);
 
 // packages/menu/src/style/menu.css.ts
-var Theme17 = theme_exports.ThemeVars;
+var Theme16 = theme_exports.ThemeVars;
 var menuId = style({});
 var fadeInRight = keyframes({
   "0%": {
@@ -10241,8 +9994,8 @@ var fadeInRight = keyframes({
   }
 });
 cssRule("i-menu", {
-  fontFamily: Theme17.typography.fontFamily,
-  fontSize: Theme17.typography.fontSize,
+  fontFamily: Theme16.typography.fontFamily,
+  fontSize: Theme16.typography.fontSize,
   position: "relative",
   $nest: {
     "*": {
@@ -10304,7 +10057,7 @@ cssRule("i-menu", {
       boxShadow: "none",
       border: "none",
       backgroundColor: "transparent",
-      color: Theme17.text.primary,
+      color: Theme16.text.primary,
       cursor: "pointer"
     },
     "> nav.mobile": {
@@ -10454,7 +10207,7 @@ cssRule("i-menu", {
                   width: "100%"
                 },
                 "&:hover": {
-                  backgroundColor: Theme17.action.hover
+                  backgroundColor: Theme16.action.hover
                 }
               }
             }
@@ -10473,7 +10226,7 @@ cssRule("i-menu", {
                   padding: "5px 10px"
                 },
                 ".link:hover": {
-                  backgroundColor: Theme17.action.hover
+                  backgroundColor: Theme16.action.hover
                 }
               }
             }
@@ -10607,9 +10360,10 @@ var Menu = class extends Control {
     }
     this.navElm.appendChild(alignElm);
   }
-  async renderMore() {
-    this._moreElm = await MenuItem.create();
+  renderMore() {
+    this._moreElm = new MenuItem();
     this._moreElm.classList.add("more-item");
+    this._moreElm.init();
     const templateHtml = `
       <div class="desktop has-children">
         <button type="button" class="link">
@@ -10853,7 +10607,7 @@ var Menu = class extends Control {
             break;
         }
       }
-      await super.init();
+      super.init();
     }
   }
   disconnectedCallback() {
@@ -10861,9 +10615,9 @@ var Menu = class extends Control {
     clearTimeout();
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 Menu = __decorateClass([
@@ -10929,21 +10683,18 @@ function bindObservable(elm, prop) {
 }
 var Module = class extends Container {
   constructor(parent, options, defaults) {
-    super(parent, options, defaults || {
-      width: "inherit",
-      height: "inherit"
-    });
+    super(parent, options, defaults);
     this.$renderElms = [];
     let proxy = ProxyObject(this, true);
     this.$render = this._render.bind(proxy);
   }
   static async create(options, parent, defaults) {
     let self = new this(parent, options, defaults);
-    await self.controlReady();
+    self.init();
     return self;
   }
-  async init() {
-    await super.init();
+  init() {
+    super.init();
     this.$renderElms = [];
     let proxy = ProxyObject(this, true);
     let render = this.render.bind(proxy);
@@ -11021,21 +10772,83 @@ Module = __decorateClass([
   customElements2("i-module")
 ], Module);
 
+// packages/link/src/style/link.css.ts
+var Theme17 = theme_exports.ThemeVars;
+cssRule("i-link", {
+  cursor: "pointer",
+  $nest: {
+    "&:hover *": {
+      color: Theme17.colors.primary.dark
+    },
+    "> a": {
+      transition: "all .3s",
+      textDecoration: "underline",
+      color: "inherit",
+      fontSize: "inherit",
+      fontWeight: "inherit",
+      fontFamily: "inherit"
+    }
+  }
+});
+
+// packages/link/src/link.ts
+var Link = class extends Control {
+  constructor(parent, options) {
+    super(parent, options, {
+      target: "_blank"
+    });
+  }
+  get href() {
+    return this._href;
+  }
+  set href(value) {
+    this._href = typeof value === "string" ? value : "";
+    if (this._linkElm)
+      this._linkElm.href = this._href;
+  }
+  get target() {
+    return this._target;
+  }
+  set target(value) {
+    this._target = value;
+    if (this._linkElm)
+      this._linkElm.target = value;
+  }
+  append(children) {
+    this._linkElm.appendChild(children);
+  }
+  _handleClick(event, stopPropagation) {
+    window.open(this._linkElm.href, this._linkElm.target);
+    return true;
+  }
+  init() {
+    if (!this._linkElm) {
+      super.init();
+      this._linkElm = this.createElement("a", this);
+      this.classList.add("i-link");
+      const hrefAttr = this.getAttribute("href", true);
+      hrefAttr && (this.href = hrefAttr);
+      const targetAttr = this.getAttribute("target", true);
+      targetAttr && (this._linkElm.target = targetAttr);
+    }
+  }
+  static async create(options, parent) {
+    let component = new this(parent, options);
+    component.init();
+    return component;
+  }
+};
+Link = __decorateClass([
+  customElements2("i-link")
+], Link);
+
 // packages/label/src/style/label.css.ts
 var Theme18 = theme_exports.ThemeVars;
 var captionStyle2 = style({
   display: "inline-block",
   color: Theme18.text.primary,
   fontFamily: Theme18.typography.fontFamily,
-  fontSize: Theme18.typography.fontSize,
-  $nest: {
-    "&.is-ellipsis": {
-      whiteSpace: "nowrap",
-      textOverflow: "ellipsis",
-      overflow: "hidden",
-      display: "inline-block"
-    }
-  }
+  fontSize: Theme18.typography.fontSize
 });
 
 // packages/label/src/label.ts
@@ -11044,82 +10857,72 @@ var Label = class extends Control {
     super(parent, options);
   }
   get caption() {
-    return this.captionDiv.innerHTML;
+    return this.captionSpan.innerHTML;
   }
   set caption(value) {
-    this.captionDiv.innerHTML = value || "";
+    this.captionSpan.innerHTML = value || "";
   }
-  get font() {
-    return {
-      color: this.captionDiv.style.color,
-      name: this.captionDiv.style.fontFamily,
-      size: this.captionDiv.style.fontSize,
-      bold: this.captionDiv.style.fontStyle.indexOf("bold") >= 0,
-      style: this.captionDiv.style.fontStyle
-    };
+  get link() {
+    if (!this._link) {
+      this._link = new Link(this, {
+        href: "#",
+        target: "_blank",
+        font: this.font
+      });
+      this._link.init();
+      this._link.append(this.captionSpan);
+      this.appendChild(this._link);
+    }
+    return this._link;
   }
-  set font(value) {
-    this.captionDiv.style.color = value.color || "";
-    this.captionDiv.style.fontSize = value.size || "";
-    this.captionDiv.style.fontWeight = value.bold ? "bold" : "";
-    this.captionDiv.style.fontFamily = value.name || "";
-    this.captionDiv.style.fontStyle = value.style || "";
-  }
-  set height(value) {
-    this.captionDiv.style.height = value + "px";
-  }
-  set width(value) {
-    this.captionDiv.style.width = value + "px";
-  }
-  get displayType() {
-    return this.captionDiv.style.display;
-  }
-  set displayType(value) {
-    this.captionDiv.style.display = value;
-    value === "block" && (this.captionDiv.style.width = "100%");
-  }
-  async init() {
-    if (!this.captionDiv) {
-      this.captionDiv = this.createElement("div", this);
-      this.captionDiv.classList.add(captionStyle2);
-      this.caption = this.getAttribute("caption", true) || "";
-      this.displayType = this.getAttribute("displayType", true);
-      const font = this.getAttribute("font", true);
-      if (font)
-        this.font = font;
-      const ellipsisAttr = this.getAttribute("ellipsis", true, false);
-      if (ellipsisAttr)
-        this.captionDiv.classList.add("is-ellipsis");
-      const styleAttr = this.getAttribute("style", true);
-      if (styleAttr) {
-        let styleObj = {};
-        const styleArr = styleAttr.split(";");
-        if (styleArr.length) {
-          for (let i = 0; i < styleArr.length; i++) {
-            const style2 = styleArr[i];
-            const splittedStyle = style2.split(":");
-            const type = splittedStyle[0];
-            const value = splittedStyle[1];
-            styleObj[type] = value;
-          }
-          const customStyle = style(__spreadValues({}, styleObj));
-          this.captionDiv.classList.add(customStyle);
-        }
-      }
-      await super.init();
+  set link(value) {
+    if (this._link) {
+      this._link.prepend(this.captionSpan);
+      this._link.remove();
+    }
+    this._link = value;
+    if (this._link) {
+      this._link.append(this.captionSpan);
+      this.appendChild(this._link);
     }
   }
-  async connectedCallback() {
-    super.connectedCallback();
-    if (this.visible)
-      this.style.display = this.displayType;
-    else
-      this.style.display = "none";
+  set height(value) {
+    if (this.captionSpan)
+      this.captionSpan.style.height = value + "px";
+  }
+  set width(value) {
+    if (this.captionSpan)
+      this.captionSpan.style.width = value + "px";
+  }
+  init() {
+    if (!this.captionSpan) {
+      let childNodes = [];
+      for (let i = 0; i < this.childNodes.length; i++) {
+        childNodes.push(this.childNodes[i]);
+      }
+      this.captionSpan = this.createElement("span", this);
+      this.classList.add(captionStyle2);
+      this.caption = this.getAttribute("caption", true) || "";
+      if (childNodes && childNodes.length) {
+        for (let i = 0; i < childNodes.length; i++) {
+          this.captionSpan.appendChild(childNodes[i]);
+        }
+      }
+      const linkAttr = this.getAttribute("link", true);
+      if (linkAttr) {
+        const link = new Link(this, __spreadProps(__spreadValues({}, linkAttr), {
+          font: this.font
+        }));
+        link.init();
+        this.link = link;
+      }
+      super.init();
+    }
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 Label = __decorateClass([
@@ -11138,7 +10941,8 @@ cssRule("i-tree-view", {
     ".i-tree-node_content": {
       display: "flex",
       alignItems: "center",
-      paddingLeft: "1em"
+      paddingLeft: "1em",
+      border: "1px solid transparent"
     },
     "> i-tree-node > .i-tree-node_content": {
       paddingLeft: 0
@@ -11351,7 +11155,7 @@ cssRule("i-tree-view", {
 // packages/tree-view/src/treeView.ts
 var Theme20 = theme_exports.ThemeVars;
 var beforeExpandEvent = new Event("beforeExpand");
-var defaultIcon = {
+var defaultIcon2 = {
   name: "caret-right",
   fill: Theme20.text.secondary,
   width: 12,
@@ -11507,9 +11311,9 @@ var TreeView = class extends Control {
       group.appendChild(buttonElm);
     });
   }
-  async init() {
+  init() {
     if (!this.initialized) {
-      await super.init();
+      super.init();
       this.classList.add("i-tree-view");
       this.editable = this.getAttribute("editable", true);
       this.actionButtons = this.getAttribute("actionButtons", true);
@@ -11519,9 +11323,9 @@ var TreeView = class extends Control {
     }
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 TreeView = __decorateClass([
@@ -11563,8 +11367,17 @@ var TreeNode = class extends Control {
   set expanded(value) {
     if (typeof value === "boolean") {
       this._expanded = value;
+      if (this._expandElm)
+        this._expandElm.checked = value;
+      if (this._expanded)
+        this.classList.add("is-checked");
+      else
+        this.classList.remove("is-checked");
     } else {
       this._expanded = false;
+      if (this._expandElm)
+        this._expandElm.checked = false;
+      this.classList.remove("is-checked");
     }
   }
   get active() {
@@ -11606,14 +11419,14 @@ var TreeNode = class extends Control {
   }
   get icon() {
     if (!this._iconElm) {
-      this._iconElm = new Icon(void 0, defaultIcon);
+      this._iconElm = Icon.create(defaultIcon2);
     }
     ;
     return this._iconElm;
   }
   get rightIcon() {
     if (!this._iconRightElm) {
-      this._iconRightElm = new Icon(void 0, defaultIcon);
+      this._iconRightElm = Icon.create(defaultIcon2);
     }
     ;
     return this._iconRightElm;
@@ -11676,10 +11489,9 @@ var TreeNode = class extends Control {
     ;
     if (this._parent instanceof TreeView) {
       this._parent._setActiveItem(this, event);
-      this._parent._handleClick(event, true);
     }
     ;
-    return true;
+    return super._handleClick(event, true);
   }
   async init() {
     var _a, _b;
@@ -11698,7 +11510,7 @@ var TreeNode = class extends Control {
       this.isLazyLoad = isLazyLoad;
       this._wrapperElm = this.createElement("div", this);
       this._wrapperElm.classList.add("i-tree-node_content");
-      const iconData = iconAttr || defaultIcon;
+      const iconData = iconAttr || defaultIcon2;
       iconData.height = iconData.height || "12px";
       iconData.width = iconData.width || "12px";
       this._iconElm = await Icon.create(iconData);
@@ -11722,12 +11534,15 @@ var TreeNode = class extends Control {
       if ((_b = (_a = this.data) == null ? void 0 : _a.children) == null ? void 0 : _b.length)
         this.initChildNodeElm();
     }
-    await super.init();
+    super.init();
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    if (!parent) {
+      console.trace(this);
+    }
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 TreeNode = __decorateClass([
@@ -11974,9 +11789,9 @@ var Search = class extends Control {
     }
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    await component.init();
+    return component;
   }
 };
 Search = __decorateClass([
@@ -11988,8 +11803,8 @@ var Slot = class extends Control {
   constructor(parent, options) {
     super(parent, options);
   }
-  async init() {
-    await super.init();
+  init() {
+    super.init();
   }
 };
 Slot = __decorateClass([
@@ -12160,18 +11975,95 @@ var Switch = class extends Control {
         this.trackElm.style.backgroundColor = this.uncheckedTrackColor;
     }
   }
-  async init() {
+  get checkedThumbColor() {
+    return this._checkedThumbColor;
+  }
+  set checkedThumbColor(value) {
+    if (this._checkedThumbColor === value)
+      return;
+    this._checkedThumbColor = value;
+    if (this._checked) {
+      this.switchBaseElm.style.color = this.checkedThumbColor;
+    }
+  }
+  get uncheckedThumbColor() {
+    return this._uncheckedThumbColor;
+  }
+  set uncheckedThumbColor(value) {
+    if (this._uncheckedThumbColor === value)
+      return;
+    this._uncheckedThumbColor = value;
+    if (!this._checked) {
+      this.switchBaseElm.style.color = value;
+    }
+  }
+  get checkedTrackColor() {
+    return this._checkedTrackColor;
+  }
+  set checkedTrackColor(value) {
+    if (this._checkedTrackColor === value)
+      return;
+    this._checkedTrackColor = value;
+    if (this._checked) {
+      this.trackElm.style.backgroundColor = value;
+    }
+  }
+  get uncheckedTrackColor() {
+    return this._uncheckedTrackColor;
+  }
+  set uncheckedTrackColor(value) {
+    if (this._uncheckedTrackColor === value)
+      return;
+    this._uncheckedTrackColor = value;
+    if (!this._checked) {
+      this.trackElm.style.backgroundColor = value;
+    }
+  }
+  get checkedText() {
+    return this._checkedText;
+  }
+  set checkedText(value) {
+    this._checkedText = value;
+    this.trackElm.style.setProperty("--checked-text", `"${value}"`);
+  }
+  get uncheckedText() {
+    return this._uncheckedText;
+  }
+  set uncheckedText(value) {
+    this._uncheckedText = value;
+    this.trackElm.style.setProperty("--text", `"${value}"`);
+  }
+  get checkedThumbText() {
+    return this._checkedThumbText;
+  }
+  set checkedThumbText(value) {
+    this._checkedThumbText = value;
+    this.thumbElm.classList.add("thumb-text");
+    this.thumbElm.style.setProperty("--thumb-text", `'${value || ""}'`);
+  }
+  get uncheckedThumbText() {
+    return this._uncheckedThumbText;
+  }
+  set uncheckedThumbText(value) {
+    this._uncheckedThumbText = value;
+    this.thumbElm.classList.add("thumb-text");
+    this.thumbElm.style.setProperty("--thumb-checked-text", `'${value || ""}'`);
+  }
+  setAttributeToProperty(propertyName) {
+    const prop = this.getAttribute(propertyName, true);
+    if (prop)
+      this[propertyName] = prop;
+  }
+  _handleClick(event) {
+    if (!this.onClick) {
+      this.checked = !this.checked;
+      if (this.onChanged)
+        this.onChanged(this, event);
+    }
+    return super._handleClick(event, true);
+  }
+  init() {
     if (!this.wrapperElm) {
-      const checkedThumbIcon = this.getAttribute("checkedThumbIcon", true);
-      const uncheckedThumbIcon = this.getAttribute("uncheckedThumbIcon", true);
-      this.checkedThumbColor = this.getAttribute("checkedThumbColor", true);
-      this.uncheckedThumbColor = this.getAttribute("uncheckedThumbColor", true);
-      const checkedTrackColor = this.getAttribute("checkedTrackColor", true);
-      const uncheckedTrackColor = this.getAttribute("uncheckedTrackColor", true);
-      const checkedText = this.getAttribute("checkedText", true);
-      const uncheckedText = this.getAttribute("uncheckedText", true);
-      const checkedThumbText = this.getAttribute("checkedThumbText", true);
-      const uncheckedThumbText = this.getAttribute("uncheckedThumbText", true);
       this.wrapperElm = this.createElement("div", this);
       this.wrapperElm.classList.add("wrapper");
       this.switchBaseElm = this.createElement("div");
@@ -12180,49 +12072,31 @@ var Switch = class extends Control {
       this.trackElm = this.createElement("div");
       this.trackElm.classList.add("track");
       this.wrapperElm.appendChild(this.trackElm);
-      if (uncheckedText) {
-        this.trackElm.style.setProperty("--text", `"${uncheckedText}"`);
-      }
-      if (checkedText) {
-        this.trackElm.style.setProperty("--checked-text", `"${checkedText}"`);
-      }
       this.inputElm = this.createElement("input");
       this.inputElm.setAttribute("type", "checkbox");
       this.switchBaseElm.appendChild(this.inputElm);
       this.thumbElm = this.createElement("div");
       this.thumbElm.classList.add("thumb");
       this.switchBaseElm.appendChild(this.thumbElm);
-      if (uncheckedThumbIcon) {
-        this.thumbElm.style.setProperty("--background", `url(${encodeURI(uncheckedThumbIcon)})`);
-      }
-      if (checkedThumbIcon) {
-        this.thumbElm.style.setProperty("--checked-background", `url(${encodeURI(checkedThumbIcon)})`);
-      }
-      if (checkedThumbText || uncheckedThumbText) {
-        this.thumbElm.classList.add("thumb-text");
-        this.thumbElm.style.setProperty("--thumb-text", `'${checkedThumbText || ""}'`);
-        this.thumbElm.style.setProperty("--thumb-checked-text", `'${uncheckedThumbText || ""}'`);
-      }
       this.rippleElm = this.createElement("div");
       this.rippleElm.classList.add("ripple");
       this.switchBaseElm.appendChild(this.rippleElm);
-      this.switchBaseElm.style.color = this.uncheckedThumbColor;
-      this.trackElm.style.backgroundColor = uncheckedTrackColor;
       this.checked = this.getAttribute("checked", true) || false;
-      this.wrapperElm.addEventListener("click", (event) => {
-        if (!this.onClick) {
-          this.checked = !this.checked;
-          if (this.onChanged)
-            this.onChanged(this, event);
-        }
-      });
-      await super.init();
+      this.setAttributeToProperty("checkedThumbColor");
+      this.setAttributeToProperty("uncheckedThumbColor");
+      this.setAttributeToProperty("checkedTrackColor");
+      this.setAttributeToProperty("uncheckedTrackColor");
+      this.setAttributeToProperty("checkedText");
+      this.setAttributeToProperty("uncheckedText");
+      this.setAttributeToProperty("checkedThumbText");
+      this.setAttributeToProperty("uncheckedThumbText");
+      super.init();
     }
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 Switch = __decorateClass([
@@ -12245,6 +12119,24 @@ var wrapperStyle = style({
   zIndex: 10,
   overflow: "auto"
 });
+var noBackdropStyle = style({
+  position: "inherit",
+  top: 0,
+  left: 0,
+  opacity: 0,
+  visibility: "hidden",
+  transform: "scale(1.1)",
+  transition: "visibility 0s linear .25s,opacity .25s 0s,transform .25s",
+  zIndex: 10,
+  overflow: "auto",
+  width: "inherit",
+  maxWidth: "inherit",
+  $nest: {
+    ".modal": {
+      margin: "0"
+    }
+  }
+});
 var visibleStyle = style({
   opacity: "1",
   visibility: "visible",
@@ -12257,9 +12149,10 @@ var modalStyle = style({
   padding: "10px 10px 5px 10px",
   backgroundColor: Theme23.background.modal,
   position: "relative",
-  margin: "100px auto 30px",
+  margin: "0 auto 30px",
   borderRadius: "2px",
-  minWidth: "300px"
+  minWidth: "300px",
+  width: "inherit"
 });
 var titleStyle = style({
   fontSize: "18px",
@@ -12280,10 +12173,13 @@ var titleStyle = style({
 // packages/modal/src/modal.ts
 var Theme24 = theme_exports.ThemeVars;
 var showEvent = new Event("show");
-var Modal = class extends Control {
+var Modal = class extends Container {
   constructor(parent, options) {
     super(parent, options, {
-      showClose: true
+      showClose: true,
+      showBackdrop: true,
+      closeOnBackdropClick: true,
+      popupPlacement: "center"
     });
   }
   get visible() {
@@ -12293,19 +12189,18 @@ var Modal = class extends Control {
     if (value) {
       this.wrapperDiv.classList.add(visibleStyle);
       this.dispatchEvent(showEvent);
-      document.body.style.overflow = "hidden";
+      this.showBackdrop && (document.body.style.overflow = "hidden");
     } else {
       this.wrapperDiv.classList.remove(visibleStyle);
-      document.body.style.overflow = "overlay";
-      if (this.onClose)
-        this.onClose(this);
+      this.showBackdrop && (document.body.style.overflow = "overlay");
+      this.onClose && this.onClose(this);
     }
   }
-  get onShow() {
-    return this._onShow;
+  get onOpen() {
+    return this._onOpen;
   }
-  set onShow(callback) {
-    this._onShow = callback;
+  set onOpen(callback) {
+    this._onOpen = callback;
   }
   get title() {
     const titleElm = this.titleSpan.querySelector("span");
@@ -12317,40 +12212,187 @@ var Modal = class extends Control {
   }
   set width(value) {
     this.setPosition("width", value);
-    if (this.modalDiv)
-      this.modalDiv.style.width = `${value}`;
+    this.updateModal("width", value);
+  }
+  get popupPlacement() {
+    return this._placement;
+  }
+  set popupPlacement(value) {
+    this._placement = value;
+  }
+  get icon() {
+    if (!this._icon) {
+      this._icon = Icon.create({
+        name: "times",
+        fill: Theme24.colors.primary.main,
+        width: 16,
+        height: 16
+      }, this);
+      this._icon.classList.add("i-modal-close");
+      this._icon._handleClick = () => this.visible = false;
+    }
+    ;
+    return this._icon;
+  }
+  set icon(elm) {
+    if (this._icon)
+      this.titleSpan.removeChild(this._icon);
+    this._icon = elm;
+    if (this._icon)
+      this.titleSpan.appendChild(this._icon);
+  }
+  get closeOnBackdropClick() {
+    return this._closeOnBackdropClick;
+  }
+  set closeOnBackdropClick(value) {
+    this._closeOnBackdropClick = typeof value === "boolean" ? value : true;
+  }
+  get showBackdrop() {
+    return this._showBackdrop;
+  }
+  set showBackdrop(value) {
+    this._showBackdrop = typeof value === "boolean" ? value : true;
+    if (this._showBackdrop) {
+      this.wrapperDiv.classList.add(wrapperStyle);
+      this.style.position = "unset";
+    } else {
+      this.style.position = "absolute";
+      this.style.left = "0px";
+      this.style.top = "0px";
+      this.wrapperDiv.classList.add(noBackdropStyle);
+    }
+  }
+  get item() {
+    return this.modalDiv.children[0];
+  }
+  set item(value) {
+    if (value instanceof Control) {
+      this.modalDiv.innerHTML = "";
+      value && this.modalDiv.appendChild(value);
+    }
+  }
+  positionAt(placement) {
+    if (this.showBackdrop) {
+      this.positionAtFix(placement);
+    } else {
+      this.positionAtAbsolute(placement);
+    }
+  }
+  positionAtFix(placement) {
+    let parent = document.body;
+    const parentCoords = parent.getBoundingClientRect();
+    let left = 0;
+    let top = 0;
+    const pageY = 0;
+    switch (placement) {
+      case "center":
+        top = parentCoords.height / 2 - this.modalDiv.offsetHeight / 2;
+        left = parentCoords.left / 2 - this.modalDiv.offsetLeft / 2;
+        break;
+      case "top":
+        top = pageY - this.modalDiv.offsetHeight - parentCoords.height;
+        left = parentCoords.left + (parent.offsetWidth - this.modalDiv.offsetWidth) / 2;
+        break;
+      case "topLeft":
+        top = pageY - this.modalDiv.offsetHeight - parentCoords.height;
+        left = parentCoords.left;
+        break;
+      case "topRight":
+        top = pageY - this.modalDiv.offsetHeight - parentCoords.height;
+        left = parentCoords.left + parent.offsetWidth - this.modalDiv.offsetWidth;
+        break;
+      case "bottom":
+        top = pageY + parentCoords.top + parentCoords.height;
+        left = parentCoords.left + (parent.offsetWidth - this.modalDiv.offsetWidth) / 2;
+        break;
+      case "bottomLeft":
+        top = pageY + parentCoords.top + parentCoords.height;
+        left = parentCoords.left;
+        break;
+      case "bottomRight":
+        top = pageY + parentCoords.top + parentCoords.height;
+        left = parentCoords.left + parent.offsetWidth - this.modalDiv.offsetWidth;
+        break;
+    }
+    left = left < 0 ? parentCoords.left : left;
+    top = top < 0 ? parentCoords.top : top;
+    this.wrapperDiv.style.paddingLeft = left + "px";
+    this.wrapperDiv.style.paddingTop = top + "px";
+  }
+  positionAtAbsolute(placement) {
+    let left = 0;
+    let top = 0;
+    let parent = this._parent || this.parentElement || document.body;
+    const parentCoords = parent.getBoundingClientRect();
+    switch (placement) {
+      case "center":
+        left = (parentCoords.width - this.modalDiv.offsetWidth) / 2;
+        top = (parentCoords.height - this.modalDiv.offsetHeight) / 2;
+        break;
+      case "top":
+      case "topLeft":
+        top = this.getParentOccupiedTop();
+        left = this.getParentOccupiedLeft();
+        break;
+      case "topRight":
+        top = this.getParentOccupiedTop();
+        left = parentCoords.width - this.getParentOccupiedRight() - this.modalDiv.offsetWidth;
+        break;
+      case "bottom":
+      case "bottomLeft":
+        left = 0;
+        top = parentCoords.height;
+        break;
+      case "bottomRight":
+        top = parentCoords.height;
+        left = parentCoords.width - this.modalDiv.offsetWidth;
+        break;
+    }
+    this.wrapperDiv.style.left = left + "px";
+    this.wrapperDiv.style.top = top + "px";
   }
   _handleOnShow(event) {
-    if (this.enabled && this._onShow) {
+    if (this.popupPlacement && this.enabled)
+      this.positionAt(this.popupPlacement);
+    if (this.enabled && this._onOpen) {
       event.preventDefault();
-      this._onShow(this, event);
+      this._onOpen(this);
     }
   }
   _handleClick(event) {
-    if (!this.modalDiv.contains(event.target) && this.visible)
-      this.visible = false;
+    const target = event.target;
+    if (this.closeOnBackdropClick) {
+      if (!this.modalDiv.contains(target) && this.visible)
+        this.visible = false;
+    }
     return true;
+  }
+  updateModal(name, value) {
+    if (!isNaN(Number(value)))
+      this.modalDiv.style[name] = value + "px";
+    else
+      this.modalDiv.style[name] = value;
   }
   async init() {
     if (!this.wrapperDiv) {
+      this.popupPlacement = this.getAttribute("popupPlacement", true);
+      this.closeOnBackdropClick = this.getAttribute("closeOnBackdropClick", true);
       this.wrapperDiv = this.createElement("div", this);
-      this.wrapperDiv.classList.add(wrapperStyle);
+      this.showBackdrop = this.getAttribute("showBackdrop", true);
       this.modalDiv = this.createElement("div", this.wrapperDiv);
       this.titleSpan = this.createElement("div", this.modalDiv);
       this.titleSpan.classList.add(titleStyle, "i-modal_header");
       const titleElm = this.createElement("span", this.titleSpan);
       this.title = this.getAttribute("title", true);
-      const showCloseAttr = this.getAttribute("showClose", true);
       const closeIconAttr = this.getAttribute("closeIcon", true);
-      if (showCloseAttr) {
-        const closeIcon = await Icon.create();
-        closeIcon.fill = Theme24.colors.secondary.main;
-        closeIcon.name = closeIconAttr || "times";
-        closeIcon.width = 20;
-        closeIcon.height = 20;
-        closeIcon.classList.add("i-modal-close");
-        this.titleSpan.appendChild(closeIcon);
-        closeIcon.onClick = () => this.visible = false;
+      if (closeIconAttr) {
+        closeIconAttr.height = closeIconAttr.height || "16px";
+        closeIconAttr.width = closeIconAttr.width || "16px";
+        closeIconAttr.fill = closeIconAttr.fill || Theme24.colors.primary.main;
+        this._icon = await Icon.create(closeIconAttr);
+        this._icon.classList.add("i-modal-close");
+        this._icon._handleClick = () => this.visible = false;
+        this.titleSpan.appendChild(this._icon);
       }
       while (this.childNodes.length > 1) {
         this.modalDiv.appendChild(this.childNodes[0]);
@@ -12365,392 +12407,50 @@ var Modal = class extends Control {
           this.visible = false;
         }
       });
-      await super.init();
+      document.body.addEventListener("click", (event) => {
+        var _a;
+        if (!this.visible)
+          return;
+        const target = event.target;
+        if (target.nodeName === "I-MODAL" || target.closest("i-modal"))
+          return;
+        if (!this.contains(target) && !((_a = this.parentElement) == null ? void 0 : _a.contains(target)) && this.closeOnBackdropClick) {
+          this.visible = false;
+        }
+      });
+      if (this.attrs["item"])
+        this.item = this.attrs["item"];
+      super.init();
+      this.maxWidth && (this.modalDiv.style.maxWidth = this.maxWidth);
+      this.minHeight && this.updateModal("minHeight", this.minHeight);
+      this.width && this.updateModal("width", this.width);
     }
   }
-  async connectedCallback() {
-    await super.connectedCallback();
-    if (this.maxWidth)
-      this.modalDiv.style.width = this.maxWidth;
-  }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 Modal = __decorateClass([
   customElements2("i-modal")
 ], Modal);
 
-// packages/divider/src/style/divider.css.ts
-var Theme25 = theme_exports.ThemeVars;
-cssRule("i-divider", {
-  display: "inline-block",
-  $nest: {
-    ".i-divider": {
-      position: "relative"
-    },
-    ".i-divider_horizontal": {
-      display: "block",
-      borderTopColor: Theme25.divider,
-      borderTopStyle: "solid",
-      borderTopWidth: 1,
-      width: "100%",
-      height: 1
-    },
-    ".i-divider_vertical": {
-      display: "inline-block",
-      borderLeftColor: Theme25.divider,
-      borderLeftStyle: "solid",
-      borderLeftWidth: 1,
-      width: 1,
-      height: "100%"
-    },
-    ".i-divider_text": {
-      position: "absolute",
-      color: Theme25.text.primary,
-      fontFamily: Theme25.typography.fontFamily,
-      fontSize: Theme25.typography.fontSize,
-      display: "inline-flex",
-      padding: "0 15px",
-      backgroundColor: "white"
-    },
-    ".i-divider_vertical .i-divider_text": {
-      top: 0
-    },
-    ".i-divider_horizontal .i-divider_text": {
-      top: "-50%"
-    },
-    ".i-divider_horizontal .is-left": {
-      left: 0,
-      transform: "translateY(-50%)"
-    },
-    ".i-divider_horizontal .is-right": {
-      right: 0,
-      transform: "translateY(-50%)"
-    },
-    ".i-divider_horizontal .is-center": {
-      left: "50%",
-      transform: "translate(-50%, -50%)"
-    }
-  }
-});
-
-// packages/divider/src/divider.ts
-var defaultValue = {
-  direction: "horizontal",
-  borderStyle: "solid",
-  contentPosition: "center"
-};
-var defaultHWidth = 100;
-var defaultVHeight = 20;
-var Divider = class extends Control {
-  constructor(parent, options) {
-    super(parent, options, __spreadValues({}, defaultValue));
-  }
-  set borderStyle(value) {
-    this.wrapperElm.style.setProperty(`border-${this.borderTypePos}-style`, value);
-  }
-  get borderStyle() {
-    return this.wrapperElm.style.getPropertyValue(`border-${this.borderTypePos}-style`);
-  }
-  set borderRadius(value) {
-    this._borderRadius = value;
-    let radius = typeof value === "number" ? value + "px" : value;
-    this.wrapperElm.style.borderRadius = radius;
-  }
-  get borderRadius() {
-    return this._borderRadius;
-  }
-  set fill(color) {
-    this.wrapperElm.style.setProperty(`border-${this.borderTypePos}-color`, color);
-  }
-  get fill() {
-    return this.wrapperElm.style.getPropertyValue(`border-${this.borderTypePos}-color`);
-  }
-  set direction(value) {
-    this._direction = value;
-    this.wrapperElm.classList.add(`i-divider_${value}`);
-  }
-  get direction() {
-    return this._direction;
-  }
-  get height() {
-    const defaultHeight = this.direction === "horizontal" ? 1 : this.offsetHeight;
-    return !isNaN(this._height) ? this._height : defaultHeight;
-  }
-  set height(value) {
-    this.setPosition("height", value);
-  }
-  get width() {
-    return this._width;
-  }
-  set width(value) {
-    this.setPosition("width", value);
-  }
-  get borderTypePos() {
-    return this.direction === "horizontal" ? "top" : "left";
-  }
-  async connectedCallback() {
-    super.connectedCallback();
-    this.childNodes.forEach((node) => {
-      if (this.wrapperElm !== node && this.contentElm)
-        this.contentElm.appendChild(node);
-    });
-  }
-  async init() {
-    await super.init();
-    if (!this.wrapperElm) {
-      if (this.hasChildNodes()) {
-        this.contentElm = this.createElement("div");
-        this.contentElm.classList.add("i-divider_text");
-        const contentPosAttr = this.getAttribute("contentPosition");
-        this.contentElm.classList.add(`is-${contentPosAttr}`);
-      }
-      this.wrapperElm = this.createElement("div", this);
-      this.wrapperElm.classList.add("i-divider");
-      this.contentElm && this.wrapperElm.appendChild(this.contentElm);
-      this.direction = this.getAttribute("direction", true);
-      this.borderStyle = this.getAttribute("borderStyle", true);
-      this.borderRadius = this.getAttribute("borderRadius", true);
-      const borderColor = this.getAttribute("fill");
-      this.fill = borderColor;
-      if (this.direction === "horizontal") {
-        !this.width && (this.width = defaultHWidth);
-        this.height && (this.wrapperElm.style.borderTopWidth = this.height + "px");
-      } else {
-        !this.height && (this.height = defaultVHeight);
-        this.width && (this.wrapperElm.style.borderLeftWidth = this.width + "px");
-      }
-    }
-  }
-  static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
-  }
-};
-Divider = __decorateClass([
-  customElements2("i-divider")
-], Divider);
-
-// packages/clipboard/src/style/clipboard.css.ts
-var Theme26 = theme_exports.ThemeVars;
-cssRule("i-clipboard", {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontFamily: Theme26.typography.fontFamily,
-  fontSize: Theme26.typography.fontSize,
-  cursor: "pointer",
-  position: "relative",
-  outline: "none",
-  "$nest": {
-    "&.i-clipboard_border": {
-      width: 30,
-      height: 30,
-      padding: 5,
-      border: `1px solid ${Theme26.divider}`,
-      borderRadius: "50%",
-      transition: "all 0.3s ease 0s",
-      $nest: {
-        ":hover": {
-          transitionDuration: "300ms"
-        }
-      }
-    },
-    ".i-clipboard_msg": {
-      position: "absolute",
-      top: 0,
-      left: "50%",
-      transform: "translateX(-50%)",
-      transition: "all .5s ease-in",
-      maxWidth: "500px",
-      minWidth: 30
-    },
-    ".i-clipboard_msg-cnt": {
-      color: Theme26.text.primary,
-      wordWrap: "break-word",
-      backgroundColor: "rgba(0,0,0,.75)",
-      borderRadius: 4,
-      boxShadow: "0 2px 8px rgb(0 0 0 / 15%)",
-      display: "none"
-    }
-  }
-});
-
-// packages/clipboard/src/clipboard.ts
-var defaultValues = {
-  hasBorder: true,
-  succeedCaption: "Succeed!",
-  failedCaption: "Failed!"
-};
-var Clipboard = class extends Control {
-  constructor(parent, options) {
-    super(parent, options, __spreadValues({}, defaultValues));
-  }
-  get value() {
-    return this._value;
-  }
-  set value(value) {
-    this._value = value || "";
-  }
-  get icon() {
-    return this._icon;
-  }
-  set icon(value) {
-    this._icon = value;
-    if (!this.iconElm)
-      this._createIcon(value);
-  }
-  async _createIcon(name) {
-    if (!this.iconElm) {
-      let iconElm = await Icon.create();
-      if (!this.iconElm) {
-        this.iconElm = iconElm;
-        this.iconElm.name = name;
-        this.iconElm.fill = ThemeVars.text.primary;
-        this.iconElm.width = 16;
-        this.iconElm.height = 16;
-        this.appendChild(this.iconElm);
-      }
-    } else
-      this.iconElm.name = name;
-  }
-  updateIcon(name, color) {
-    if (this.iconElm) {
-      this.iconElm.name = name;
-      this.iconElm.fill = color;
-    }
-  }
-  get succeedCaption() {
-    return this._succeedCaption;
-  }
-  set succeedCaption(value) {
-    this._succeedCaption = value || "";
-  }
-  get failedCaption() {
-    return this._failedCaption;
-  }
-  set failedCaption(value) {
-    this._failedCaption = value || "";
-  }
-  get hasBorder() {
-    return this._hasBorder;
-  }
-  set hasBorder(value) {
-    this._hasBorder = value;
-    if (this._hasBorder)
-      this.classList.add("i-clipboard_border");
-    else
-      this.classList.remove("i-clipboard_border");
-  }
-  set succeedIcon(value) {
-    this._succeedIcon = value;
-  }
-  get succeedIcon() {
-    return this._succeedIcon;
-  }
-  async _handleCopy(source, event) {
-    event.stopPropagation();
-    event.preventDefault();
-    try {
-      const result = await this._setCopy();
-      this._showMessage(result);
-    } catch (e) {
-      this._showMessage(false);
-    }
-  }
-  async _setCopy() {
-    const value = this.value;
-    if (!value)
-      return false;
-    try {
-      if (navigator.clipboard) {
-        await navigator.clipboard.writeText(value);
-        return true;
-      } else {
-        const input = document.createElement("input");
-        input.value = this.value;
-        input.style.position = "fixed";
-        input.style.opacity = "0";
-        document.body.appendChild(input);
-        input.focus();
-        input.select();
-        const result = document.execCommand("copy");
-        document.body.removeChild(input);
-        return result;
-      }
-    } catch (err) {
-      console.log("debug: copy", err);
-      return false;
-    }
-  }
-  async _showMessage(result) {
-    result ? this.succeedIcon && this.updateIcon(this.succeedIcon, "green") : this.updateIcon("times", "red");
-    this.tooltip.content = result ? this.succeedCaption : this.failedCaption;
-    this.updateIcon(this._copyIcon, ThemeVars.text.primary);
-  }
-  disconnectCallback() {
-    if (this.timer)
-      clearTimeout(this.timer);
-  }
-  async init() {
-    if (!this.initialized) {
-      await super.init();
-      const iconAttr = this.getAttribute("icon", true) || "copy";
-      iconAttr && (this._copyIcon = this.icon = iconAttr);
-      const valueAttr = this.getAttribute("value", true);
-      valueAttr && (this.value = valueAttr);
-      const borderAttr = this.getAttribute("hasBorder", true);
-      borderAttr && (this.hasBorder = borderAttr);
-      const msgElm = this.createElement("div", this);
-      msgElm.classList.add("i-clipboard_msg");
-      this.lbElm = this.createElement("span");
-      this.lbElm.classList.add("i-clipboard_msg-cnt");
-      this.lbElm.textContent = this.succeedCaption;
-      msgElm.appendChild(this.lbElm);
-      const succedAttr = this.getAttribute("succeedCaption", true);
-      succedAttr && (this.succeedCaption = succedAttr);
-      const failedAttr = this.getAttribute("failedCaption", true);
-      failedAttr && (this.failedCaption = failedAttr);
-      this.succeedIcon = this.getAttribute("succeedIcon", true);
-      this.attrs["tooltip"] = {
-        trigger: "click",
-        content: this.succeedCaption || ""
-      };
-      this.onClick = this._handleCopy.bind(this);
-    }
-  }
-  static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
-  }
-};
-__decorateClass([
-  observable("value")
-], Clipboard.prototype, "_value", 2);
-Clipboard = __decorateClass([
-  customElements2("i-clipboard")
-], Clipboard);
-
-// packages/chart/src/lineChart.ts
-var LineChart = class extends Control {
+// packages/chart/src/chart.ts
+var Chart = class extends Control {
   constructor(parent, options) {
     super(parent, options);
   }
-  get datas() {
+  get data() {
     return this._data;
   }
-  set datas(value) {
+  set data(value) {
     this._data = value;
     this.drawChart();
   }
   get dataObj() {
     try {
-      return JSON.parse(this.datas);
+      return JSON.parse(JSON.stringify(this.data));
     } catch (e) {
       return null;
     }
@@ -12778,178 +12478,7 @@ var LineChart = class extends Control {
   resize() {
     this.dataObj && this._chartIns.resize();
   }
-  async init() {
-    this._timeCreated = Date.now();
-    await super.init();
-    this.style.display = "inline-block";
-    let captionDiv = this.createElement("div", this);
-    captionDiv.id = `main-${this._timeCreated}`;
-    captionDiv.style.display = "inline-block";
-    captionDiv.style.height = "100%";
-    captionDiv.style.width = "100%";
-    this.datas = this.getAttribute("data", true);
-  }
-};
-LineChart = __decorateClass([
-  customElements2("i-line-chart")
-], LineChart);
-
-// packages/chart/src/barChart.ts
-var BarChart = class extends Control {
-  constructor(parent, options) {
-    super(parent, options);
-  }
-  get datas() {
-    return this._data;
-  }
-  set datas(value) {
-    this._data = value;
-    this.drawChart();
-  }
-  get dataObj() {
-    try {
-      return JSON.parse(this.datas);
-    } catch (e) {
-      return null;
-    }
-  }
-  showLoading() {
-    this._chartIns && this._chartIns.showLoading();
-  }
-  drawChart() {
-    if (this._chartIns) {
-      this.updateChartOptions();
-      return;
-    }
-    RequireJS.require([`${LibPath}lib/echarts/echarts.min.js`], (echart) => {
-      const chartDom = document.getElementById(`main-${this._timeCreated}`);
-      if (chartDom) {
-        this._chartIns = echart.init(chartDom);
-        this.updateChartOptions();
-      }
-    });
-  }
-  updateChartOptions() {
-    this._chartIns.hideLoading();
-    this.dataObj && this._chartIns.setOption(this.dataObj);
-  }
-  resize() {
-    this.dataObj && this._chartIns.resize();
-  }
-  async init() {
-    this._timeCreated = Date.now();
-    await super.init();
-    this.style.display = "inline-block";
-    let captionDiv = this.createElement("div", this);
-    captionDiv.id = `main-${this._timeCreated}`;
-    captionDiv.style.display = "inline-block";
-    captionDiv.style.height = "100%";
-    captionDiv.style.width = "100%";
-    this.datas = this.getAttribute("data", true);
-  }
-};
-BarChart = __decorateClass([
-  customElements2("i-bar-chart")
-], BarChart);
-
-// packages/chart/src/pieChart.ts
-var PieChart = class extends Control {
-  constructor(parent, options) {
-    super(parent, options);
-  }
-  get datas() {
-    return this._data;
-  }
-  set datas(value) {
-    this._data = value;
-    this.drawChart();
-  }
-  get dataObj() {
-    try {
-      return JSON.parse(this.datas);
-    } catch (e) {
-      return null;
-    }
-  }
-  showLoading() {
-    this._chartIns && this._chartIns.showLoading();
-  }
-  drawChart() {
-    if (this._chartIns) {
-      this.updateChartOptions();
-      return;
-    }
-    RequireJS.require([`${LibPath}lib/echarts/echarts.min.js`], (echart) => {
-      const chartDom = document.getElementById(`main-${this._timeCreated}`);
-      if (chartDom) {
-        this._chartIns = echart.init(chartDom);
-        this.updateChartOptions();
-      }
-    });
-  }
-  updateChartOptions() {
-    this._chartIns.hideLoading();
-    this.dataObj && this._chartIns.setOption(this.dataObj);
-  }
-  resize() {
-    this.dataObj && this._chartIns.resize();
-  }
-  async init() {
-    this._timeCreated = Date.now();
-    await super.init();
-    this.style.display = "inline-block";
-    let captionDiv = this.createElement("div", this);
-    captionDiv.id = `main-${this._timeCreated}`;
-    captionDiv.style.display = "inline-block";
-    captionDiv.style.height = "100%";
-    captionDiv.style.width = "100%";
-    this.datas = this.getAttribute("data", true);
-  }
-};
-PieChart = __decorateClass([
-  customElements2("i-pie-chart")
-], PieChart);
-
-// packages/chart/src/scatterChart.ts
-var ScatterChart = class extends Control {
-  constructor(parent, options) {
-    super(parent, options);
-  }
-  get datas() {
-    return this._data;
-  }
-  set datas(value) {
-    this._data = value;
-    this.drawChart();
-  }
-  get dataObj() {
-    try {
-      return JSON.parse(this.datas);
-    } catch (e) {
-      return null;
-    }
-  }
-  showLoading() {
-    this._chartIns && this._chartIns.showLoading();
-  }
-  drawChart() {
-    if (this._chartIns) {
-      this.updateChartOptions();
-      return;
-    }
-    RequireJS.require([`${LibPath}lib/echarts/echarts.min.js`], (echart) => {
-      const chartDom = document.getElementById(`main-${this._timeCreated}`);
-      if (chartDom) {
-        this._chartIns = echart.init(chartDom);
-        this.updateChartOptions();
-      }
-    });
-  }
-  updateChartOptions() {
-    this._chartIns.hideLoading();
-    this.dataObj && this._chartIns.setOption(this.dataObj);
-  }
-  async init() {
+  init() {
     this._timeCreated = Date.now();
     super.init();
     this.style.display = "inline-block";
@@ -12958,7 +12487,69 @@ var ScatterChart = class extends Control {
     captionDiv.style.display = "inline-block";
     captionDiv.style.height = "100%";
     captionDiv.style.width = "100%";
-    this.datas = this.getAttribute("data", true);
+    this.data = this.getAttribute("data", true);
+  }
+};
+
+// packages/chart/src/lineChart.ts
+var LineChart = class extends Chart {
+  constructor(parent, options) {
+    super(parent, options);
+  }
+  init() {
+    super.init();
+  }
+};
+LineChart = __decorateClass([
+  customElements2("i-line-chart")
+], LineChart);
+
+// packages/chart/src/barChart.ts
+var BarChart = class extends Chart {
+  constructor(parent, options) {
+    super(parent, options);
+  }
+  init() {
+    super.init();
+  }
+};
+BarChart = __decorateClass([
+  customElements2("i-bar-chart")
+], BarChart);
+
+// packages/chart/src/barStackChart.ts
+var BarStackChart = class extends Chart {
+  constructor(parent, options) {
+    super(parent, options);
+  }
+  init() {
+    super.init();
+  }
+};
+BarStackChart = __decorateClass([
+  customElements2("i-bar-stack-chart")
+], BarStackChart);
+
+// packages/chart/src/pieChart.ts
+var PieChart = class extends Chart {
+  constructor(parent, options) {
+    super(parent, options);
+  }
+  init() {
+    super.init();
+  }
+};
+PieChart = __decorateClass([
+  customElements2("i-pie-chart")
+], PieChart);
+
+// packages/chart/src/scatterChart.ts
+var ScatterChart = class extends Chart {
+  constructor(parent, options) {
+    super(parent, options);
+  }
+  init() {
+    super.init();
   }
 };
 ScatterChart = __decorateClass([
@@ -12966,117 +12557,20 @@ ScatterChart = __decorateClass([
 ], ScatterChart);
 
 // packages/chart/src/scatterLineChart.ts
-var ScatterLineChart = class extends Control {
+var ScatterLineChart = class extends Chart {
   constructor(parent, options) {
     super(parent, options);
   }
-  get datas() {
-    return this._data;
-  }
-  set datas(value) {
-    this._data = value;
-    this.drawChart();
-  }
-  get dataObj() {
-    try {
-      return JSON.parse(this.datas);
-    } catch (e) {
-      return null;
-    }
-  }
-  showLoading() {
-    this._chartIns && this._chartIns.showLoading();
-  }
-  drawChart() {
-    if (this._chartIns) {
-      this.updateChartOptions();
-      return;
-    }
-    RequireJS.require([`${LibPath}lib/echarts/echarts.min.js`], (echart) => {
-      const chartDom = document.getElementById(`main-${this._timeCreated}`);
-      if (chartDom) {
-        this._chartIns = echart.init(chartDom);
-        this.updateChartOptions();
-      }
-    });
-  }
-  updateChartOptions() {
-    this._chartIns.hideLoading();
-    this.dataObj && this._chartIns.setOption(this.dataObj);
-  }
-  async init() {
-    this._timeCreated = Date.now();
-    await super.init();
-    this.style.display = "inline-block";
-    let captionDiv = this.createElement("div", this);
-    captionDiv.id = `main-${this._timeCreated}`;
-    captionDiv.style.display = "inline-block";
-    captionDiv.style.height = "100%";
-    captionDiv.style.width = "100%";
-    this.datas = this.getAttribute("data", true);
+  init() {
+    super.init();
   }
 };
 ScatterLineChart = __decorateClass([
   customElements2("i-scatter-line-chart")
 ], ScatterLineChart);
 
-// packages/chart/src/barStackChart.ts
-var BarStackChart = class extends Control {
-  constructor(parent, options) {
-    super(parent, options);
-  }
-  get datas() {
-    return this._data;
-  }
-  set datas(value) {
-    this._data = value;
-    this.drawChart();
-  }
-  get dataObj() {
-    try {
-      return JSON.parse(this.datas);
-    } catch (e) {
-      return null;
-    }
-  }
-  showLoading() {
-    this._chartIns && this._chartIns.showLoading();
-  }
-  drawChart() {
-    if (this._chartIns) {
-      this.updateChartOptions();
-      return;
-    }
-    RequireJS.require([`${LibPath}lib/echarts/echarts.min.js`], (echart) => {
-      const chartDom = document.getElementById(`main-${this._timeCreated}`);
-      if (chartDom) {
-        this._chartIns = echart.init(chartDom);
-        this.updateChartOptions();
-      }
-    });
-  }
-  updateChartOptions() {
-    this._chartIns.hideLoading();
-    this.dataObj && this._chartIns.setOption(this.dataObj);
-  }
-  async init() {
-    this._timeCreated = Date.now();
-    await super.init();
-    this.style.display = "inline-block";
-    let captionDiv = this.createElement("div", this);
-    captionDiv.id = `main-${this._timeCreated}`;
-    captionDiv.style.display = "inline-block";
-    captionDiv.style.height = "100%";
-    captionDiv.style.width = "100%";
-    this.datas = this.getAttribute("data", true);
-  }
-};
-BarStackChart = __decorateClass([
-  customElements2("i-bar-stack-chart")
-], BarStackChart);
-
 // packages/upload/src/style/upload.css.ts
-var Theme27 = theme_exports.ThemeVars;
+var Theme25 = theme_exports.ThemeVars;
 cssRule("i-upload", {
   margin: "1rem 0",
   listStyle: "none",
@@ -13089,7 +12583,7 @@ cssRule("i-upload", {
   $nest: {
     ".i-upload-wrapper": {
       position: "relative",
-      border: `2px dashed ${Theme27.divider}`,
+      border: `2px dashed ${Theme25.divider}`,
       width: "100%",
       display: "flex",
       flexDirection: "column",
@@ -13109,8 +12603,8 @@ cssRule("i-upload", {
       marginTop: "4rem"
     },
     ".i-upload-dragger_active": {
-      border: `2px dashed ${Theme27.colors.primary.main}`,
-      backgroundColor: Theme27.colors.info.light,
+      border: `2px dashed ${Theme25.colors.primary.main}`,
+      backgroundColor: Theme25.colors.info.light,
       opacity: "0.8"
     },
     'input[type="file"]': {
@@ -13135,7 +12629,7 @@ cssRule("i-upload", {
     },
     ".i-upload_preview-crop": {
       position: "absolute",
-      border: `1px dashed ${Theme27.background.paper}`,
+      border: `1px dashed ${Theme25.background.paper}`,
       width: 150,
       height: 150,
       left: "50%",
@@ -13221,7 +12715,7 @@ cssRule("i-upload", {
 });
 
 // packages/upload/src/upload.ts
-var Theme28 = theme_exports.ThemeVars;
+var Theme26 = theme_exports.ThemeVars;
 var UploadDrag = class extends Control {
   constructor(parent, options) {
     super(parent, options, {});
@@ -13297,13 +12791,13 @@ var UploadDrag = class extends Control {
     if (this.onDrop)
       this.onDrop(this, valids);
   }
-  async init() {
+  init() {
     if (!this._wrapperElm) {
-      await super.init();
+      super.init();
       this._wrapperElm = this.createElement("div", this);
       this._wrapperElm.classList.add("i-upload-drag_area");
       this._labelElm = this.createElement("span", this._wrapperElm);
-      this._labelElm.style.color = Theme28.text.primary;
+      this._labelElm.style.color = Theme26.text.primary;
       this.caption = this.getAttribute("caption", true);
       this.disabled = this.getAttribute("disabled", true);
       this.addEventListener("dragenter", this.handleOnDragEnter.bind(this));
@@ -13313,22 +12807,22 @@ var UploadDrag = class extends Control {
     }
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 UploadDrag = __decorateClass([
   customElements2("i-upload-drag")
 ], UploadDrag);
-var defaultValues2 = {
+var defaultValues = {
   multiple: false,
   listType: "text",
   showFileList: true
 };
 var Upload = class extends Control {
   constructor(parent, options) {
-    super(parent, options, __spreadValues({}, defaultValues2));
+    super(parent, options, __spreadValues({}, defaultValues));
     this._dt = new DataTransfer();
     this.toBase64 = (file) => new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -13560,7 +13054,7 @@ var Upload = class extends Control {
   }
   post(rawFile) {
   }
-  async updateFileListUI(files) {
+  updateFileListUI(files) {
     if (this._fileListElm) {
       this._fileListElm.innerHTML = "";
       for (let file of files) {
@@ -13580,10 +13074,11 @@ var Upload = class extends Control {
           };
           itemElm.appendChild(imgElm);
         }
-        const removeIcon = await Icon.create();
+        const removeIcon = new Icon();
+        removeIcon.init();
         removeIcon.width = 12;
         removeIcon.height = 12;
-        removeIcon.fill = Theme28.action.active;
+        removeIcon.fill = Theme26.action.active;
         removeIcon.name = "trash";
         itemElm.appendChild(removeIcon);
         removeIcon.addEventListener("click", () => this.handleRemove(file));
@@ -13622,9 +13117,9 @@ var Upload = class extends Control {
     const url = URL.createObjectURL(file);
     return this._previewImgElm.cropImage(url);
   }
-  async init() {
+  init() {
     if (!this.initialized) {
-      await super.init();
+      super.init();
       this._wrapperElm = this.createElement("div", this);
       this._wrapperElm.classList.add("i-upload-wrapper");
       this._wrapperFileElm = this.createElement("div", this._wrapperElm);
@@ -13645,7 +13140,8 @@ var Upload = class extends Control {
       if (!this.enabled)
         this._fileElm.setAttribute("disabled", "");
       this.listType = this.getAttribute("listType", true);
-      const btn = await Button.create();
+      const btn = new Button();
+      btn.init();
       btn.caption = "Choose an image";
       btn.className = `i-upload_btn ${!this.enabled && "disabled"}`;
       this._wrapperFileElm.appendChild(btn);
@@ -13674,9 +13170,9 @@ var Upload = class extends Control {
     }
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 __decorateClass([
@@ -13700,9 +13196,8 @@ var Iframe = class extends Control {
   set url(value) {
     this._url = value;
     if (value) {
-      if (!this.iframeElm) {
+      if (!this.iframeElm)
         this.iframeElm = this.createElement("iframe", this);
-      }
     }
     if (this.iframeElm) {
       this.iframeElm.src = value;
@@ -13711,28 +13206,14 @@ var Iframe = class extends Control {
       this.iframeElm.setAttribute("frameBorder", "0");
     }
   }
-  reload() {
-    let iframe = this.iframeElm;
-    return new Promise((resolve) => {
-      iframe.src = iframe.src;
-      iframe.onload = function() {
-        resolve();
-        iframe.onload = null;
-      };
-    });
-  }
-  async init() {
-    await super.init();
+  init() {
+    super.init();
     this.url = this.getAttribute("url", true);
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
-  }
-  postMessage(message) {
-    var _a, _b;
-    (_b = (_a = this.iframeElm) == null ? void 0 : _a.contentWindow) == null ? void 0 : _b.postMessage(message, this._url);
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 Iframe = __decorateClass([
@@ -13756,6 +13237,34 @@ var hStackStyle = style({
   display: "flex",
   flexDirection: "row"
 });
+var getStackDirectionStyleClass = (direction) => {
+  return style({
+    display: "flex",
+    flexDirection: direction == "vertical" ? "column" : "row"
+  });
+};
+var getStackMediaQueriesStyleClass = (mediaQueries) => {
+  let styleObj = {
+    $nest: {}
+  };
+  for (let mediaQuery of mediaQueries) {
+    let mediaQueryRule;
+    if (mediaQuery.minWidth && mediaQuery.maxWidth) {
+      mediaQueryRule = `@media (min-width: ${mediaQuery.minWidth}) and (max-width: ${mediaQuery.maxWidth})`;
+    } else if (mediaQuery.minWidth) {
+      mediaQueryRule = `@media (min-width: ${mediaQuery.minWidth})`;
+    } else if (mediaQuery.maxWidth) {
+      mediaQueryRule = `@media (max-width: ${mediaQuery.maxWidth})`;
+    }
+    if (mediaQueryRule) {
+      styleObj["$nest"][mediaQueryRule] = {};
+      if (mediaQuery.properties.direction) {
+        styleObj["$nest"][mediaQueryRule]["flexDirection"] = mediaQuery.properties.direction == "vertical" ? "column" : "row";
+      }
+    }
+  }
+  return style(styleObj);
+};
 var justifyContentStartStyle = style({
   justifyContent: "flex-start"
 });
@@ -13780,6 +13289,57 @@ var alignItemsCenterStyle = style({
 var alignItemsEndStyle = style({
   alignItems: "flex-end"
 });
+var getTemplateColumnsStyleClass = (columns) => {
+  return style({
+    gridTemplateColumns: columns.join(" ")
+  });
+};
+var getTemplateRowsStyleClass = (rows) => {
+  return style({
+    gridTemplateRows: rows.join(" ")
+  });
+};
+var getTemplateAreasStyleClass = (templateAreas) => {
+  let templateAreasStr = "";
+  for (let i = 0; i < templateAreas.length; i++) {
+    templateAreasStr += '"' + templateAreas[i].join(" ") + '" ';
+  }
+  return style({
+    gridTemplateAreas: templateAreasStr
+  });
+};
+var getGridLayoutMediaQueriesStyleClass = (mediaQueries) => {
+  let styleObj = {
+    $nest: {}
+  };
+  for (let mediaQuery of mediaQueries) {
+    let mediaQueryRule;
+    if (mediaQuery.minWidth && mediaQuery.maxWidth) {
+      mediaQueryRule = `@media (min-width: ${mediaQuery.minWidth}) and (max-width: ${mediaQuery.maxWidth})`;
+    } else if (mediaQuery.minWidth) {
+      mediaQueryRule = `@media (min-width: ${mediaQuery.minWidth})`;
+    } else if (mediaQuery.maxWidth) {
+      mediaQueryRule = `@media (max-width: ${mediaQuery.maxWidth})`;
+    }
+    if (mediaQueryRule) {
+      styleObj["$nest"][mediaQueryRule] = {};
+      if (mediaQuery.properties.templateColumns) {
+        styleObj["$nest"][mediaQueryRule]["gridTemplateColumns"] = mediaQuery.properties.templateColumns.join(" ");
+      }
+      if (mediaQuery.properties.templateRows) {
+        styleObj["$nest"][mediaQueryRule]["gridTemplateRows"] = mediaQuery.properties.templateRows.join(" ");
+      }
+      if (mediaQuery.properties.templateAreas) {
+        let templateAreasStr = "";
+        for (let i = 0; i < mediaQuery.properties.templateAreas.length; i++) {
+          templateAreasStr += '"' + mediaQuery.properties.templateAreas[i].join(" ") + '" ';
+        }
+        styleObj["$nest"][mediaQueryRule]["gridTemplateAreas"] = templateAreasStr;
+      }
+    }
+  }
+  return style(styleObj);
+};
 
 // packages/layout/src/stack.ts
 var StackLayout = class extends Container {
@@ -13787,9 +13347,59 @@ var StackLayout = class extends Container {
     super(parent, options);
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
+  }
+  get direction() {
+    return this._direction;
+  }
+  set direction(value) {
+    this._direction = value;
+    if (value) {
+      let style2 = getStackDirectionStyleClass(value);
+      this.classList.add(style2);
+    }
+  }
+  get justifyContent() {
+    return this._justifyContent;
+  }
+  set justifyContent(value) {
+    this._justifyContent = value || "start";
+    switch (this._justifyContent) {
+      case "start":
+        this.classList.add(justifyContentStartStyle);
+        break;
+      case "center":
+        this.classList.add(justifyContentCenterStyle);
+        break;
+      case "end":
+        this.classList.add(justifyContentEndStyle);
+        break;
+      case "space-between":
+        this.classList.add(justifyContentSpaceBetweenStyle);
+        break;
+    }
+  }
+  get alignItems() {
+    return this._alignItems;
+  }
+  set alignItems(value) {
+    this._alignItems = value || "stretch";
+    switch (this._alignItems) {
+      case "stretch":
+        this.classList.add(alignItemsStretchStyle);
+        break;
+      case "start":
+        this.classList.add(alignItemsStartStyle);
+        break;
+      case "center":
+        this.classList.add(alignItemsCenterStyle);
+        break;
+      case "end":
+        this.classList.add(alignItemsEndStyle);
+        break;
+    }
   }
   get gap() {
     return this._gap;
@@ -13806,15 +13416,37 @@ var StackLayout = class extends Container {
     return this._wrap;
   }
   set wrap(value) {
-    this._wrap = value || "initial";
+    if (!value)
+      return;
+    this._wrap = value;
     this.style.flexWrap = this._wrap;
   }
-  async init() {
-    await super.init();
-    this.gap = this.getAttribute("gap", true);
-    this.wrap = this.getAttribute("wrap", true);
+  get mediaQueries() {
+    return this._mediaQueries;
+  }
+  set mediaQueries(value) {
+    this._mediaQueries = value;
+    let style2 = getStackMediaQueriesStyleClass(this._mediaQueries);
+    this.classList.add(style2);
+  }
+  setAttributeToProperty(propertyName) {
+    const prop = this.getAttribute(propertyName, true);
+    if (prop)
+      this[propertyName] = prop;
+  }
+  init() {
+    super.init();
+    this.setAttributeToProperty("direction");
+    this.setAttributeToProperty("justifyContent");
+    this.setAttributeToProperty("alignItems");
+    this.setAttributeToProperty("gap");
+    this.setAttributeToProperty("wrap");
+    this.setAttributeToProperty("mediaQueries");
   }
 };
+StackLayout = __decorateClass([
+  customElements2("i-stack")
+], StackLayout);
 var HStack = class extends StackLayout {
   constructor(parent, options) {
     super(parent, options);
@@ -13824,51 +13456,30 @@ var HStack = class extends StackLayout {
   }
   set horizontalAlignment(value) {
     this._horizontalAlignment = value || "start";
-    switch (this._horizontalAlignment) {
-      case "start":
-        this.classList.add(justifyContentStartStyle);
-        break;
-      case "center":
-        this.classList.add(justifyContentCenterStyle);
-        break;
-      case "end":
-        this.classList.add(justifyContentEndStyle);
-        break;
-      case "space-between":
-        this.classList.add(justifyContentSpaceBetweenStyle);
-        break;
-    }
+    this.justifyContent = value;
   }
   get verticalAlignment() {
     return this._verticalAlignment;
   }
   set verticalAlignment(value) {
     this._verticalAlignment = value || "stretch";
-    switch (this._verticalAlignment) {
-      case "stretch":
-        this.classList.add(alignItemsStretchStyle);
-        break;
-      case "start":
-        this.classList.add(alignItemsStartStyle);
-        break;
-      case "center":
-        this.classList.add(alignItemsCenterStyle);
-        break;
-      case "end":
-        this.classList.add(alignItemsEndStyle);
-        break;
-    }
+    this.alignItems = value;
   }
-  async init() {
-    await super.init();
-    this.classList.add(hStackStyle);
-    this.horizontalAlignment = this.getAttribute("horizontalAlignment", true);
-    this.verticalAlignment = this.getAttribute("verticalAlignment", true);
+  setAttributeToProperty(propertyName) {
+    const prop = this.getAttribute(propertyName, true);
+    if (prop)
+      this[propertyName] = prop;
+  }
+  init() {
+    super.init();
+    this.direction = "horizontal";
+    this.setAttributeToProperty("horizontalAlignment");
+    this.setAttributeToProperty("verticalAlignment");
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 HStack = __decorateClass([
@@ -13883,52 +13494,30 @@ var VStack = class extends StackLayout {
   }
   set horizontalAlignment(value) {
     this._horizontalAlignment = value || "stretch";
-    switch (this._horizontalAlignment) {
-      case "stretch":
-        this.classList.add(alignItemsStretchStyle);
-        break;
-      case "start":
-        this.classList.add(alignItemsStartStyle);
-        break;
-      case "center":
-        this.classList.add(alignItemsCenterStyle);
-        break;
-      case "end":
-        this.classList.add(alignItemsEndStyle);
-        break;
-    }
+    this.alignItems = value;
   }
   get verticalAlignment() {
     return this._verticalAlignment;
   }
   set verticalAlignment(value) {
     this._verticalAlignment = value || "start";
-    switch (this._verticalAlignment) {
-      case "start":
-        this.classList.add(justifyContentStartStyle);
-        break;
-      case "center":
-        this.classList.add(justifyContentCenterStyle);
-        break;
-      case "end":
-        this.classList.add(justifyContentEndStyle);
-        break;
-      case "space-between":
-        this.classList.add(justifyContentSpaceBetweenStyle);
-        break;
-    }
+    this.justifyContent = value;
   }
-  async init() {
-    await super.init();
-    this.classList.add(vStackStyle);
-    this.horizontalAlignment = this.getAttribute("horizontalAlignment", true);
-    this.verticalAlignment = this.getAttribute("verticalAlignment", true);
-    this.gap = this.getAttribute("gap", true);
+  setAttributeToProperty(propertyName) {
+    const prop = this.getAttribute(propertyName, true);
+    if (prop)
+      this[propertyName] = prop;
+  }
+  init() {
+    super.init();
+    this.direction = "vertical";
+    this.setAttributeToProperty("horizontalAlignment");
+    this.setAttributeToProperty("verticalAlignment");
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 VStack = __decorateClass([
@@ -13940,17 +13529,23 @@ var Panel = class extends Container {
   constructor(parent, options) {
     super(parent, options);
   }
-  async init() {
-    await super.init();
+  init() {
+    super.init();
     this.classList.add(panelStyle);
     if (this.dock) {
       this.classList.add(overflowStyle);
     }
   }
+  connectedCallback() {
+    if (this.connected) {
+      return;
+    }
+    super.connectedCallback();
+  }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 Panel = __decorateClass([
@@ -13963,9 +13558,9 @@ var GridLayout = class extends Container {
     super(parent, options);
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
   get templateColumns() {
     return this._templateColumns;
@@ -13973,7 +13568,8 @@ var GridLayout = class extends Container {
   set templateColumns(columns) {
     this._templateColumns = columns;
     if (columns) {
-      this.style.gridTemplateColumns = columns.join(" ");
+      let style2 = getTemplateColumnsStyleClass(columns);
+      this.classList.add(style2);
     }
   }
   get templateRows() {
@@ -13982,8 +13578,44 @@ var GridLayout = class extends Container {
   set templateRows(rows) {
     this._templateRows = rows;
     if (rows) {
-      this.style.gridTemplateRows = rows.join(" ");
+      let style2 = getTemplateRowsStyleClass(rows);
+      this.classList.add(style2);
     }
+  }
+  get templateAreas() {
+    return this._templateAreas;
+  }
+  set templateAreas(value) {
+    this._templateAreas = value;
+    if (value) {
+      let style2 = getTemplateAreasStyleClass(value);
+      this.classList.add(style2);
+    }
+  }
+  get autoColumnSize() {
+    return this._autoColumnSize;
+  }
+  set autoColumnSize(value) {
+    this._autoColumnSize = value;
+    if (value) {
+      this.style.gridAutoColumns = value;
+    }
+  }
+  get autoRowSize() {
+    return this._autoRowSize;
+  }
+  set autoRowSize(value) {
+    this._autoRowSize = value;
+    if (value) {
+      this.style.gridAutoRows = value;
+    }
+  }
+  get columnsPerRow() {
+    return this._columnsPerRow;
+  }
+  set columnsPerRow(value) {
+    this._columnsPerRow = value;
+    this.style.gridTemplateColumns = `repeat(${this._columnsPerRow}, 1fr)`;
   }
   get gap() {
     return this._gap;
@@ -14021,14 +13653,40 @@ var GridLayout = class extends Container {
     this._verticalAlignment = value;
     this.style.alignItems = value;
   }
-  async init() {
-    await super.init();
+  get autoFillInHoles() {
+    return this._autoFillInHoles;
+  }
+  set autoFillInHoles(value) {
+    this._autoFillInHoles = value;
+    this.style.gridAutoFlow = this._autoFillInHoles ? "dense" : "row";
+  }
+  get mediaQueries() {
+    return this._mediaQueries;
+  }
+  set mediaQueries(value) {
+    this._mediaQueries = value;
+    let style2 = getGridLayoutMediaQueriesStyleClass(this._mediaQueries);
+    this.classList.add(style2);
+  }
+  setAttributeToProperty(propertyName) {
+    const prop = this.getAttribute(propertyName, true);
+    if (prop)
+      this[propertyName] = prop;
+  }
+  init() {
+    super.init();
     this.style.display = "grid";
-    this.templateColumns = this.getAttribute("templateColumns", true);
-    this.templateRows = this.getAttribute("templateRows", true);
-    this.gap = this.getAttribute("gap", true);
-    this.horizontalAlignment = this.getAttribute("horizontalAlignment", true);
-    this.verticalAlignment = this.getAttribute("verticalAlignment", true);
+    this.setAttributeToProperty("templateColumns");
+    this.setAttributeToProperty("templateRows");
+    this.setAttributeToProperty("templateAreas");
+    this.setAttributeToProperty("gap");
+    this.setAttributeToProperty("horizontalAlignment");
+    this.setAttributeToProperty("verticalAlignment");
+    this.setAttributeToProperty("columnsPerRow");
+    this.setAttributeToProperty("autoFillInHoles");
+    this.setAttributeToProperty("autoColumnSize");
+    this.setAttributeToProperty("autoRowSize");
+    this.setAttributeToProperty("mediaQueries");
   }
 };
 GridLayout = __decorateClass([
@@ -14041,21 +13699,51 @@ var CardLayout = class extends GridLayout {
     super(parent, options);
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
   get cardMinWidth() {
     return this._cardMinWidth;
   }
   set cardMinWidth(value) {
-    this._cardMinWidth = value || "0px";
-    this.style.gridTemplateColumns = `repeat(auto-fill, minmax(min(${this._cardMinWidth}, 100%), 1fr))`;
+    this._cardMinWidth = value;
+    this.updateGridTemplateColumns();
   }
-  async init() {
-    await super.init();
-    this.style.gridAutoRows = "1fr";
-    this.cardMinWidth = this.attrs.cardMinWidth;
+  get columnsPerRow() {
+    return this._columnsPerRow;
+  }
+  set columnsPerRow(value) {
+    this._columnsPerRow = value;
+    this.updateGridTemplateColumns();
+  }
+  get cardHeight() {
+    return this._cardHeight;
+  }
+  set cardHeight(value) {
+    this._cardHeight = typeof value == "number" ? value + "px" : value;
+    this.style.gridAutoRows = this._cardHeight;
+  }
+  updateGridTemplateColumns() {
+    if (this.cardMinWidth && this.columnsPerRow) {
+      let minmaxFirstParam = this.gap && this.gap.column ? `max(${this.cardMinWidth}, calc(100%/${this.columnsPerRow} - ${this.gap.column}))` : `max(${this.cardMinWidth}, 100%/${this.columnsPerRow})`;
+      this.style.gridTemplateColumns = `repeat(auto-fill, minmax(${minmaxFirstParam}, 1fr))`;
+    } else if (this.cardMinWidth) {
+      this.style.gridTemplateColumns = `repeat(auto-fill, minmax(min(${this.cardMinWidth}, 100%), 1fr))`;
+    } else if (this.columnsPerRow) {
+      this.style.gridTemplateColumns = `repeat(${this.columnsPerRow}, 1fr)`;
+    }
+  }
+  setAttributeToProperty(propertyName) {
+    const prop = this.getAttribute(propertyName, true);
+    if (prop)
+      this[propertyName] = prop;
+  }
+  init() {
+    super.init();
+    this.autoRowSize = "1fr";
+    this.setAttributeToProperty("cardMinWidth");
+    this.setAttributeToProperty("cardHeight");
   }
 };
 CardLayout = __decorateClass([
@@ -14063,22 +13751,22 @@ CardLayout = __decorateClass([
 ], CardLayout);
 
 // packages/pagination/src/style/pagination.css.ts
-var Theme29 = theme_exports.ThemeVars;
+var Theme27 = theme_exports.ThemeVars;
 cssRule("i-pagination", {
   display: "block",
   width: "100%",
   maxWidth: "100%",
   verticalAlign: "baseline",
-  fontFamily: Theme29.typography.fontFamily,
-  fontSize: Theme29.typography.fontSize,
+  fontFamily: Theme27.typography.fontFamily,
+  fontSize: Theme27.typography.fontSize,
   lineHeight: "25px",
-  color: Theme29.text.primary,
+  color: Theme27.text.primary,
   "$nest": {
     ".pagination": {
       display: "inline-flex"
     },
     ".pagination a": {
-      color: Theme29.text.primary,
+      color: Theme27.text.primary,
       float: "left",
       padding: "8px 16px",
       textDecoration: "none",
@@ -14091,7 +13779,7 @@ cssRule("i-pagination", {
       border: "1px solid #4CAF50"
     },
     ".pagination a.disabled": {
-      color: Theme29.text.disabled,
+      color: Theme27.text.disabled,
       pointerEvents: "none"
     },
     ".pagination-main": {
@@ -14302,7 +13990,7 @@ var Pagination = class extends Control {
       this.onDisablePrevNext();
     }
   }
-  async init() {
+  init() {
     if (!this._paginationDiv) {
       this._paginationDiv = this.createElement("div", this);
       this._paginationDiv.classList.add("pagination");
@@ -14332,12 +14020,12 @@ var Pagination = class extends Control {
       });
       this.onDisablePrevNext();
     }
-    await super.init();
+    super.init();
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 Pagination = __decorateClass([
@@ -14345,14 +14033,14 @@ Pagination = __decorateClass([
 ], Pagination);
 
 // packages/progress/src/style/progress.css.ts
-var Theme30 = theme_exports.ThemeVars;
+var Theme28 = theme_exports.ThemeVars;
 cssRule("i-progress", {
   display: "block",
   maxWidth: "100%",
   verticalAlign: "baseline",
-  fontFamily: Theme30.typography.fontFamily,
-  fontSize: Theme30.typography.fontSize,
-  color: Theme30.text.primary,
+  fontFamily: Theme28.typography.fontFamily,
+  fontSize: Theme28.typography.fontSize,
+  color: Theme28.text.primary,
   position: "relative",
   $nest: {
     ".i-progress": {
@@ -14371,80 +14059,80 @@ cssRule("i-progress", {
     ".i-progress--exception": {
       $nest: {
         "> .i-progress_wrapbar > .i-progress_overlay": {
-          backgroundColor: Theme30.colors.error.light
+          backgroundColor: Theme28.colors.error.light
         },
         "> .i-progress_wrapbar > .i-progress_bar .i-progress_bar-item": {
-          backgroundColor: Theme30.colors.error.light
+          backgroundColor: Theme28.colors.error.light
         },
         ".i-progress_item.i-progress_item-start": {
-          borderColor: Theme30.colors.error.light
+          borderColor: Theme28.colors.error.light
         },
         ".i-progress_item.i-progress_item-end": {},
         ".status-circle": {
           display: "inline-block",
-          border: `1px solid ${Theme30.colors.error.light}`,
+          border: `1px solid ${Theme28.colors.error.light}`,
           backgroundColor: "rgb(255, 255, 255)",
-          boxShadow: `${Theme30.colors.error.light} 0px 0px 2px 0px, ${Theme30.colors.error.light} 0px 0px 8px 0px, ${Theme30.colors.error.light} 0px 0px 12px 0px`
+          boxShadow: `${Theme28.colors.error.light} 0px 0px 2px 0px, ${Theme28.colors.error.light} 0px 0px 8px 0px, ${Theme28.colors.error.light} 0px 0px 12px 0px`
         }
       }
     },
     ".i-progress--success": {
       $nest: {
         "> .i-progress_wrapbar > .i-progress_overlay": {
-          backgroundColor: Theme30.colors.success.light
+          backgroundColor: Theme28.colors.success.light
         },
         "> .i-progress_wrapbar > .i-progress_bar .i-progress_bar-item": {
-          backgroundColor: Theme30.colors.success.light
+          backgroundColor: Theme28.colors.success.light
         },
         ".i-progress_item.i-progress_item-start": {
-          borderColor: Theme30.colors.success.light
+          borderColor: Theme28.colors.success.light
         },
         ".i-progress_item.i-progress_item-end": {},
         ".status-circle": {
           display: "inline-block",
-          border: `1px solid ${Theme30.colors.success.light}`,
+          border: `1px solid ${Theme28.colors.success.light}`,
           backgroundColor: "rgb(255, 255, 255)",
-          boxShadow: `${Theme30.colors.success.light} 0px 0px 2px 0px, ${Theme30.colors.success.light} 0px 0px 8px 0px, ${Theme30.colors.success.light} 0px 0px 12px 0px`
+          boxShadow: `${Theme28.colors.success.light} 0px 0px 2px 0px, ${Theme28.colors.success.light} 0px 0px 8px 0px, ${Theme28.colors.success.light} 0px 0px 12px 0px`
         }
       }
     },
     ".i-progress--warning": {
       $nest: {
         "> .i-progress_wrapbar > .i-progress_overlay": {
-          backgroundColor: Theme30.colors.warning.light
+          backgroundColor: Theme28.colors.warning.light
         },
         "> .i-progress_wrapbar > .i-progress_bar .i-progress_bar-item": {
-          backgroundColor: Theme30.colors.warning.light
+          backgroundColor: Theme28.colors.warning.light
         },
         ".i-progress_item.i-progress_item-start": {
-          borderColor: Theme30.colors.warning.light
+          borderColor: Theme28.colors.warning.light
         },
         ".i-progress_item.i-progress_item-end": {},
         ".status-circle": {
           display: "inline-block",
-          border: `1px solid ${Theme30.colors.warning.light}`,
+          border: `1px solid ${Theme28.colors.warning.light}`,
           backgroundColor: "rgb(255, 255, 255)",
-          boxShadow: `${Theme30.colors.warning.light} 0px 0px 2px 0px, ${Theme30.colors.warning.light} 0px 0px 8px 0px, ${Theme30.colors.warning.light} 0px 0px 12px 0px`
+          boxShadow: `${Theme28.colors.warning.light} 0px 0px 2px 0px, ${Theme28.colors.warning.light} 0px 0px 8px 0px, ${Theme28.colors.warning.light} 0px 0px 12px 0px`
         }
       }
     },
     ".i-progress--active": {
       $nest: {
         "> .i-progress_wrapbar > .i-progress_overlay": {
-          backgroundColor: Theme30.colors.primary.light
+          backgroundColor: Theme28.colors.primary.light
         },
         "> .i-progress_wrapbar > .i-progress_bar .i-progress_bar-item": {
-          backgroundColor: Theme30.colors.primary.light
+          backgroundColor: Theme28.colors.primary.light
         },
         ".i-progress_item.i-progress_item-start": {
           backgroundColor: "transparent",
-          borderColor: Theme30.colors.primary.light
+          borderColor: Theme28.colors.primary.light
         },
         ".status-circle": {
           display: "inline-block",
-          border: `1px solid ${Theme30.colors.primary.light}`,
+          border: `1px solid ${Theme28.colors.primary.light}`,
           backgroundColor: "rgb(255, 255, 255)",
-          boxShadow: `${Theme30.colors.primary.light} 0px 0px 2px 0px, ${Theme30.colors.primary.light} 0px 0px 8px 0px, ${Theme30.colors.primary.light} 0px 0px 12px 0px`
+          boxShadow: `${Theme28.colors.primary.light} 0px 0px 2px 0px, ${Theme28.colors.primary.light} 0px 0px 8px 0px, ${Theme28.colors.primary.light} 0px 0px 12px 0px`
         }
       }
     },
@@ -14465,11 +14153,11 @@ cssRule("i-progress", {
           gap: "1px",
           $nest: {
             "&.has-bg": {
-              backgroundColor: Theme30.divider
+              backgroundColor: Theme28.divider
             },
             ".i-progress_bar-item": {
               flex: "auto",
-              backgroundColor: Theme30.divider
+              backgroundColor: Theme28.divider
             }
           }
         },
@@ -14494,7 +14182,7 @@ cssRule("i-progress", {
           borderStyle: "solid",
           borderImage: "initial",
           borderRadius: 14,
-          borderColor: Theme30.divider,
+          borderColor: Theme28.divider,
           padding: "4px 12px",
           order: 1
         },
@@ -14514,18 +14202,18 @@ cssRule("i-progress", {
         },
         ".lb-start, .lb-end": {
           fontSize: "10px",
-          color: Theme30.text.secondary
+          color: Theme28.text.secondary
         },
         ".lb-end--number": {
           fontSize: "14px",
-          color: Theme30.text.primary
+          color: Theme28.text.primary
         }
       }
     },
     ".info-wrapper, i-slot[name=tooltip]": {
       opacity: 0,
-      backgroundColor: Theme30.background.paper,
-      border: `1px solid ${Theme30.divider}`,
+      backgroundColor: Theme28.background.paper,
+      border: `1px solid ${Theme28.divider}`,
       position: "absolute",
       borderRadius: "4px",
       padding: "1rem 1rem .5rem",
@@ -14561,18 +14249,18 @@ cssRule("i-progress", {
               borderRadius: 20
             },
             "&::-webkit-scrollbar-track": {
-              background: Theme30.colors.info.contrastText
+              background: Theme28.colors.info.contrastText
             },
             "&::-webkit-scrollbar-thumb": {
-              background: Theme30.colors.info.contrastText
+              background: Theme28.colors.info.contrastText
             },
             "&::-webkit-scrollbar-thumb:hover": {
-              background: Theme30.colors.info.contrastText
+              background: Theme28.colors.info.contrastText
             }
           }
         },
         ".info-title": {
-          color: Theme30.text.secondary,
+          color: Theme28.text.secondary,
           textTransform: "uppercase"
         },
         ".info-icon i-icon": {
@@ -14610,11 +14298,11 @@ cssRule("i-progress", {
     },
     ".lb-label": {
       fontSize: "10px",
-      color: Theme30.text.secondary
+      color: Theme28.text.secondary
     },
     ".lb-value": {
       fontSize: "14px",
-      color: Theme30.text.primary
+      color: Theme28.text.primary
     },
     ".is-mobile": {
       display: "none",
@@ -14639,7 +14327,7 @@ cssRule("i-progress", {
             },
             ".lb-start": {
               fontSize: "10px",
-              color: Theme30.text.primary,
+              color: Theme28.text.primary,
               textTransform: "uppercase"
             }
           }
@@ -14667,7 +14355,7 @@ cssRule("i-progress-item", {
   position: "absolute",
   top: "50%",
   transform: "translateY(-50%)",
-  backgroundColor: Theme30.colors.primary.dark,
+  backgroundColor: Theme28.colors.primary.dark,
   boxSizing: "border-box",
   margin: 0,
   minWidth: 0,
@@ -14678,13 +14366,13 @@ cssRule("i-progress-item", {
   alignItems: "center",
   $nest: {
     "&.is-exception": {
-      backgroundColor: Theme30.colors.error.dark
+      backgroundColor: Theme28.colors.error.dark
     },
     "&.is-success": {
-      backgroundColor: Theme30.colors.success.dark
+      backgroundColor: Theme28.colors.success.dark
     },
     "&.is-warning": {
-      backgroundColor: Theme30.colors.warning.dark
+      backgroundColor: Theme28.colors.warning.dark
     },
     "&:hover > .info-wrapper, &:hover > i-slot[name=tooltip]": {
       opacity: 1
@@ -14696,7 +14384,7 @@ cssRule("i-progress-item", {
 });
 
 // packages/progress/src/progress.ts
-var Theme31 = theme_exports.ThemeVars;
+var Theme29 = theme_exports.ThemeVars;
 var defaultVals = {
   percent: 0,
   height: 20,
@@ -14926,38 +14614,38 @@ var Progress = class extends Control {
     let ret = "";
     switch (this.status) {
       case "success":
-        ret = Theme31.colors.success.main;
+        ret = Theme29.colors.success.main;
         break;
       case "exception":
-        ret = Theme31.colors.error.main;
+        ret = Theme29.colors.error.main;
         break;
       case "warning":
-        ret = Theme31.colors.warning.main;
+        ret = Theme29.colors.warning.main;
         break;
       default:
-        ret = Theme31.colors.primary.main;
+        ret = Theme29.colors.primary.main;
     }
     if (this.percent === 100 && !this.status)
-      ret = Theme31.colors.success.main;
+      ret = Theme29.colors.success.main;
     return ret;
   }
   get trackColor() {
     let ret = "";
     switch (this.status) {
       case "success":
-        ret = Theme31.colors.success.light;
+        ret = Theme29.colors.success.light;
         break;
       case "exception":
-        ret = Theme31.colors.error.light;
+        ret = Theme29.colors.error.light;
         break;
       case "warning":
-        ret = Theme31.colors.warning.light;
+        ret = Theme29.colors.warning.light;
         break;
       default:
-        ret = Theme31.divider;
+        ret = Theme29.divider;
     }
     if (this.percent === 100 && !this.status)
-      ret = Theme31.colors.success.light;
+      ret = Theme29.colors.success.light;
     return ret;
   }
   get progressTextSize() {
@@ -14999,7 +14687,7 @@ var Progress = class extends Control {
     const templateHtml = `<svg viewBox="0 0 100 100">
             <path class="i-progress-circle__track"
             d="${this.trackPath}"
-            stroke="${this.status ? this.trackColor : Theme31.divider}"
+            stroke="${this.status ? this.trackColor : Theme29.divider}"
             stroke-width="${this.relativeStrokeWidth}"
             fill="${this.status ? this.trackColor : "none"}"
             style="${this.trailPathStyle}"></path>
@@ -15022,9 +14710,9 @@ var Progress = class extends Control {
       svgPath.setAttribute("stroke-width", `${this.percent ? this.relativeStrokeWidth : 0}`);
     }
   }
-  async init() {
+  init() {
     if (!this.initialized) {
-      await super.init();
+      super.init();
       this.loading = this.getAttribute("loading", true);
       let childNodes = [];
       for (let i = 0; i < this.childNodes.length; i++)
@@ -15062,933 +14750,21 @@ var Progress = class extends Control {
     }
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 Progress = __decorateClass([
   customElements2("i-progress")
 ], Progress);
-var ProgressItem = class extends Control {
-  constructor(parent, options) {
-    super(parent, options);
-    if (options == null ? void 0 : options.onRenderTooltip)
-      this.onRenderTooltip = options.onRenderTooltip;
-  }
-  get percent() {
-    return this._percent;
-  }
-  set percent(value) {
-    this._percent = value || 0;
-    this.style.left = `calc(${this._percent}% - ${this.width}px)`;
-  }
-  get status() {
-    return this._status;
-  }
-  set status(value) {
-    this._status = value;
-    this.classList.add("is-" + value);
-  }
-  get popupData() {
-    return this._popupData;
-  }
-  set popupData(value) {
-    this._popupData = value;
-    if (value) {
-      this._popupElm = this.createElement("div", this);
-      this._popupElm.classList.add("info-wrapper", "info-wrapper--custom");
-      const { label, heading, list } = this.parsedData;
-      let html = "";
-      if (label) {
-        const lbElm = this.createElement("div", this);
-        lbElm.classList.add("lb-label");
-        lbElm.textContent = label;
-      }
-      if (heading)
-        html += `<div class="info-wrapper_header lb-label">${heading}</div>`;
-      if (list) {
-        html += '<div class="scroll-srap">';
-        html += this.createPopupUI(list);
-        html += "</div>";
-      }
-      this._popupElm.innerHTML = html;
-    }
-  }
-  get parsedData() {
-    try {
-      return JSON.parse(this.popupData);
-    } catch (e) {
-      return {};
-    }
-  }
-  createPopupUI(list) {
-    if (!list.length)
-      return "";
-    let html = "";
-    for (let item of list) {
-      html += `<div class="info-item info-item--child">
-                <div class="info-icon">${item.icon || ""}</div>
-                <div class="info-content">${item.value}</div>
-            </div>`;
-    }
-    return html;
-  }
-  async init() {
-    if (!this.initialized) {
-      await super.init();
-      this.percent = this.getAttribute("percent", true);
-      const statusAttr = this.getAttribute("status", true);
-      statusAttr && (this.status = statusAttr);
-      const dataAttr = this.getAttribute("data", true);
-      dataAttr && (this.popupData = dataAttr);
-      if (this.onRenderTooltip && typeof this.onRenderTooltip === "function") {
-        this._popupElm.innerHTML = "";
-        this.onRenderTooltip(this._popupElm);
-      }
-    }
-  }
-  static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
-  }
-};
-ProgressItem = __decorateClass([
-  customElements2("i-progress-item")
-], ProgressItem);
-
-// packages/link/src/style/link.css.ts
-var Theme32 = theme_exports.ThemeVars;
-cssRule("i-link", {
-  cursor: "pointer",
-  $nest: {
-    "&:hover *": {
-      color: Theme32.colors.primary.dark
-    },
-    "> a": {
-      transition: "all .3s",
-      fontSize: "1rem",
-      textDecoration: "underline"
-    }
-  }
-});
-
-// packages/link/src/link.ts
-var Link = class extends Control {
-  constructor(parent, options) {
-    super(parent, options, {
-      target: "_blank"
-    });
-  }
-  get href() {
-    return this._href;
-  }
-  set href(value) {
-    this._href = value;
-    this._linkElm.href = value;
-  }
-  get caption() {
-    return this._caption;
-  }
-  set caption(value) {
-    this._caption = value;
-    this._linkElm.innerHTML = value;
-  }
-  get font() {
-    return {
-      color: this._linkElm.style.color,
-      name: this._linkElm.style.fontFamily,
-      size: this._linkElm.style.fontSize,
-      bold: this._linkElm.style.fontStyle.indexOf("bold") >= 0
-    };
-  }
-  set font(value) {
-    this._linkElm.style.color = value.color || "";
-    this._linkElm.style.fontSize = value.size || "";
-    this._linkElm.style.fontWeight = value.bold ? "bold" : "";
-    this._linkElm.style.fontFamily = value.name || "";
-  }
-  async init() {
-    if (!this._linkElm) {
-      await super.init();
-      let childNodes = [];
-      for (let i = 0; i < this.childNodes.length; i++) {
-        childNodes.push(this.childNodes[i]);
-      }
-      this._linkElm = this.createElement("a", this);
-      this.classList.add("i-link");
-      const captionAttr = this.getAttribute("caption", true);
-      captionAttr && (this.caption = captionAttr);
-      const hrefAttr = this.getAttribute("href", true);
-      hrefAttr && (this.href = hrefAttr);
-      if (childNodes && childNodes.length) {
-        for (let i = 0; i < childNodes.length; i++) {
-          this._linkElm.appendChild(childNodes[i]);
-        }
-      }
-      const targetAttr = this.getAttribute("target", true);
-      if (targetAttr) {
-        this._linkElm.target = targetAttr;
-      }
-      if (this.attrs.font)
-        this.font = this.attrs.font;
-    }
-  }
-  static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
-  }
-};
-Link = __decorateClass([
-  customElements2("i-link")
-], Link);
-
-// packages/list-view/src/style/listView.css.ts
-var Theme33 = theme_exports.ThemeVars;
-var fadeInUp = keyframes({
-  "0%": {
-    opacity: 0,
-    transform: "translate3d(0, 100%, 0)"
-  },
-  "100%": {
-    opacity: 1,
-    transform: "translate3d(0, 0, 0)"
-  }
-});
-cssRule("i-list-view", {
-  display: "block",
-  marginTop: "1.5rem",
-  $nest: {
-    "*": {
-      boxSizing: "border-box"
-    },
-    "&.list-group": {
-      display: "flex",
-      position: "relative",
-      paddingLeft: 0,
-      marginBottom: 0,
-      borderRadius: "0.25rem",
-      $nest: {
-        "&:not(.grid)": {
-          flexDirection: "column"
-        },
-        "&.grid": {
-          gridTemplateColumns: "repeat(auto-fill, 450px)",
-          gap: "35px",
-          flexWrap: "wrap",
-          flexGrow: 0,
-          justifyContent: "center"
-        }
-      }
-    },
-    ".list-item": {
-      position: "relative",
-      display: "flex",
-      backgroundColor: Theme33.action.hover,
-      border: `1px solid ${Theme33.divider}`,
-      borderRadius: "0.25rem",
-      flexDirection: "row",
-      padding: "0.75rem 1.25rem",
-      overflow: "hidden"
-    },
-    ".list-item:focus, .list-item:hover": {
-      zIndex: 1,
-      backgroundColor: Theme33.action.selected,
-      transform: "scale(1.06)",
-      transformOrigin: "center",
-      cursor: "pointer"
-    },
-    "&.list-group:not(.grid) .list-item": {
-      width: "100%",
-      animation: `0.4s ease-in 0s 1 normal both running ${fadeInUp}`,
-      $nest: {
-        "&:hover": {
-          transform: "scale(1.02) !important"
-        },
-        "&:not(:first-child)": {
-          marginTop: "1.5rem"
-        },
-        "@media only screen and (max-width: 767px)": {
-          display: "grid",
-          gridTemplateAreas: '". ." "info info"',
-          $nest: {
-            ">.item-content": {
-              marginBottom: "1rem"
-            },
-            ".--info": {
-              width: "auto",
-              paddingRight: 0,
-              gridArea: "info"
-            }
-          }
-        }
-      }
-    },
-    "&.list-group.grid .list-item": {
-      width: 450
-    },
-    "&.list-group:not(.grid).--columns": {
-      display: "block",
-      columnFill: "auto",
-      $nest: {
-        ".list-item": {
-          display: "block",
-          pageBreakInside: "avoid",
-          breakInside: "avoid"
-        }
-      }
-    },
-    "&.list-group.grid.--columns": {
-      display: "inline-block",
-      columnFill: "auto",
-      $nest: {
-        ".list-item": {
-          display: "inline-block",
-          pageBreakInside: "avoid",
-          breakInside: "avoid",
-          width: "100%"
-        }
-      }
-    },
-    ".list-item.borderless": {
-      border: 0
-    },
-    ".list-item i-image": {
-      display: "flex",
-      justifyContent: "center",
-      marginRight: "1rem",
-      width: 150,
-      height: 150
-    },
-    "&.list-group:not(.grid) .--info": {
-      display: "inline-flex",
-      width: 500,
-      paddingRight: "2rem",
-      marginTop: "auto",
-      marginBottom: "auto",
-      textAlign: "center",
-      $nest: {
-        "&>.item-content": {
-          marginLeft: "1.5rem"
-        }
-      }
-    },
-    ".--info": {
-      display: "none"
-    },
-    ".item-content": {
-      display: "block",
-      color: Theme33.text.primary,
-      fontFamily: Theme33.typography.fontFamily,
-      fontSize: Theme33.typography.fontSize,
-      marginRight: "auto"
-    },
-    ".item-content > *:last-child": {
-      marginBottom: 0
-    },
-    ".item-title, .item-subtitle, .item-small, .item-small-title": {
-      marginTop: 0,
-      marginBottom: "0.5rem",
-      color: Theme33.text.primary
-    },
-    ".item-title": {
-      fontSize: "1.1em",
-      fontWeight: 600
-    },
-    ".item-subtitle": {
-      fontSize: "0.95em"
-    },
-    ".item-small": {
-      fontSize: "0.85em"
-    },
-    ".item-small-title": {
-      fontSize: "0.85em",
-      fontWeight: 600
-    },
-    ".item-link": {
-      color: Theme33.colors.primary.main,
-      textDecoration: "underline",
-      cursor: "pointer"
-    },
-    ".item-summary": {
-      height: "3rem",
-      overflow: "hidden",
-      whiteSpace: "pre-wrap",
-      textOverflow: "ellipsis",
-      maxWidth: "500px",
-      marginBottom: "0.5rem",
-      display: "-webkit-box",
-      "-webkit-line-clamp": 3,
-      WebkitBoxOrient: "vertical"
-    },
-    ".blur": {
-      width: "100%",
-      height: "100%",
-      position: "absolute",
-      zIndex: -1,
-      display: "block",
-      "-webkit-filter": "blur(80px)",
-      "-ms-filter": "blur(80px)",
-      filter: "blur(80px)",
-      backgroundSize: "300%",
-      backgroundPosition: "center",
-      opacity: 0.6
-    }
-  }
-});
-
-// packages/list-view/src/listView.ts
-var ListView = class extends Control {
-  constructor(parent, options) {
-    super(parent, options);
-  }
-  get type() {
-    return this._type;
-  }
-  set type(value) {
-    if (this._type === value)
-      return;
-    this._type = value;
-    if (value === "grid") {
-      this.classList.add("grid");
-    } else {
-      this.classList.remove("grid");
-    }
-    const items = this.querySelectorAll("i-list-view-item.--custom-background");
-    items.forEach((itemNode) => {
-      itemNode.updateBackground(value);
-    });
-  }
-  get columns() {
-    return this._columns;
-  }
-  set columns(value) {
-    this._columns = value;
-    if (value > 0) {
-      this.style.columnCount = value.toString();
-      this.classList.add("--columns");
-    } else {
-      this.style.columnCount = "";
-      this.classList.remove("--columns");
-    }
-  }
-  set marginTop(value) {
-    if (value == null || value == void 0)
-      return;
-    this.style.marginTop = value + "px";
-  }
-  propComparator(prop, asc, ignoreCase) {
-    return (a, b) => {
-      let prop1 = a.getPropValue(prop);
-      let prop2 = b.getPropValue(prop);
-      if (ignoreCase && typeof prop1 === "string") {
-        prop1 = prop1.toLowerCase();
-        prop2 = prop2.toLowerCase();
-      }
-      if (prop1 < prop2)
-        return asc ? -1 : 1;
-      if (prop1 > prop2)
-        return asc ? 1 : -1;
-      return 0;
-    };
-  }
-  sort(prop, asc, ignoreCase) {
-    asc = asc != null ? asc : true;
-    ignoreCase = ignoreCase != null ? ignoreCase : true;
-    const items = this.querySelectorAll("i-list-view-item");
-    var itemsArray = Array.from(items);
-    const sortedElm = itemsArray.sort(this.propComparator(prop, asc, ignoreCase));
-    sortedElm.forEach((e) => this.appendChild(e));
-  }
-  search(value) {
-    const items = this.querySelectorAll("i-list-view-item");
-    items.forEach((itemNode) => {
-      if (!value) {
-        itemNode.style.display = "";
-      } else {
-        let res;
-        if (Array.isArray(itemNode.data)) {
-          res = itemNode.data.find((_d) => {
-            return _d.content.toUpperCase().includes(value.toUpperCase());
-          });
-        } else {
-          res = Object.values(itemNode.data).find((_d) => {
-            return _d.toUpperCase().includes(value.toUpperCase());
-          });
-        }
-        if (res) {
-          itemNode.style.display = "";
-        } else {
-          itemNode.style.display = "none";
-        }
-      }
-    });
-  }
-  async init() {
-    this.classList.add("list-group");
-    this.type = this.getAttribute("type", true) || "list";
-    const columns = this.getAttribute("columns", true);
-    if (columns) {
-      this.columns = columns;
-    }
-    this.marginTop = this.getAttribute("marginTop", true);
-    await super.init();
-  }
-  static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
-  }
-};
-ListView = __decorateClass([
-  customElements2("i-list-view")
-], ListView);
-var ListViewItem = class extends Control {
-  constructor(parent, options) {
-    super(parent, options);
-  }
-  set background(value) {
-    if (typeof value === "object") {
-      this._listBackground = value.list;
-      this._gridBackground = value.grid;
-      this.style.background = value.list;
-    } else {
-      this._listBackground = this._gridBackground = value;
-      this.style.background = value;
-    }
-    this.classList.add("--custom-background");
-  }
-  updateBackground(type) {
-    if (!this._listBackground && !this._gridBackground)
-      return;
-    if (type === "list") {
-      this.style.background = this._listBackground;
-    } else if (type === "grid") {
-      this.style.background = this._gridBackground;
-    }
-  }
-  parseValue(value) {
-    try {
-      return JSON.parse(value);
-    } catch (e) {
-      return value;
-    }
-  }
-  getContentStyle(contentType) {
-    if (contentType) {
-      return `item-${contentType}`;
-    }
-    return "item-text";
-  }
-  setContent(data, parentElm) {
-    if (!Array.isArray(data))
-      data = [data];
-    const contentDiv = this.createElement("div", parentElm || this);
-    contentDiv.classList.add("item-content");
-    data.forEach((_d) => {
-      const contentChild = this.createElement(_d.url ? "a" : "div", contentDiv);
-      switch (typeof _d) {
-        case "string":
-          contentChild.innerHTML = _d.trim();
-          break;
-        case "object":
-          let prefix = _d.prefix || "";
-          let content = _d.content || "";
-          contentChild.innerHTML = (prefix + content).trim();
-          const contentStyle = this.getContentStyle(_d.contentType);
-          contentChild.classList.add(contentStyle);
-          if (_d.url) {
-            contentChild.href = _d.url;
-            contentChild.onclick = (event) => {
-              event.stopPropagation();
-            };
-          }
-          if (_d.name) {
-            contentChild.setAttribute("name", _d.name);
-          }
-          break;
-        default:
-          contentChild.innerHTML = _d || "";
-          break;
-      }
-    });
-  }
-  setInfoContent(title, fieldName, value, parentElm) {
-    const data = [
-      {
-        content: title.toUpperCase(),
-        contentType: "small-title"
-      },
-      {
-        name: fieldName,
-        content: `${this._unit} ${this.abbreviateNum(value)}`,
-        contentType: "small"
-      }
-    ];
-    this.setContent(data, parentElm);
-  }
-  abbreviateNum(value) {
-    let newValue = value;
-    const suffixes = ["", "K", "M", "B", "T"];
-    let suffixIdx = 0;
-    while (newValue >= 1e3) {
-      newValue /= 1e3;
-      suffixIdx++;
-    }
-    if (suffixIdx >= suffixes.length) {
-      return value.toString();
-    }
-    return Number(newValue).toFixed(1) + suffixes[suffixIdx];
-  }
-  getPropValue(prop) {
-    if (Array.isArray(this.data)) {
-      const _d = this.data.find((_d2) => _d2.name == prop);
-      return _d.content || "";
-    } else {
-      const _key = Object.keys(this.data).find((_d) => _d == prop);
-      return _key ? this.data[_key] : "";
-    }
-  }
-  async init() {
-    if (!this.imageElm) {
-      this.classList.add("list-item");
-      const borderless = this.getAttribute("borderless", true) || false;
-      if (borderless) {
-        this.classList.add("borderless");
-      }
-      const background = this.parseValue(this.getAttribute("background", true));
-      if (background) {
-        this.background = background;
-      }
-      const imgUrl = this.getAttribute("imgUrl", true);
-      if (imgUrl) {
-        this.imageElm = new Image2(this, {
-          width: 120,
-          height: 120
-        });
-        this.imageElm.url = imgUrl;
-      } else {
-        if (this.firstChild && this.firstChild.nodeName === "I-IMAGE")
-          this.imageElm = this.firstChild;
-      }
-      if (this.imageElm) {
-        const imageContainerElm = this.createElement("div", this);
-        imageContainerElm.classList.add("image-container");
-        this.prepend(imageContainerElm);
-        imageContainerElm.appendChild(this.imageElm);
-      }
-      const blurredOverlay = this.getAttribute("blurredOverlay", true) || false;
-      if (blurredOverlay && imgUrl) {
-        this.blurElm = this.createElement("div", this);
-        this.blurElm.classList.add("blur");
-        this.blurElm.style.backgroundImage = `url(${imgUrl})`;
-        this.prepend(this.blurElm);
-      }
-      const data = this.parseValue(this.getAttribute("data", true));
-      const autoRender = this.getAttribute("autoRender", true);
-      if (data) {
-        this.data = data;
-        if (autoRender)
-          this.setContent(this.data);
-      }
-      this._stake = this.getAttribute("stake", true);
-      this._queryFee = this.getAttribute("queryFee", true);
-      this._unit = this.getAttribute("unit", true);
-      if (this._stake || this._queryFee) {
-        const infoDiv = this.createElement("div", this);
-        infoDiv.classList.add("--info");
-        if (this._stake) {
-          this.setInfoContent("Stake", "stake", this._stake, infoDiv);
-        }
-        if (this._queryFee) {
-          this.setInfoContent("Query Fees", "queryFee", this._queryFee, infoDiv);
-        }
-      }
-      await super.init();
-    }
-  }
-  static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
-  }
-};
-ListViewItem = __decorateClass([
-  customElements2("i-list-view-item")
-], ListViewItem);
-
-// packages/loading/src/style/loading.css.ts
-var Theme34 = theme_exports.ThemeVars;
-var spinnerAnim3 = keyframes({
-  "0%": {
-    transform: "rotate(0deg)"
-  },
-  "100%": {
-    transform: "rotate(360deg)"
-  }
-});
-cssRule("i-loading", {
-  display: "block",
-  $nest: {
-    ".i-loading-spinner": {
-      position: "absolute",
-      top: "50%",
-      left: "50%",
-      transform: "translate(-50%, -50%)",
-      display: "inline-block",
-      textAlign: "center",
-      opacity: "1 !important",
-      zIndex: 9999
-    },
-    "&.i-loading--large": {
-      $nest: {
-        ".i-loading-spinner_text": {
-          fontSize: "2rem"
-        },
-        ".i-loading-spinner_icon": {
-          width: 36,
-          height: 36
-        }
-      }
-    },
-    "&.i-loading--small": {
-      $nest: {
-        ".i-loading-spinner_text": {
-          fontSize: ".75rem"
-        },
-        ".i-loading-spinner_icon": {
-          width: 20,
-          height: 20
-        }
-      }
-    },
-    "&.i-loading--active": {
-      backgroundColor: "transparent",
-      position: "relative",
-      width: "100%",
-      height: "100%",
-      $nest: {
-        ":not(.i-loading-spinner *)": {
-          opacity: 0.5
-        },
-        "&.i-loading--full": {
-          position: "fixed",
-          left: 0,
-          top: 0,
-          zIndex: 999,
-          width: "100vw",
-          height: "100vh"
-        },
-        "&.i-loading--full:before": {
-          content: '""',
-          left: 0,
-          top: 0,
-          width: "100vw",
-          height: "100vh",
-          opacity: 0.8,
-          position: "absolute",
-          backgroundColor: Theme34.background.default
-        }
-      }
-    },
-    "&.i-loading--active .i-loading-spinner_icon": {
-      animation: `${spinnerAnim3} 2s linear infinite`,
-      opacity: 1
-    },
-    ".i-loading-spinner_text": {
-      fontSize: "1rem",
-      display: "block",
-      color: Theme34.text.primary,
-      fontFamily: Theme34.typography.fontFamily,
-      opacity: 1
-    },
-    ".i-loading-spinner_icon": {
-      display: "inline-block",
-      marginBottom: ".5rem",
-      width: 24,
-      height: 24,
-      maxWidth: "100%",
-      maxHeight: "100%"
-    },
-    ".i-loading-spinner_icon i-icon": {
-      display: "initial"
-    },
-    ".i-loading-overlay": {
-      position: "absolute",
-      $nest: {
-        "&.--active": {
-          width: "100%",
-          height: "100%",
-          zIndex: 999
-        }
-      }
-    }
-  }
-});
-
-// packages/loading/src/loading.ts
-var Theme35 = theme_exports.ThemeVars;
-var defaultValues3 = {
-  spinning: true,
-  caption: "Loading...",
-  size: "default",
-  icon: "spinner",
-  body: false
-};
-var Loading = class extends Control {
-  constructor(parent, options) {
-    super(parent, options, __spreadValues({}, defaultValues3));
-  }
-  get spinning() {
-    return this._spinning;
-  }
-  set spinning(value) {
-    this._spinning = value;
-    if (value) {
-      this._wrapperElm.style.display = "inline-block";
-      if (this.overlay) {
-        this._overlayElm.classList.add("--active");
-      } else {
-        this.style.display = "block";
-      }
-      this.classList.add("i-loading--active");
-      this.body && (document.body.style.overflow = "hidden");
-    } else {
-      this._wrapperElm.style.display = "none";
-      if (this.overlay) {
-        this._overlayElm.classList.remove("--active");
-      } else {
-        this.style.display = "none";
-      }
-      this.classList.remove("i-loading--active");
-      this.body && (document.body.style.overflow = "unset");
-    }
-  }
-  get size() {
-    return this._size;
-  }
-  set size(value) {
-    this._size = value;
-    this.classList.add(`i-loading--${value}`);
-  }
-  get caption() {
-    return this._caption;
-  }
-  set caption(value) {
-    this._caption = value;
-    if (value) {
-      const spanElm = this.createElement("span", this._wrapperElm);
-      spanElm.classList.add("i-loading-spinner_text");
-      spanElm.textContent = value;
-    }
-  }
-  get icon() {
-    return this._icon;
-  }
-  set icon(value) {
-    this._icon = value;
-    this._iconWrapperElm.innerHTML = "";
-    if (value) {
-      this.createIcon(value);
-    }
-  }
-  async createIcon(name) {
-    if (!this._iconElm) {
-      let iconElm = await Icon.create();
-      if (!this._iconElm)
-        this._iconElm = iconElm;
-      this._iconElm.fill = Theme35.text.primary;
-    }
-    this._iconElm.name = name;
-    this._iconWrapperElm.appendChild(this._iconElm);
-  }
-  get imageUrl() {
-    return this._imageUrl;
-  }
-  set imageUrl(value) {
-    this._imageUrl = value;
-    this._iconWrapperElm.innerHTML = "";
-    if (value) {
-      const imgElm = new Image();
-      imgElm.src = value;
-      imgElm.style.width = "100%";
-      imgElm.style.height = "100%";
-      const self = this;
-      imgElm.onerror = function() {
-        self.icon = self.getAttribute("icon", true);
-      };
-      imgElm.onload = function() {
-        self._iconWrapperElm.appendChild(imgElm);
-      };
-    }
-  }
-  get body() {
-    return this._body;
-  }
-  set body(value) {
-    this._body = value;
-    if (value)
-      this.classList.add("i-loading--full");
-    else
-      this.classList.remove("i-loading--full");
-  }
-  get textColor() {
-    const spinnerTxt = this._wrapperElm.querySelector(".i-loading-spinner_text");
-    return spinnerTxt ? spinnerTxt.style.color : "";
-  }
-  set textColor(value) {
-    const spinnerTxt = this._wrapperElm.querySelector(".i-loading-spinner_text");
-    spinnerTxt && value && (spinnerTxt.style.color = value);
-  }
-  get overlay() {
-    return this._overlay;
-  }
-  set overlay(value) {
-    this._overlay = value;
-  }
-  async init() {
-    if (!this.initialized) {
-      await super.init();
-      this.classList.add("i-loading");
-      this._overlayElm = this.createElement("div", this);
-      this.prepend(this._overlayElm);
-      this._overlayElm.classList.add("i-loading-overlay");
-      this._wrapperElm = this.createElement("div", this);
-      this._wrapperElm.classList.add("i-loading-spinner");
-      this._iconWrapperElm = this.createElement("div", this._wrapperElm);
-      this._iconWrapperElm.classList.add("i-loading-spinner_icon");
-      this.body = this.getAttribute("body", true);
-      this.size = this.getAttribute("size", true);
-      this.overlay = this.getAttribute("overlay", true);
-      this.spinning = this.getAttribute("spinning", true);
-      this.caption = this.getAttribute("caption", true);
-      this.textColor = this.getAttribute("textColor", true);
-      const imgAttr = this.getAttribute("imageUrl", true);
-      if (imgAttr) {
-        this.imageUrl = imgAttr;
-      } else {
-        this.icon = this.getAttribute("icon", true);
-      }
-    }
-  }
-  static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
-  }
-};
-Loading = __decorateClass([
-  customElements2("i-loading")
-], Loading);
 
 // packages/table/src/style/table.css.ts
-var Theme36 = theme_exports.ThemeVars;
+var Theme30 = theme_exports.ThemeVars;
 cssRule("i-table", {
-  fontFamily: Theme36.typography.fontFamily,
-  fontSize: Theme36.typography.fontSize,
-  color: Theme36.text.primary,
+  fontFamily: Theme30.typography.fontFamily,
+  fontSize: Theme30.typography.fontSize,
+  color: Theme30.text.primary,
   display: "block",
   $nest: {
     "> .i-table-container": {
@@ -16011,26 +14787,26 @@ cssRule("i-table", {
     ".i-table-header>tr>th": {
       fontWeight: 600,
       transition: "background .3s ease",
-      borderBottom: `1px solid ${Theme36.divider}`
+      borderBottom: `1px solid ${Theme30.divider}`
     },
     ".i-table-body>tr>td": {
-      borderBottom: `1px solid ${Theme36.divider}`,
+      borderBottom: `1px solid ${Theme30.divider}`,
       transition: "background .3s ease"
     },
     "tr:hover td": {
-      background: Theme36.background.paper,
-      color: Theme36.text.secondary
+      background: Theme30.background.paper,
+      color: Theme30.text.secondary
     },
     "&.i-table--bordered": {
       $nest: {
         "> .i-table-container > table": {
-          borderTop: `1px solid ${Theme36.divider}`,
-          borderLeft: `1px solid ${Theme36.divider}`,
+          borderTop: `1px solid ${Theme30.divider}`,
+          borderLeft: `1px solid ${Theme30.divider}`,
           borderRadius: "2px"
         },
         "> .i-table-container > table .i-table-cell": {
-          borderRight: `1px solid ${Theme36.divider} !important`,
-          borderBottom: `1px solid ${Theme36.divider}`
+          borderRight: `1px solid ${Theme30.divider} !important`,
+          borderBottom: `1px solid ${Theme30.divider}`
         }
       }
     },
@@ -16051,7 +14827,7 @@ cssRule("i-table", {
           cursor: "pointer"
         },
         ".sort-icon.sort-icon--active > svg": {
-          fill: Theme36.colors.primary.main
+          fill: Theme30.colors.primary.main
         },
         ".sort-icon.sort-icon--desc": {
           marginTop: -5
@@ -16079,12 +14855,12 @@ cssRule("i-table", {
           display: "inline-block"
         },
         "i-icon svg": {
-          fill: Theme36.text.primary
+          fill: Theme30.text.primary
         }
       }
     },
     ".i-table-row--child > td": {
-      borderRight: `1px solid ${Theme36.divider}`
+      borderRight: `1px solid ${Theme30.divider}`
     },
     "@media (max-width: 767px)": {
       $nest: {
@@ -16104,7 +14880,7 @@ cssRule("i-table", {
 });
 
 // packages/table/src/tableColumn.ts
-var Theme37 = theme_exports.ThemeVars;
+var Theme31 = theme_exports.ThemeVars;
 var TableColumn = class extends Control {
   constructor(parent, options) {
     super(parent, options);
@@ -16173,7 +14949,7 @@ var TableColumn = class extends Control {
         name: "caret-up",
         width: 14,
         height: 14,
-        fill: Theme37.text.primary
+        fill: Theme31.text.primary
       });
       this.ascElm.classList.add("sort-icon", "sort-icon--asc");
       this.ascElm.onClick = () => this.sortOrder = this.sortOrder === "asc" ? null : "asc";
@@ -16181,7 +14957,7 @@ var TableColumn = class extends Control {
         name: "caret-down",
         width: 14,
         height: 14,
-        fill: Theme37.text.primary
+        fill: Theme31.text.primary
       });
       this.descElm.classList.add("sort-icon", "sort-icon--desc");
       this.descElm.onClick = () => this.sortOrder = this.sortOrder === "desc" ? null : "desc";
@@ -16209,13 +14985,13 @@ var TableColumn = class extends Control {
         this.sortable = this.column.sortable || false;
         this.renderSort();
       }
-      await super.init();
+      super.init();
     }
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 TableColumn = __decorateClass([
@@ -16308,7 +15084,7 @@ var filterBy = (list, value, columnKey) => {
 };
 
 // packages/table/src/table.ts
-var Theme38 = theme_exports.ThemeVars;
+var Theme32 = theme_exports.ThemeVars;
 var pageSize = 10;
 var Table = class extends Control {
   constructor(parent, options) {
@@ -16528,7 +15304,10 @@ var Table = class extends Control {
     const target = event.target;
     if (target) {
       const rowElm = target.closest(".i-table-row");
-      const colElm = target.closest("i-table-column");
+      let colElm = target.closest("i-table-column");
+      if (!colElm) {
+        colElm = target.firstChild;
+      }
       const tdElm = target.closest("td");
       const rowData = colElm ? colElm.rowData : null;
       if (typeof this.onRowClick === "function") {
@@ -16592,17 +15371,18 @@ var Table = class extends Control {
       tdElm.appendChild(columnElm);
     });
   }
-  renderBody() {
+  async renderBody() {
     this.tBodyElm.innerHTML = "";
     if (this.dataSource && this.dataSource.length) {
       const size = typeof this.paging === "object" && this.paging.pageSize || pageSize;
       const dataList = this.paging ? paginate(this.dataSource, size, this._pagination.currentPage) : this.dataSource;
-      dataList.forEach((row, rowIndex) => {
+      for (let rowIndex = 0; rowIndex < dataList.length; rowIndex++) {
+        const row = dataList[rowIndex];
         const rowElm = this.createElement("tr", this.tBodyElm);
         rowElm.classList.add("i-table-row");
-        const orderClass = (rowIndex + 1) % 2 === 0 ? "even" : "odd";
+        const orderClass = rowIndex % 2 === 0 ? "even" : "odd";
         rowElm.classList.add(orderClass);
-        this.renderRow(rowElm, row, rowIndex);
+        this.renderRow(rowElm, row, rowIndex + 1);
         const hasExpanded = this.expandable && this.expandConfig.rowExpandable !== false;
         if (hasExpanded) {
           const childElm = this.createElement("tr", this.tBodyElm);
@@ -16614,13 +15394,13 @@ var Table = class extends Control {
           }
           const tdChild = this.createElement("td", childElm);
           tdChild.setAttribute("colspan", `${this.columnLength + (this.hasExpandColumn ? 1 : 0)}`);
-          const expandElm = this.expandable.expandedRowRender(row);
+          const expandElm = await this.expandable.expandedRowRender(row);
           if (typeof expandElm === "string")
             tdChild.innerHTML = expandElm;
           else
             tdChild.appendChild(expandElm);
         }
-      });
+      }
     } else {
       const rowElm = this.createElement("tr", this.tBodyElm);
       const tdElm = this.createElement("td", rowElm);
@@ -16656,7 +15436,7 @@ var Table = class extends Control {
     this.tBodyElm.classList.add("i-table-body");
     this.bordered = this.getAttribute("bordered", true) || "";
   }
-  async init() {
+  init() {
     if (!this.tableElm) {
       this.classList.add("i-table");
       this.wrapperElm = this.createElement("div", this);
@@ -16669,13 +15449,13 @@ var Table = class extends Control {
       this.paging = this.attrs.paging;
       this.dataSource = this.attrs.dataSource || [];
       this.firstLoad = false;
-      await super.init();
+      super.init();
     }
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 Table = __decorateClass([
@@ -16683,7 +15463,7 @@ Table = __decorateClass([
 ], Table);
 
 // packages/carousel/src/style/carousel.css.ts
-var Theme39 = theme_exports.ThemeVars;
+var Theme33 = theme_exports.ThemeVars;
 cssRule("i-carousel-slider", {
   display: "block",
   position: "relative",
@@ -16717,12 +15497,12 @@ cssRule("i-carousel-slider", {
           width: "0.8rem",
           height: "0.8rem",
           backgroundColor: "transparent",
-          border: `2px solid ${Theme39.colors.primary.main}`,
+          border: `2px solid ${Theme33.colors.primary.main}`,
           borderRadius: "50%",
           transition: "background-color 0.35s ease-in-out"
         },
         ".--active > span": {
-          backgroundColor: Theme39.colors.primary.main
+          backgroundColor: Theme33.colors.primary.main
         }
       }
     }
@@ -16814,8 +15594,8 @@ var CarouselSlider = class extends Control {
       }, this.autoplaySpeed);
     }
   }
-  async init() {
-    await super.init();
+  init() {
+    super.init();
     this.slidesToShow = this.getAttribute("slidesToShow", true) || 1;
     this.sliderListElm = this.createElement("div", this);
     this.sliderListElm.classList.add("slider-list");
@@ -16830,9 +15610,9 @@ var CarouselSlider = class extends Control {
     this.autoplay = this.getAttribute("autoplay", true);
   }
   static async create(options, parent) {
-    let self = new this(parent, options);
-    await self.controlReady();
-    return self;
+    let component = new this(parent, options);
+    component.init();
+    return component;
   }
 };
 CarouselSlider = __decorateClass([
