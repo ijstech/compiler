@@ -1,4 +1,3 @@
-///<amd-module name='@ijstech/compiler'/>
 import Lib from './lib';
 import TS from "typescript";
 

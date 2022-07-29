@@ -1,4 +1,3 @@
-/// <amd-module name="@ijstech/compiler" />
 import TS from "typescript";
 export interface ICompilerError {
     file: string;

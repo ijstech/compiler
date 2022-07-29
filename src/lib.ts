@@ -1,4 +1,3 @@
-///<amd-module name='@ijstech/compiler/lib'/>
 const Lib:string=`
 declare var global: any;
 declare var NaN: number;

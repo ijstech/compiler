@@ -38,16 +38,14 @@ async function writeFile(fileName, content) {
     catch(err){}
 }
 async function bundle(){    
-    await mkdir(Path.resolve(__dirname, '../bundle'));
-    let content = await readFile(Path.resolve(__dirname, '../src/index.ts'));
-    await writeFile(Path.resolve(__dirname, '../bundle/index.ts'), `
-///<amd-module name='@ijstech/compiler'/>
-${content}
-`);
-    content = await readFile(Path.resolve(__dirname, '../src/lib.ts'));
-    await writeFile(Path.resolve(__dirname, '../bundle/lib.ts'), `
-///<amd-module name='@ijstech/compiler/lib'/>
-${content}
-    `);
+    await copyDir(Path.resolve(__dirname, '../packages/components/dist'), Path.resolve(__dirname, '../dist/lib/components'));
+    await copyFile(Path.resolve(__dirname, '../packages/components/types/index.d.ts'), Path.resolve(__dirname, '../dist/lib/components/index.d.ts'));
+    content = await readFile(Path.resolve(__dirname, '../node_modules/typescript/lib/typescript.js'));
+    await writeFile(Path.resolve(__dirname, '../dist/lib/typescript/index.js'), 
+`define("typescript", ["require", "exports"], function (require, exports) {
+    Object.defineProperty(exports, "__esModule", { value: true }); 
+${content} 
+    exports.default = ts;
+})`);    
 };
 bundle();
