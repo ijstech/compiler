@@ -1,4 +1,3 @@
-///<amd-module name='@ijstech/compiler'/>
 import Lib from './lib';
 import TS from "typescript";
 
@@ -83,7 +82,7 @@ export class Compiler {
         let ast = TS.createSourceFile(
             fileName,
             content,
-            TS.ScriptTarget.ES2015,
+            TS.ScriptTarget.ES2017,
             true
         );
         result = result || [];
@@ -196,7 +195,7 @@ export class Compiler {
         let ast = TS.createSourceFile(
             fileName,
             content,
-            TS.ScriptTarget.ES2015,
+            TS.ScriptTarget.ES2017,
             true
         );
         result = result || [];

@@ -4,18 +4,18 @@ const path = require('path');
 const distPath = path.join(__dirname, '../dist');
 const modulePath = path.join(__dirname, '../test/static');
 
-http.createServer(function (request, response) {    
+http.createServer(function (request, response) {
     var url = request.url;
     var filePath;
-    let files = url.split('/');    
+    let files = url.split('/');
     if (files.length == 2)
         filePath = path.join(modulePath, files[1] || 'index.html')
-    else if (url.indexOf('/dist/') >= 0) 
+    else if (url.indexOf('/dist/') >= 0)
         filePath = path.join(__dirname, '..', url)
     else
-        filePath = path.join(modulePath, url);   
+        filePath = path.join(modulePath, url);
     filePath = path.resolve(filePath);
-    if (!filePath.indexOf(distPath)== 0 && !filePath.indexOf(modulePath) == 0){
+    if (!filePath.indexOf(distPath) == 0 && !filePath.indexOf(modulePath) == 0) {
         response.writeHead(404, { 'Content-Type': 'text/html' });
         response.end(content, 'utf-8');
         return;
@@ -41,19 +41,19 @@ http.createServer(function (request, response) {
 
     var contentType = mimeTypes[extname] || 'application/octet-stream';
 
-    fs.readFile(filePath, function(error, content) {
+    fs.readFile(filePath, function (error, content) {
         if (error) {
             console.dir('File not found!');
             console.dir(request.url);
-            if(error.code == 'ENOENT') {
-                fs.readFile('./404.html', function(error, content) {
+            if (error.code == 'ENOENT') {
+                fs.readFile('./404.html', function (error, content) {
                     response.writeHead(404, { 'Content-Type': 'text/html' });
                     response.end('404 not found!', 'utf-8');
                 });
             }
             else {
                 response.writeHead(500);
-                response.end('Sorry, check with the site admin for error: '+error.code+' ..\n');
+                response.end('Sorry, check with the site admin for error: ' + error.code + ' ..\n');
             }
         }
         else {

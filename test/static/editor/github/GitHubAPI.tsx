@@ -24,11 +24,14 @@ export interface IFile {
 export class GitHubAPI {
 	private owner: string;
 	private repo: string;
+	private branch: string;
 	private _headers: any;
 
-	constructor(owner: string, repo: string, authToken: string) {
+	constructor(owner: string, repo: string, authToken: string, branch?: string) {
 		this.owner = owner;
 		this.repo = repo;
+		if(branch)
+			this.branch = branch;
 		this._headers = {
 			"Accept": `application/vnd.github+json`,
 			'Authorization': `token ${authToken}`
@@ -37,6 +40,9 @@ export class GitHubAPI {
 
 	async getFileTree(commitSHA: string, recursive: boolean = false): Promise<any> {
 		let queryString = recursive ? "?recursive=1" : "";
+		if(this.branch) {
+			queryString += `${queryString ? '&' : ''}ref=${this.branch}`
+		}
 		return new Promise((resolve, reject) => {
 			fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/git/trees/${commitSHA}${queryString}`, {
 				method: 'GET',
@@ -50,8 +56,9 @@ export class GitHubAPI {
 	}
 
 	async getFile(path: string): Promise<any> {
+		let queryString = this.branch ? `?ref=${this.branch}` : "";
 		return new Promise((resolve, reject) => {
-			fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/contents/${path}`, {
+			fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/contents/${path}${queryString}`, {
 				method: 'GET',
 				headers: this._headers
 			}).then(res => res.json()).then(res => {
@@ -66,8 +73,9 @@ export class GitHubAPI {
 	}
 
 	async createFile(path: string, content: string, message: string): Promise<any> {
+		let queryString = this.branch ? `?ref=${this.branch}` : "";
 		return new Promise((resolve, reject) => {
-			fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/contents/${path}`, {
+			fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/contents/${path}${queryString}`, {
 				body: JSON.stringify({
 					content,
 					message
@@ -83,8 +91,9 @@ export class GitHubAPI {
 	}
 
 	async updateFile(path: string, commitSHA: string, content: string, message: string): Promise<any> {
+		let queryString = this.branch ? `?ref=${this.branch}` : "";
 		return new Promise((resolve, reject) => {
-			fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/contents/${path}`, {
+			fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/contents/${path}${queryString}`, {
 				body: JSON.stringify({
 					content,
 					message,
@@ -101,8 +110,9 @@ export class GitHubAPI {
 	}
 
 	async deleteFile(path: string, commitSHA: string, message: string): Promise<any> {
+		let queryString = this.branch ? `?ref=${this.branch}` : "";
 		return new Promise((resolve, reject) => {
-			fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/contents/${path}`, {
+			fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/contents/${path}${queryString}`, {
 				body: JSON.stringify({
 					message,
 					sha: commitSHA
@@ -118,11 +128,12 @@ export class GitHubAPI {
 	}
 
 	private async createBlob(content: string, encoding: encodeType = "utf-8"): Promise<any> {
+		let queryString = this.branch ? `?ref=${this.branch}` : "";
 		if (encoding === 'base64') {
 			content = this.encodeBase64(content);
 		}
 		return new Promise((resolve, reject) => {
-			fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/git/blobs`, {
+			fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/git/blobs${queryString}`, {
 				body: JSON.stringify({
 					content,
 					encoding
@@ -138,9 +149,10 @@ export class GitHubAPI {
 	}
 
 	private async createTree(tree: IGitTree[], baseTreeSHA?: string): Promise<any> {
+		let queryString = this.branch ? `?ref=${this.branch}` : "";
 		return new Promise((resolve, reject) => {
 			const data = baseTreeSHA ? { base_tree: baseTreeSHA, tree } : { tree };
-			fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/git/trees`, {
+			fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/git/trees${queryString}`, {
 				body: JSON.stringify(data),
 				method: 'POST',
 				headers: this._headers
@@ -153,8 +165,9 @@ export class GitHubAPI {
 	}
 
 	private async createCommit(message: string, treeSHA: string, parents?: string[]): Promise<any> {
+		let queryString = this.branch ? `?ref=${this.branch}` : "";
 		return new Promise((resolve, reject) => {
-			fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/git/commits`, {
+			fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/git/commits${queryString}`, {
 				body: JSON.stringify({
 					message,
 					tree: treeSHA,

@@ -1,4 +1,10 @@
-const Lib:string=`
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+define("@ijstech/compiler/lib", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    const Lib = `
 declare var global: any;
 declare var NaN: number;
 declare var Infinity: number;
@@ -15228,4 +15234,250 @@ declare type WebGLPowerPreference = "default" | "high-performance" | "low-power"
 declare type WorkerType = "classic" | "module";
 declare type XMLHttpRequestResponseType = "" | "arraybuffer" | "blob" | "document" | "json" | "text";
 `;
-export default Lib;
+    exports.default = Lib;
+});
+define("@ijstech/compiler", ["require", "exports", "@ijstech/compiler/lib", "typescript"], function (require, exports, lib_1, typescript_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Compiler = exports.resolveAbsolutePath = void 0;
+    lib_1 = __importDefault(lib_1);
+    typescript_1 = __importDefault(typescript_1);
+    ;
+    ;
+    ;
+    function resolveAbsolutePath(baseFilePath, relativeFilePath) {
+        let basePath = baseFilePath.split('/').slice(0, -1).join('/');
+        if (basePath)
+            basePath += '/';
+        let fullPath = basePath + relativeFilePath;
+        return fullPath.split('/')
+            .reduce((result, value) => {
+            if (value === '.') { }
+            else if (value === '..')
+                result.pop();
+            else
+                result.push(value);
+            return result;
+        }, [])
+            .join('/');
+    }
+    exports.resolveAbsolutePath = resolveAbsolutePath;
+    class Compiler {
+        constructor() {
+            this.packages = {};
+            this.scriptOptions = {
+                allowJs: false,
+                alwaysStrict: true,
+                declaration: false,
+                experimentalDecorators: true,
+                resolveJsonModule: false,
+                noEmitOnError: true,
+                module: typescript_1.default.ModuleKind.AMD,
+                outFile: 'index.js',
+                target: typescript_1.default.ScriptTarget.ES2017,
+                "jsx": 2,
+                "jsxFactory": "global.$JSX"
+            };
+            this.dtsOptions = {
+                allowJs: false,
+                alwaysStrict: true,
+                declaration: true,
+                emitDeclarationOnly: true,
+                experimentalDecorators: true,
+                resolveJsonModule: false,
+                module: typescript_1.default.ModuleKind.CommonJS,
+                noEmitOnError: true,
+                target: typescript_1.default.ScriptTarget.ES2017
+            };
+            this.files = {};
+            this.packageFiles = {};
+        }
+        ;
+        async importDependencies(fileName, content, fileImporter, result) {
+            let ast = typescript_1.default.createSourceFile(fileName, content, typescript_1.default.ScriptTarget.ES2017, true);
+            result = result || [];
+            for (let i = 0; i < ast.statements.length; i++) {
+                let node = ast.statements[i];
+                if (node.kind == typescript_1.default.SyntaxKind.ImportDeclaration) {
+                    let module = node.moduleSpecifier.text;
+                    if (module.startsWith('.')) {
+                        let filePath = resolveAbsolutePath(fileName, module);
+                        if (this.files[filePath] == undefined && this.files[filePath + '.ts'] == undefined && this.files[filePath + '.tsx'] == undefined) {
+                            let file = await fileImporter(filePath);
+                            if (file) {
+                                result.push(file.fileName);
+                                this.addFile(file.fileName, file.content);
+                                await this.importDependencies(filePath, file.content, fileImporter, result);
+                            }
+                        }
+                    }
+                    else if (!this.packages[module]) {
+                        let file = await fileImporter(module);
+                        if (file) {
+                            result.push(module);
+                            let pack = {
+                                dts: {
+                                    [file.fileName]: file.content
+                                },
+                                version: ''
+                            };
+                            this.addPackage(module, pack);
+                        }
+                        ;
+                    }
+                    ;
+                }
+                ;
+            }
+            ;
+            return result;
+        }
+        async addFile(fileName, content, dependenciesImporter) {
+            this.files[fileName] = content;
+            if (dependenciesImporter)
+                return await this.importDependencies(fileName, content, dependenciesImporter);
+            else
+                return [];
+        }
+        ;
+        addPackage(packName, pack) {
+            this.packages[packName] = pack;
+            for (let n in pack.dts) {
+                this.packageFiles[packName + '/' + n] = pack.dts[n];
+            }
+        }
+        ;
+        async compile(emitDeclaration) {
+            let result = {
+                errors: [],
+                script: {},
+                dts: {},
+            };
+            const host = {
+                getSourceFile: this.getSourceFile.bind(this),
+                getDefaultLibFileName: () => "lib.d.ts",
+                writeFile: (fileName, content) => {
+                    if (fileName.endsWith('d.ts'))
+                        result.dts[fileName] = content;
+                    else {
+                        result.script[fileName] = content.replace(new RegExp(/\global.\$JSX\(/, 'g'), 'this.$render(');
+                    }
+                },
+                getCurrentDirectory: () => "",
+                getDirectories: (path) => {
+                    return typescript_1.default.sys.getDirectories(path);
+                },
+                getCanonicalFileName: (fileName) => typescript_1.default.sys && typescript_1.default.sys.useCaseSensitiveFileNames ? fileName : fileName.toLowerCase(),
+                getNewLine: () => typescript_1.default.sys && typescript_1.default.sys.newLine ? typescript_1.default.sys.newLine : '\n',
+                useCaseSensitiveFileNames: () => typescript_1.default.sys && typescript_1.default.sys.useCaseSensitiveFileNames ? typescript_1.default.sys.useCaseSensitiveFileNames : false,
+                fileExists: () => true,
+                readFile: this.readFile.bind(this),
+                resolveModuleNames: this.resolveModuleNames.bind(this)
+            };
+            let fileNames = [];
+            for (let f in this.files)
+                fileNames.push(f);
+            let program = typescript_1.default.createProgram(fileNames, this.scriptOptions, host);
+            const emitResult = program.emit();
+            emitResult.diagnostics.forEach(item => {
+                result.errors.push({
+                    category: item.category,
+                    code: item.code,
+                    file: item.file ? item.file.fileName : '',
+                    length: item.length ? item.length : 0,
+                    message: item.messageText,
+                    start: item.start ? item.start : 0
+                });
+            });
+            if (emitDeclaration) {
+                program = typescript_1.default.createProgram(fileNames, this.dtsOptions, host);
+                program.emit();
+            }
+            ;
+            return result;
+        }
+        ;
+        fileExists(fileName) {
+            let result = this.files[fileName] != undefined || this.packageFiles[fileName] != undefined;
+            if (!result && fileName.endsWith('.ts'))
+                result = this.packages[fileName.slice(0, -3)] != undefined;
+            if (!result)
+                console.dir('File not exists: ' + fileName);
+            return result;
+        }
+        ;
+        async getDependencies(fileName, content, fileImporter, result) {
+            let ast = typescript_1.default.createSourceFile(fileName, content, typescript_1.default.ScriptTarget.ES2017, true);
+            result = result || [];
+            for (let i = 0; i < ast.statements.length; i++) {
+                let node = ast.statements[i];
+                if (node.kind == typescript_1.default.SyntaxKind.ImportDeclaration) {
+                    let module = node.moduleSpecifier.text;
+                    if (module.startsWith('.')) {
+                        let filePath = resolveAbsolutePath(fileName, module);
+                        if (result.indexOf(filePath) < 0 && result.indexOf(filePath + '.ts') < 0 && result.indexOf(filePath + '.tsx') < 0) {
+                            if (fileImporter) {
+                                let file = await fileImporter(filePath);
+                                if (file) {
+                                    result.push(file.fileName);
+                                    await this.getDependencies(filePath, file.content, fileImporter, result);
+                                }
+                            }
+                            else
+                                result.push(filePath);
+                        }
+                    }
+                    else if (result.indexOf(module) < 0) {
+                        if (fileImporter)
+                            await fileImporter(module);
+                        result.push(module);
+                    }
+                }
+            }
+            return result;
+        }
+        ;
+        getSourceFile(fileName, languageVersion, onError) {
+            if (fileName == 'lib.d.ts') {
+                return typescript_1.default.createSourceFile(fileName, lib_1.default, languageVersion);
+            }
+            ;
+            let content = this.packageFiles[fileName] || this.files[fileName];
+            if (!content) {
+                console.dir('File not exists: ' + fileName);
+            }
+            return typescript_1.default.createSourceFile(fileName, content, languageVersion);
+        }
+        ;
+        readFile(fileName) {
+            return;
+        }
+        ;
+        resolveModuleNames(moduleNames, containingFile) {
+            let resolvedModules = [];
+            for (const moduleName of moduleNames) {
+                let result = typescript_1.default.resolveModuleName(moduleName, containingFile, this.scriptOptions, {
+                    fileExists: this.fileExists.bind(this),
+                    readFile: this.readFile.bind(this)
+                });
+                if (result.resolvedModule) {
+                    if (!moduleName.startsWith('./')) {
+                        resolvedModules.push({
+                            resolvedFileName: moduleName + '/index.d.ts',
+                            extension: '.ts',
+                            isExternalLibraryImport: true
+                        });
+                    }
+                    else
+                        resolvedModules.push(result.resolvedModule);
+                }
+                ;
+            }
+            ;
+            return resolvedModules;
+        }
+        ;
+    }
+    exports.Compiler = Compiler;
+    ;
+});
