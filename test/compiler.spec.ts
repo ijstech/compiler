@@ -179,7 +179,7 @@ describe('Compiler', async function () {
     // });
     it('scbook project', async () => {
         let compiler = new Compiler();
-        const entrypoints = ['scbook/index.tsx', 'scbook/components/header.tsx', 'scbook/components/navigator.tsx', 'scbook/components/paging.tsx', 'scbook/components/search.tsx'];
+        const entrypoints = ['scbook/components/header.tsx', 'scbook/components/navigator.tsx', 'scbook/components/paging.tsx', 'scbook/components/search.tsx', 'scbook/index.tsx'];
         for(let entrypoint of entrypoints) {
             const content = fs.readFileSync(Path.join(process.cwd(), 'test', 'scripts', entrypoint)).toString();
             await compiler.addFile(entrypoint, content, fileImporter);
