@@ -398,83 +398,22 @@ define("github/GitHubAPI", ["require", "exports"], function (require, exports) {
     }
     exports.GitHubAPI = GitHubAPI;
 });
-define("editor", ["require", "exports", "@ijstech/components", "@ijstech/compiler", "samples", "editor.css"], function (require, exports, components_2, compiler_1, samples_1) {
+define("editor", ["require", "exports", "@ijstech/components", "@ijstech/compiler", "samples", "github/GitHubAPI", "editor.css"], function (require, exports, components_2, compiler_1, samples_1, GitHubAPI_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     samples_1 = __importDefault(samples_1);
     components_2.Styles.Theme.applyTheme(components_2.Styles.Theme.darkTheme);
     const Theme = components_2.Styles.Theme.ThemeVars;
     class CodeEditorModule extends components_2.Module {
-        async run() {
-            await this.ifrPreview.reload();
-            let compiler = new compiler_1.Compiler();
-            await compiler.addFile('src/index.tsx', samples_1.default['src/index.tsx'], this.fileImporter);
-            let result = await compiler.compile();
-            console.dir(result);
-            let contentWindow = this.ifrPreview.iframeElm.contentWindow;
-            contentWindow.postMessage(JSON.stringify({ script: result.script['index.js'] }));
+        async init() {
+            var _a;
+            await super.init();
+            this._gha = new GitHubAPI_1.GitHubAPI('mike-yuen', 'scbook', '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', 'develop');
+            const fileTree = await this._gha.getFileTree('5c86eb58c6bc8f0c766736f038d7c1ab86cc1619', true);
+            if ((_a = fileTree.tree) === null || _a === void 0 ? void 0 : _a.length)
+                this.loadFiles(fileTree.tree);
         }
-        async handleTreeViewClick() {
-            if (this.tvFiles.activeItem) {
-                let tag = this.tvFiles.activeItem.tag;
-                if (tag && tag.fileName) {
-                    if (tag.tab)
-                        return tag.tab.active();
-                    else {
-                        if (!this.tsEditors.activeTab || !this.tabCodeTemp) {
-                            this.tabCodeTemp = this.tsEditors.add();
-                        }
-                        ;
-                        if (!this.edtCodeTemp) {
-                            this.edtCodeTemp = new components_2.CodeEditor(this.tabCodeTemp);
-                            this.edtCodeTemp.onChange = this.handleFileChange;
-                            this.edtCodeTemp.dock = 'fill';
-                        }
-                        ;
-                        let model = await components_2.CodeEditor.getFileModel(tag.fileName);
-                        if (!model) {
-                            let deps = await this.compiler.getDependencies(tag.fileName, tag.content, this.fileImporter);
-                            model = await components_2.CodeEditor.addFile(tag.fileName, tag.content);
-                        }
-                        ;
-                        this.tabCodeTemp.title = tag.fileName;
-                        this.tabCodeTemp.tag = { treeNode: this.tvFiles.activeItem };
-                        this.edtCodeTemp.tag = { fileName: tag.fileName };
-                        this.edtCodeTemp.loadContent(tag.content, 'typescript', tag.fileName);
-                        this.tabCodeTemp.caption = tag.fileName.split('/').pop() || 'Untitled';
-                        this.tabCodeTemp.active();
-                    }
-                }
-            }
-        }
-        async fileImporter(fileName) {
-            if (fileName == '@ijstech/components') {
-                let res = await fetch('/dist/lib/components/index.d.ts');
-                let content = await res.text();
-                components_2.CodeEditor.addLib(fileName, content);
-                return {
-                    fileName: 'index.d.ts',
-                    content: content
-                };
-            }
-            else {
-                if (samples_1.default[fileName + '.ts'])
-                    fileName = fileName + '.ts';
-                else if (samples_1.default[fileName + '.tsx'])
-                    fileName = samples_1.default[fileName + '.tsx'];
-                else if (samples_1.default[fileName + '.d.ts'])
-                    fileName = samples_1.default[fileName + '.d.ts'];
-                else
-                    return null;
-                components_2.CodeEditor.addFile(fileName, samples_1.default[fileName]);
-                return {
-                    fileName: fileName,
-                    content: samples_1.default[fileName]
-                };
-            }
-            ;
-        }
-        async loadFiles() {
+        async loadFiles(fileTree) {
             this.tvFiles.clear();
             let fileNodes = {};
             let self = this;
@@ -490,15 +429,15 @@ define("editor", ["require", "exports", "@ijstech/components", "@ijstech/compile
                     else
                         node = fileNodes[name];
                 }
-                ;
                 return node;
             }
             let files = [];
-            for (let fileName in samples_1.default)
-                files.push({
-                    paths: fileName.split('/'),
-                    content: samples_1.default[fileName]
-                });
+            fileTree.forEach((file) => {
+                if (file.type !== 'tree')
+                    files.push({
+                        paths: file.path.split('/'),
+                    });
+            });
             files.sort((item1, item2) => {
                 if (item1.paths.length > item2.paths.length)
                     return -1;
@@ -512,12 +451,104 @@ define("editor", ["require", "exports", "@ijstech/components", "@ijstech/compile
                 if (node)
                     node.tag = {
                         fileName: files[i].paths.join('/'),
-                        content: files[i].content
+                        content: files[i].paths.join('/'),
                     };
             }
-            ;
         }
-        ;
+        async fileImporter(fileName) {
+            const getFileFromGithub = async (fileName) => {
+                const gha = new GitHubAPI_1.GitHubAPI('mike-yuen', 'scbook', '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', 'develop');
+                if (fileName.substr(fileName.indexOf('.')) === '.css') {
+                    let file = await gha.getFile(`${fileName}.ts`);
+                    if (file.content)
+                        return { fileName: file.path, content: file.content };
+                }
+                let file = await gha.getFile(fileName);
+                if (file.content)
+                    return { fileName: file.path, content: file.content };
+                file = await gha.getFile(`${fileName}.ts`);
+                if (file.content)
+                    return { fileName: file.path, content: file.content };
+                file = await gha.getFile(`${fileName}.tsx`);
+                if (file.content)
+                    return { fileName: file.path, content: file.content };
+                file = await gha.getFile(`${fileName}.d.ts`);
+                if (file.content)
+                    return { fileName: file.path, content: file.content };
+                return null;
+            };
+            if (fileName.indexOf('@ijstech') >= 0) {
+                let res = await fetch('/dist/lib/components/index.d.ts');
+                let content = await res.text();
+                components_2.CodeEditor.addLib(fileName, content);
+                return {
+                    fileName: 'index.d.ts',
+                    content: content,
+                };
+            }
+            else {
+                const file = await getFileFromGithub(fileName);
+                if (file) {
+                    console.log('fileImporter', file.fileName);
+                    components_2.CodeEditor.addFile(file.fileName, file.content);
+                    return {
+                        fileName: file.fileName,
+                        content: file.content,
+                    };
+                }
+                else {
+                    return null;
+                }
+            }
+        }
+        async handleTreeViewClick() {
+            console.log("handle tree view click");
+            if (this.tvFiles.activeItem) {
+                let tag = this.tvFiles.activeItem.tag;
+                if (tag && tag.fileName) {
+                    const language = this.getLanguageByFileName(tag.fileName);
+                    const content = await this._gha.getFile(tag.fileName);
+                    tag.content = content.content;
+                    if (tag.tab)
+                        return tag.tab.active();
+                    else {
+                        if (!this.tsEditors.activeTab || !this.tabCodeTemp) {
+                            this.tabCodeTemp = await this.tsEditors.add();
+                        }
+                        if (!this.edtCodeTemp) {
+                            this.edtCodeTemp = new components_2.CodeEditor(this.tabCodeTemp);
+                            this.edtCodeTemp.onChange = this.handleFileChange;
+                            this.edtCodeTemp.dock = 'fill';
+                        }
+                        let model = await components_2.CodeEditor.getFileModel(tag.fileName);
+                        if (!model) {
+                            let deps = await this.compiler.getDependencies(tag.fileName, tag.content, this.fileImporter);
+                            model = await components_2.CodeEditor.addFile(tag.fileName, tag.content);
+                        }
+                        this.edtCodeTemp.tag = { fileName: tag.fileName };
+                        this.edtCodeTemp.loadContent(tag.content, language, tag.fileName);
+                        if (this.tabCodeTemp) {
+                            this.tabCodeTemp.title = tag.fileName;
+                            this.tabCodeTemp.tag = { treeNode: this.tvFiles.activeItem };
+                            this.tabCodeTemp.caption = tag.fileName.split('/').pop() || 'Untitled';
+                            this.tabCodeTemp.active();
+                        }
+                    }
+                }
+            }
+        }
+        async run() {
+            await this.ifrPreview.refresh();
+            let compiler = new compiler_1.Compiler();
+            const indexPath = `scbook/modules/index.tsx`;
+            const indexContent = await this._gha.getFile(indexPath);
+            console.log('indexContent', indexContent);
+            await compiler.addFile(indexPath, indexContent.content, this.fileImporter);
+            let result = await compiler.compile();
+            console.log('compilation result', result);
+            let contentWindow = this.ifrPreview.iframeElm.contentWindow;
+            contentWindow.postMessage(JSON.stringify({ script: result.script['index.js'] }));
+        }
         handleFileChange(target, event) {
             var _a;
             let fileName = (_a = target.tag) === null || _a === void 0 ? void 0 : _a.fileName;
@@ -596,17 +627,13 @@ define("editor", ["require", "exports", "@ijstech/components", "@ijstech/compile
             }
         }
         reload() {
-            this.ifrPreview.reload();
-        }
-        async init() {
-            await super.init();
-            this.loadFiles();
+            this.ifrPreview.refresh();
         }
         render() {
             return (this.$render("i-panel", { id: "pnlMain", dock: "fill" },
                 this.$render("i-panel", { id: "header", height: 30, dock: "top" },
                     this.$render("i-panel", { dock: "right" },
-                        this.$render("i-button", { caption: "Run", icon: "caret-right", height: 30, width: 100, margin: { top: 5, left: 4 }, onClick: this.run })),
+                        this.$render("i-button", { caption: "Run", icon: { name: 'caret-right' }, height: 30, width: 100, margin: { top: 5, left: 4 }, onClick: this.run })),
                     this.$render("i-panel", { dock: "right", width: 140, padding: { top: 4, bottom: 4 } },
                         this.$render("i-hstack", null,
                             this.$render("i-label", { caption: "Preview", width: 60 }),
@@ -633,15 +660,15 @@ define("editor", ["require", "exports", "@ijstech/components", "@ijstech/compile
                                 height: 20,
                             } }))),
                 this.$render("i-panel", { id: "pnlCode", dock: "fill" },
-                    this.$render("i-tabs", { id: "tsEditors", dock: "fill", draggable: true, closable: true, onTabClosed: this.handleEditorTabClose },
+                    this.$render("i-tabs", { id: "tsEditors", dock: "fill", draggable: true, closable: true },
                         this.$render("i-tab", { id: "tabCodeTemp", caption: "untitled" },
                             this.$render("i-code-editor", { id: "edtCodeTemp", dock: "fill", onChange: this.handleFileChange })))),
                 this.$render("i-panel", { id: "pnlPreview", dock: "right", width: "35%", resizer: true },
                     this.$render("i-panel", { dock: "top", height: 30, padding: { top: 5, bottom: 5 } },
                         this.$render("i-panel", { dock: "left", width: 80 },
-                            this.$render("i-button", { icon: "angle-left", width: 20, height: 20 }),
-                            this.$render("i-button", { icon: "angle-right", margin: { left: 4 }, width: 20, height: 20 }),
-                            this.$render("i-button", { icon: "redo", margin: { left: 4 }, width: 20, height: 20, onClick: this.reload })),
+                            this.$render("i-button", { icon: { name: 'angle-left' }, width: 20, height: 20 }),
+                            this.$render("i-button", { icon: { name: 'redo' }, margin: { left: 4 }, width: 20, height: 20 }),
+                            this.$render("i-button", { icon: { name: 'redo' }, margin: { left: 4 }, width: 20, height: 20, onClick: this.reload })),
                         this.$render("i-input", { dock: "fill", value: "https://localhost", margin: { right: 10 } })),
                     this.$render("i-iframe", { id: "ifrPreview", url: "/launcher.html", dock: "fill" }))));
         }
