@@ -9,5 +9,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="components" />
+    <orderEntry type="module" module-name="johnny-new" />
   </component>
 </module>

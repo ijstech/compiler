@@ -608,6 +608,7 @@ define("editor", ["require", "exports", "@ijstech/components", "@ijstech/compile
         }
         handleTreeViewDblClick() {
             var _a;
+            console.log('ojo');
             let nodeData = (_a = this.tvFiles.activeItem) === null || _a === void 0 ? void 0 : _a.tag;
             if (this.tabCodeTemp && nodeData && !nodeData.tab) {
                 this.tabCodeTemp.font.style = 'normal';

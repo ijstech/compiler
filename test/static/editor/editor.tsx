@@ -156,7 +156,6 @@ export default class CodeEditorModule extends Module {
   }
 
   async handleTreeViewClick() {
-    console.log("handle tree view click")
     if (this.tvFiles.activeItem) {
       let tag: ITreeNodeData = this.tvFiles.activeItem.tag
       if (tag && tag.fileName) {
@@ -389,10 +388,6 @@ export default class CodeEditorModule extends Module {
     }
     return language
   }
-
-
-
-
 
   handleTreeViewDblClick() {
     let nodeData: ITreeNodeData = this.tvFiles.activeItem?.tag
