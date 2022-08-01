@@ -472,7 +472,6 @@ export default class CodeEditorModule extends Module {
                 >
                   <i-tree-view
                     id="tvFiles"
-                    dock="fill"
                     onClick={this.handleTreeViewClick}
                     onDblClick={this.handleTreeViewDblClick}
                   ></i-tree-view>
