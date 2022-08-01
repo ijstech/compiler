@@ -39,8 +39,8 @@ async function writeFile(fileName, content) {
 }
 async function bundle() {
     let content = await readFile(Path.resolve(__dirname, '../src/lib/lib.d.ts'));
-    await writeFile(Path.resolve(__dirname, '../src/lib.ts'), `///<amd-module name='@ijstech/compiler/lib'/>
-const Lib:string=\`
+    await writeFile(Path.resolve(__dirname, '../src/lib.ts'), //`///<amd-module name='@ijstech/compiler/lib'/>
+`const Lib:string=\`
 ${content}\`;
 export default Lib;`)
 }
