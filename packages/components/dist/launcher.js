@@ -8571,6 +8571,7 @@ var Control = class extends Component {
     if (this.getAttribute("visible") == false)
       this.visible = false;
     this.setAttributeToProperty("background");
+    this.setAttributeToProperty("zIndex");
     this.setAttributeToProperty("lineHeight");
     this.setAttributeToProperty("linkTo");
     this.setAttributeToProperty("minHeight");
@@ -8584,7 +8585,14 @@ var Control = class extends Component {
     }
     this.setAttributeToProperty("display");
   }
-  calculatePositon() {
+  setElementPosition(elm, prop, value) {
+    if (value != null && !isNaN(value)) {
+      this["_" + prop] = parseFloat(value);
+      elm.style[prop] = parseFloat(value) + "px";
+    } else if (value != null) {
+      this["_" + prop] = value;
+      elm.style[prop] = value;
+    }
   }
   setPosition(prop, value) {
     if (value != null && !isNaN(value)) {
@@ -8670,6 +8678,12 @@ var Control = class extends Component {
   }
   set background(value) {
     this.style.background = value;
+  }
+  get zIndex() {
+    return this.style.zIndex;
+  }
+  set zIndex(value) {
+    this.style.zIndex = "" + value;
   }
   get lineHeight() {
     return this._lineHeight;
@@ -8941,7 +8955,8 @@ cssRule("i-checkbox", {
     ".i-checkbox": {
       display: "inline-flex",
       alignItems: "center",
-      position: "relative"
+      position: "relative",
+      maxWidth: "100%"
     },
     ".i-checkbox_input": {
       cursor: "pointer",
@@ -8964,7 +8979,7 @@ cssRule("i-checkbox", {
       color: Theme2.text.primary,
       display: "inline-block",
       paddingLeft: 8,
-      lineHeight: 1
+      maxWidth: "100%"
     },
     "input": {
       opacity: 0,
@@ -9003,7 +9018,7 @@ cssRule("i-checkbox", {
       borderLeft: 0,
       borderTop: 0,
       height: 7.5,
-      left: 5.5,
+      left: "35%",
       top: 1,
       transform: "rotate(45deg) scaleY(0)",
       width: 3.5,
@@ -9055,7 +9070,7 @@ var Checkbox = class extends Control {
     if (!value)
       return;
     this._captionWidth = value;
-    this.captionSpanElm && (this.captionSpanElm.style.width = value + "px");
+    this.setElementPosition(this.captionSpanElm, "width", value);
   }
   get height() {
     return this.offsetHeight;
@@ -9064,24 +9079,6 @@ var Checkbox = class extends Control {
     if (typeof value == "string")
       value = parseInt(value);
     this._height = value;
-  }
-  get value() {
-    return this._value;
-  }
-  set value(value) {
-    this._value = value;
-    this.addClass(value, "is-checked");
-    if (this.inputElm) {
-      this.inputElm.checked = !!value;
-    }
-  }
-  get width() {
-    return this.offsetWidth;
-  }
-  set width(value) {
-    this._width = value;
-    this.style.width = value + "px";
-    this._captionWidth = this._width - 20;
   }
   get indeterminate() {
     return this._indeterminate;
@@ -9097,14 +9094,19 @@ var Checkbox = class extends Control {
   set checked(value) {
     this._checked = value;
     this.addClass(value, "is-checked");
-    if (this.inputElm)
-      this.inputElm.checked = value;
+    this.inputElm && (this.inputElm.checked = value);
   }
-  _handleChange(source, event) {
+  get value() {
+    return this.inputElm.value;
+  }
+  set value(data) {
+    this.inputElm.value = data;
+  }
+  _handleChange(event) {
     this.checked = this.inputElm.checked || false;
     this.addClass(this.checked, "is-checked");
     if (this.onChange)
-      this.onChange(this, this.checked);
+      this.onChange(this, event);
   }
   addClass(value, className) {
     if (value)
@@ -9114,7 +9116,6 @@ var Checkbox = class extends Control {
   }
   init() {
     if (!this.captionSpanElm) {
-      this.value = this.getAttribute("value", true);
       this.wrapperElm = this.createElement("label", this);
       if (this.height)
         this.wrapperElm.style.height = this.height + "px";
@@ -9131,14 +9132,10 @@ var Checkbox = class extends Control {
       this.inputElm.addEventListener("input", this._handleChange.bind(this));
       this.captionSpanElm = this.createElement("span", this.wrapperElm);
       this.captionSpanElm.classList.add("i-checkbox_label");
-      this.captionWidth = parseInt(this.getAttribute("captionWidth", true));
+      this.captionWidth = this.getAttribute("captionWidth", true);
       this.caption = this.getAttribute("caption", true);
-      this.inputElm.value = this.caption;
+      this.value = this.caption;
       this.checked = this.getAttribute("checked", true, false);
-      if (typeof this.value === "boolean") {
-        this.inputElm.checked = this.value;
-      }
-      this.addClass(this.inputElm.checked, "is-checked");
       this.indeterminate = this.getAttribute("indeterminate");
       this.inputElm.indeterminate = this.indeterminate;
       if (this.onRender && typeof this.onRender === "function") {
@@ -9156,9 +9153,6 @@ var Checkbox = class extends Control {
     return component;
   }
 };
-__decorateClass([
-  observable("value")
-], Checkbox.prototype, "_value", 2);
 Checkbox = __decorateClass([
   customElements2("i-checkbox")
 ], Checkbox);
@@ -10676,7 +10670,7 @@ var ComboBox = class extends Control {
   }
   set captionWidth(value) {
     this._captionWidth = value;
-    this.labelElm.style.width = value + "px";
+    this.setElementPosition(this.labelElm, "width", value);
   }
   get items() {
     return this._items;
@@ -11082,13 +11076,15 @@ var Datepicker = class extends Control {
       this.labelElm.style.display = "";
   }
   get captionWidth() {
-    return this._captionWidth;
+    return this.labelElm.offsetWidth;
   }
   set captionWidth(value) {
     this._captionWidth = value;
-    this.labelElm.style.width = value + "px";
-    let inputWidth = Number(this._width) - this._captionWidth - (this._iconWidth || 0);
-    this.inputElm.style.width = inputWidth + "px";
+    this.setElementPosition(this.labelElm, "width", value);
+    const width = typeof this._width === "string" ? this._width : `${this._width}px`;
+    const captionWidth = typeof this._captionWidth === "string" ? this._captionWidth : `${this._captionWidth}px`;
+    const iconWidth = `${this._iconWidth || 0}px`;
+    this.inputElm.style.width = `calc(${width} - ${captionWidth} - ${iconWidth})`;
   }
   get height() {
     return this.offsetHeight;
@@ -11105,8 +11101,10 @@ var Datepicker = class extends Control {
   set width(value) {
     this._width = value;
     this.style.width = value + "px";
-    let inputWidth = this._width - this._captionWidth - (this._iconWidth || 0);
-    this.inputElm.style.width = inputWidth + "px";
+    const width = typeof this._width === "string" ? this._width : `${this._width}px`;
+    const captionWidth = typeof this._captionWidth === "string" ? this._captionWidth : `${this._captionWidth}px`;
+    const iconWidth = `${this._iconWidth || 0}px`;
+    this.inputElm.style.width = `calc(${width} - ${captionWidth} - ${iconWidth})`;
   }
   get value() {
     return this._value;
@@ -11388,15 +11386,16 @@ var Range = class extends Control {
       this.labelElm.style.display = "";
   }
   get captionWidth() {
-    return this._captionWidth;
+    return this.labelElm.offsetWidth;
   }
   set captionWidth(value) {
     this._captionWidth = value;
-    this.labelElm.style.width = value + "px";
-    let inputWidth = Number(this._width) - this._captionWidth;
-    this.inputContainerElm.style.width = inputWidth + "px";
+    this.setElementPosition(this.labelElm, "width", value);
+    const width = typeof this._width === "string" ? this._width : `${this._width}px`;
+    const captionWidth = typeof this._captionWidth === "string" ? this._captionWidth : `${this._captionWidth}px`;
+    this.inputContainerElm.style.width = `calc(${width} - ${captionWidth})`;
     if (this.labels) {
-      this.rangeLabelListElm.style.paddingLeft = this.captionWidth + "px";
+      this.rangeLabelListElm.style.paddingLeft = captionWidth;
     }
   }
   get height() {
@@ -11429,10 +11428,11 @@ var Range = class extends Control {
   set width(value) {
     this._width = value;
     this.style.width = value + "px";
-    let inputWidth = this._width - this._captionWidth;
-    this.inputContainerElm.style.width = inputWidth + "px";
+    const width = typeof this._width === "string" ? this._width : `${this._width}px`;
+    const captionWidth = typeof this._captionWidth === "string" ? this._captionWidth : `${this._captionWidth}px`;
+    this.inputContainerElm.style.width = `calc(${width} - ${captionWidth})`;
     if (this.labels) {
-      this.rangeLabelListElm.style.paddingLeft = this.captionWidth + "px";
+      this.rangeLabelListElm.style.paddingLeft = captionWidth;
     }
   }
   get _ratio() {
@@ -11509,8 +11509,10 @@ var Range = class extends Control {
           this.onMouseUp(this, this.value);
         });
       if (this.onKeyUp)
-        this.inputElm.addEventListener("keyup", () => {
-          this.onMouseUp(this, this.value);
+        this.inputElm.addEventListener("keyup", (e) => {
+          const keys = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "PageUp", "PageDown"];
+          if (keys.includes(e.key))
+            this.onMouseUp(this, this.value);
         });
       this.tooltipElm = this.createElement("span", this.inputContainerElm);
       this.tooltipElm.classList.add("tooltip");
@@ -11520,7 +11522,7 @@ var Range = class extends Control {
         const stepContainer = this.createElement("div", this);
         stepContainer.classList.add("slider-step");
         if (this.caption) {
-          stepContainer.style.width = Number(this._width) - this._captionWidth + "px";
+          stepContainer.style.width = Number(this._width) - this.captionWidth + "px";
           stepContainer.style.marginLeft = this.captionWidth + "px";
         } else {
           stepContainer.style.width = "100%";
@@ -11615,7 +11617,7 @@ var Radio = class extends Control {
   }
   set captionWidth(value) {
     this._captionWidth = value;
-    this.captionSpanElm.style.width = value + "px";
+    this.setElementPosition(this.captionSpanElm, "width", value);
   }
   addClass(value) {
     if (value)
@@ -11892,8 +11894,9 @@ var Input = class extends Control {
     } else {
       this.style.width = value + "px";
       const clearBtnWidth = this._clearable ? this._clearBtnWidth : 0;
-      let inputWidth = Number(this._width) - this._captionWidth - clearBtnWidth;
-      this.inputElm.style.width = inputWidth + "px";
+      const captionWidth = typeof this._captionWidth === "string" ? this._captionWidth : `${this._captionWidth}px`;
+      const width = typeof this._width === "string" ? this._width : `${this._width}px`;
+      this.inputElm.style.width = `calc(${width} - ${captionWidth} - ${clearBtnWidth}px)`;
     }
   }
   get readOnly() {
@@ -14833,6 +14836,7 @@ var TreeNode = class extends Control {
     super(parent, options);
     this._editable = false;
     options && (this.data = options);
+    this.handleEdit = this.handleEdit.bind(this);
   }
   get data() {
     return this._data;
@@ -14906,10 +14910,6 @@ var TreeNode = class extends Control {
   }
   set editable(value) {
     this._editable = value;
-    if (value)
-      this.addEventListener("dblclick", this.handleEdit.bind(this));
-    else
-      this.removeEventListener("dblclick", this.handleEdit.bind(this));
   }
   get rootParent() {
     return this.closest("i-tree-view");
@@ -14986,6 +14986,16 @@ var TreeNode = class extends Control {
     ;
     if (this._parent instanceof TreeView) {
       this._parent._setActiveItem(this, event);
+      this._parent.onClick(this._parent, event);
+    }
+    ;
+    return super._handleClick(event, true);
+  }
+  _handleDblClick(event) {
+    if (this.editable) {
+      this.handleEdit(event);
+    } else if (this._parent instanceof TreeView) {
+      this._parent.onDblClick(this._parent, event);
     }
     ;
     return super._handleClick(event, true);
@@ -18868,18 +18878,17 @@ var Table = class extends Control {
       tdElm.appendChild(columnElm);
     });
   }
-  async renderBody() {
+  renderBody() {
     this.tBodyElm.innerHTML = "";
     if (this.dataSource && this.dataSource.length) {
       const size = typeof this.paging === "object" && this.paging.pageSize || pageSize;
       const dataList = this.paging ? paginate(this.dataSource, size, this._pagination.currentPage) : this.dataSource;
-      for (let rowIndex = 0; rowIndex < dataList.length; rowIndex++) {
-        const row = dataList[rowIndex];
+      dataList.forEach(async (row, rowIndex) => {
         const rowElm = this.createElement("tr", this.tBodyElm);
         rowElm.classList.add("i-table-row");
-        const orderClass = rowIndex % 2 === 0 ? "even" : "odd";
+        const orderClass = (rowIndex + 1) % 2 === 0 ? "even" : "odd";
         rowElm.classList.add(orderClass);
-        this.renderRow(rowElm, row, rowIndex + 1);
+        this.renderRow(rowElm, row, rowIndex);
         const hasExpanded = this.expandable && this.expandConfig.rowExpandable !== false;
         if (hasExpanded) {
           const childElm = this.createElement("tr", this.tBodyElm);
@@ -18897,7 +18906,7 @@ var Table = class extends Control {
           else
             tdChild.appendChild(expandElm);
         }
-      }
+      });
     } else {
       const rowElm = this.createElement("tr", this.tBodyElm);
       const tdElm = this.createElement("td", rowElm);

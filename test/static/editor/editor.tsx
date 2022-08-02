@@ -185,6 +185,7 @@ export default class CodeEditorModule extends Module {
   }
 
   async handleTreeViewClick() {
+    console.log('handleTreeViewClick')
     if (this.tvFiles.activeItem) {
       let tag: ITreeNodeData = this.tvFiles.activeItem.tag
       if (tag && tag.fileName) {
@@ -413,9 +414,13 @@ export default class CodeEditorModule extends Module {
   }
 
   handleTreeViewDblClick() {
+    console.log('handleTreeViewDblClick')
+    return;
     let nodeData: ITreeNodeData = this.tvFiles.activeItem?.tag
+    console.log('node', this.tvFiles.activeItem);
+    console.log('nodeData', nodeData);
     if (this.tabCodeTemp && nodeData && !nodeData.tab) {
-      this.tabCodeTemp.font.style = 'normal'
+      // this.tabCodeTemp.font.style = 'normal'
       nodeData.tab = this.tabCodeTemp
       nodeData.editor = this.edtCodeTemp
       this.tabCodeTemp = undefined
