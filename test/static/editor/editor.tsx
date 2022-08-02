@@ -11,7 +11,6 @@ import {
   TreeNode,
   Iframe,
   LanguageType,
-    Icon
 } from '@ijstech/components'
 import { Compiler } from '@ijstech/compiler'
 
@@ -41,19 +40,42 @@ export default class CodeEditorModule extends Module {
   private _compiler: Compiler
 
   private _gha: GitHubAPI
+  private _indexedDB: any = null
 
   async init() {
     await super.init()
     this._gha = new GitHubAPI(
-        'mike-yuen',
-        'scbook',
-        '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',
-        'develop'
+      'mike-yuen',
+      'scbook',
+      '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',
+      'develop'
     )
     const fileTree = await this._gha.getFileTree(
-        '5c86eb58c6bc8f0c766736f038d7c1ab86cc1619',
-        true
+      '5c86eb58c6bc8f0c766736f038d7c1ab86cc1619',
+      true
     )
+
+    const openRequest = await window.indexedDB.open('compiler-db', 1)
+
+    openRequest.onupgradeneeded = (e) => {
+      switch (e.oldVersion) {
+        case 0:
+          this._indexedDB = openRequest.result
+          this._indexedDB.createObjectStore('changed-files', {
+            autoIncrement: true,
+          })
+          break
+      }
+    }
+
+    openRequest.onerror = () => {
+      console.error('Error', openRequest.error)
+    }
+
+    openRequest.onsuccess = () => {
+      this._indexedDB = openRequest.result
+    }
+
     // if (files.tree?.length) {
     //   for (let node of files.tree) {
     //     const file = await gha.getFile(node.path)
@@ -61,6 +83,13 @@ export default class CodeEditorModule extends Module {
     //   }
     // }
     if (fileTree.tree?.length) this.loadFiles(fileTree.tree)
+  }
+
+  addDataToIndexedDB() {
+    this._indexedDB
+      .transaction('changed-files', 'readwrite')
+      .objectStore('changed-files')
+      .add('value-demo')
   }
 
   async loadFiles(fileTree: any[]) {
@@ -105,33 +134,34 @@ export default class CodeEditorModule extends Module {
   }
 
   async fileImporter(
-      fileName: string
+    fileName: string
   ): Promise<{ fileName: string; content: string } | null> {
-
-    const getFileFromGithub = async (fileName: string): Promise<{fileName: string, content: string} | null> => {
+    const getFileFromGithub = async (
+      fileName: string
+    ): Promise<{ fileName: string; content: string } | null> => {
       const gha = new GitHubAPI(
-          'mike-yuen',
-          'scbook',
-          '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',
-          'develop'
-      );
-      if(fileName.substr(fileName.indexOf('.')) === '.css') {
-        let file = await gha.getFile(`${fileName}.ts`);
-        if(file.content) return { fileName: file.path, content: file.content};
+        'mike-yuen',
+        'scbook',
+        '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',
+        'develop'
+      )
+      if (fileName.substr(fileName.indexOf('.')) === '.css') {
+        let file = await gha.getFile(`${fileName}.ts`)
+        if (file.content) return { fileName: file.path, content: file.content }
       }
-      let file = await gha.getFile(fileName);
-      if(file.content) return { fileName: file.path, content: file.content};
-      file = await gha.getFile(`${fileName}.ts`);
-      if(file.content) return { fileName: file.path, content: file.content};
-      file = await gha.getFile(`${fileName}.tsx`);
-      if(file.content) return { fileName: file.path, content: file.content};
-      file = await gha.getFile(`${fileName}.d.ts`);
-      if(file.content) return { fileName: file.path, content: file.content};
-      return null;
+      let file = await gha.getFile(fileName)
+      if (file.content) return { fileName: file.path, content: file.content }
+      file = await gha.getFile(`${fileName}.ts`)
+      if (file.content) return { fileName: file.path, content: file.content }
+      file = await gha.getFile(`${fileName}.tsx`)
+      if (file.content) return { fileName: file.path, content: file.content }
+      file = await gha.getFile(`${fileName}.d.ts`)
+      if (file.content) return { fileName: file.path, content: file.content }
+      return null
     }
 
     // if (fileName == '@ijstech/components') {
-    if(fileName.indexOf('@ijstech') >= 0) {
+    if (fileName.indexOf('@ijstech') >= 0) {
       let res = await fetch('/dist/lib/components/index.d.ts')
       let content = await res.text()
       CodeEditor.addLib(fileName, content)
@@ -140,17 +170,16 @@ export default class CodeEditorModule extends Module {
         content: content,
       }
     } else {
-      const file = await getFileFromGithub(fileName);
-      if(file) {
+      const file = await getFileFromGithub(fileName)
+      if (file) {
         console.log('fileImporter', file.fileName)
         CodeEditor.addFile(file.fileName, file.content)
         return {
           fileName: file.fileName,
           content: file.content,
         }
-      }
-      else {
-        return null;
+      } else {
+        return null
       }
     }
   }
@@ -161,7 +190,7 @@ export default class CodeEditorModule extends Module {
       if (tag && tag.fileName) {
         const language = this.getLanguageByFileName(tag.fileName)
         const content = await this._gha.getFile(tag.fileName)
-        tag.content = content.content;
+        tag.content = content.content
         if (tag.tab) return tag.tab.active()
         else {
           if (!this.tsEditors.activeTab || !this.tabCodeTemp) {
@@ -175,51 +204,45 @@ export default class CodeEditorModule extends Module {
           let model = await CodeEditor.getFileModel(tag.fileName)
           if (!model) {
             let deps = await this.compiler.getDependencies(
-                tag.fileName,
-                tag.content,
-                this.fileImporter
+              tag.fileName,
+              tag.content,
+              this.fileImporter
             )
             model = await CodeEditor.addFile(tag.fileName, tag.content)
           }
           this.edtCodeTemp.tag = { fileName: tag.fileName }
           this.edtCodeTemp.loadContent(tag.content, language, tag.fileName)
-          if(this.tabCodeTemp) {
+          if (this.tabCodeTemp) {
             this.tabCodeTemp.title = tag.fileName
-            this.tabCodeTemp.tag = {treeNode: this.tvFiles.activeItem}
-            this.tabCodeTemp.caption = tag.fileName.split('/').pop() || 'Untitled'
+            this.tabCodeTemp.tag = { treeNode: this.tvFiles.activeItem }
+            this.tabCodeTemp.caption =
+              tag.fileName.split('/').pop() || 'Untitled'
             this.tabCodeTemp.active()
           }
-
         }
       }
     }
   }
 
   async run() {
-    await this.ifrPreview.refresh();
+    await this.ifrPreview.refresh()
     let compiler = new Compiler()
     // await compiler.addFile(
     //   'src/index.tsx',
     //   Samples['src/index.tsx'],
     //   this.fileImporter
     // )
-    const indexPath = `scbook/modules/index.tsx`;
-    const indexContent = await this._gha.getFile(indexPath);
-    console.log('indexContent', indexContent);
-    await compiler.addFile(
-        indexPath,
-        indexContent.content,
-        this.fileImporter
-    )
+    const indexPath = `scbook/modules/index.tsx`
+    const indexContent = await this._gha.getFile(indexPath)
+    console.log('indexContent', indexContent)
+    await compiler.addFile(indexPath, indexContent.content, this.fileImporter)
     let result = await compiler.compile()
-    console.log('compilation result', result);
+    console.log('compilation result', result)
     let contentWindow = (this.ifrPreview as any).iframeElm.contentWindow
     contentWindow.postMessage(
-        JSON.stringify({ script: result.script['index.js'] })
+      JSON.stringify({ script: result.script['index.js'] })
     )
   }
-
-
 
   // async run(){
   //   await this.ifrPreview.reload();
@@ -414,8 +437,6 @@ export default class CodeEditorModule extends Module {
     this.ifrPreview.refresh()
   }
 
-
-
   // protected async init(){
   //   await super.init();
   //   this.loadFiles();
@@ -428,7 +449,7 @@ export default class CodeEditorModule extends Module {
           <i-panel dock="right">
             <i-button
               caption="Run"
-              icon={{name: 'caret-right'}}
+              icon={{ name: 'caret-right' }}
               height={30}
               width={100}
               margin={{ top: 5, left: 4 }}
@@ -490,7 +511,8 @@ export default class CodeEditorModule extends Module {
                 <i-vstack
                   class="project-sidebar"
                   width="100%"
-                  height="calc(100vh - 22px - 35px - 30px)">
+                  height="calc(100vh - 22px - 35px - 30px)"
+                >
                   {/*<editor-search></editor-search>*/}
                 </i-vstack>
               </i-vstack>
@@ -528,15 +550,19 @@ export default class CodeEditorModule extends Module {
         <i-panel id="pnlPreview" dock="right" width="35%" resizer={true}>
           <i-panel dock="top" height={30} padding={{ top: 5, bottom: 5 }}>
             <i-panel dock="left" width={80}>
-              <i-button icon={{name: 'angle-left'}} width={20} height={20}></i-button>
               <i-button
-                icon={{name: 'redo'}}
+                icon={{ name: 'angle-left' }}
+                width={20}
+                height={20}
+              ></i-button>
+              <i-button
+                icon={{ name: 'redo' }}
                 margin={{ left: 4 }}
                 width={20}
                 height={20}
               ></i-button>
               <i-button
-                icon={{name: 'redo'}}
+                icon={{ name: 'redo' }}
                 margin={{ left: 4 }}
                 width={20}
                 height={20}

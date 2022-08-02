@@ -87,7 +87,7 @@ Styles.cssRule('i-module--1', {
                     '.i-tree-node_label': {
                       padding: 0,
                       paddingLeft: '4px',
-                      fontSize: '13.5px',
+                      fontSize: '13px',
                       color: '#ccc',
                     },
                   },
@@ -95,6 +95,15 @@ Styles.cssRule('i-module--1', {
               },
             },
           },
+        },
+      },
+    },
+
+    '#tsEditors': {
+      $nest: {
+        '.tab-item': {
+          fontFamily: Theme.typography.fontFamily,
+          fontSize: '13px'
         },
       },
     },
