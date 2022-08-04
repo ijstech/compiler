@@ -64,15 +64,14 @@ async function getScript(
 
 async function fileImporter(
     fileName: string
-): Promise<{ fileName: string; content: string }> {
-    if (fileName.indexOf('@ijstech') >= 0) {
+): Promise<{ fileName: string; content: string }> {    
+    if (fileName == '@ijstech/components') {
         return {
             fileName: 'index.d.ts',
             content: await getFileContent('../packages/components/types/index.d.ts'),
         }
-    }
-    let filePath = Path.join(__dirname, 'scripts', fileName);
-    console.log('fileName', fileName, 'filePath', filePath);
+    };
+    let filePath = Path.join(__dirname, 'scripts/scbook', fileName);    
     try {
         if (await checkFileExists(filePath)) {
             return {
@@ -179,16 +178,16 @@ describe('Compiler', async function () {
     // });
     it('scbook project', async () => {
         let compiler = new Compiler();
-        const entrypoints = ['scbook/index.tsx', 'scbook/components/header.tsx', 'scbook/components/navigator.tsx', 'scbook/components/paging.tsx', 'scbook/components/search.tsx'];
+        const entrypoints = ['index.tsx'];//, 'scbook/components/header.tsx', 'scbook/components/navigator.tsx', 'scbook/components/paging.tsx', 'scbook/components/search.tsx'];
         for(let entrypoint of entrypoints) {
-            const content = fs.readFileSync(Path.join(process.cwd(), 'test', 'scripts', entrypoint)).toString();
+            const content = fs.readFileSync(Path.join(__dirname, 'scripts/scbook', entrypoint)).toString();                        
             await compiler.addFile(entrypoint, content, fileImporter);
         }
         const result = await compiler.compile();
         if(result.errors && result.errors.length > 0)
             console.log('Compilation error', result.errors);
         else
-            console.log('Compilation success', result)
+            console.log('Compilation success')
     })
 })
 

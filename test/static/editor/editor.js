@@ -598,15 +598,15 @@ define("editor", ["require", "exports", "@ijstech/components", "@ijstech/compile
         reload() {
             this.ifrPreview.reload();
         }
-        async init() {
-            await super.init();
+        init() {
+            super.init();
             this.loadFiles();
         }
         render() {
             return (this.$render("i-panel", { id: "pnlMain", dock: "fill" },
                 this.$render("i-panel", { id: "header", height: 30, dock: "top" },
                     this.$render("i-panel", { dock: "right" },
-                        this.$render("i-button", { caption: "Run", icon: "caret-right", height: 30, width: 100, margin: { top: 5, left: 4 }, onClick: this.run })),
+                        this.$render("i-button", { caption: "Run", icon: { name: "caret-right" }, height: 30, width: 100, margin: { top: 5, left: 4 }, onClick: this.run })),
                     this.$render("i-panel", { dock: "right", width: 140, padding: { top: 4, bottom: 4 } },
                         this.$render("i-hstack", null,
                             this.$render("i-label", { caption: "Preview", width: 60 }),
@@ -633,15 +633,15 @@ define("editor", ["require", "exports", "@ijstech/components", "@ijstech/compile
                                 height: 20,
                             } }))),
                 this.$render("i-panel", { id: "pnlCode", dock: "fill" },
-                    this.$render("i-tabs", { id: "tsEditors", dock: "fill", draggable: true, closable: true, onTabClosed: this.handleEditorTabClose },
+                    this.$render("i-tabs", { id: "tsEditors", dock: "fill", draggable: true, closable: true, onCloseTab: this.handleEditorTabClose },
                         this.$render("i-tab", { id: "tabCodeTemp", caption: "untitled" },
                             this.$render("i-code-editor", { id: "edtCodeTemp", dock: "fill", onChange: this.handleFileChange })))),
                 this.$render("i-panel", { id: "pnlPreview", dock: "right", width: "35%", resizer: true },
                     this.$render("i-panel", { dock: "top", height: 30, padding: { top: 5, bottom: 5 } },
                         this.$render("i-panel", { dock: "left", width: 80 },
-                            this.$render("i-button", { icon: "angle-left", width: 20, height: 20 }),
-                            this.$render("i-button", { icon: "angle-right", margin: { left: 4 }, width: 20, height: 20 }),
-                            this.$render("i-button", { icon: "redo", margin: { left: 4 }, width: 20, height: 20, onClick: this.reload })),
+                            this.$render("i-button", { icon: { name: "angle-left" }, width: 20, height: 20 }),
+                            this.$render("i-button", { icon: { name: "angle-right" }, margin: { left: 4 }, width: 20, height: 20 }),
+                            this.$render("i-button", { icon: { name: "redo" }, margin: { left: 4 }, width: 20, height: 20, onClick: this.reload })),
                         this.$render("i-input", { dock: "fill", value: "https://localhost", margin: { right: 10 } })),
                     this.$render("i-iframe", { id: "ifrPreview", url: "/launcher.html", dock: "fill" }))));
         }

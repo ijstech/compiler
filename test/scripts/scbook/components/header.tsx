@@ -8,10 +8,10 @@ import {
     Switch,
     LibPath,
     RequireJS,
+    Menu,
+    Label,
     Image,
 } from '@ijstech/components';
-import { Menu } from '@ijstech/*menu/src/menu';
-import { Label } from '@ijstech/*label/src/label';
 import './header.css';
 
 import { Search } from './search';
@@ -297,8 +297,8 @@ export class DocsHeader extends Module {
                             id="btnChangeTheme"
                             checkedThumbColor="#fff"
                             uncheckedThumbColor="#fff"
-                            checkedThumbIcon={moonIcon}
-                            uncheckedThumbIcon={sunIcon}
+                            // checkedThumbIcon={moonIcon}
+                            // uncheckedThumbIcon={sunIcon}
                             checkedTrackColor="#070707"
                             uncheckedTrackColor="#c5c5c5"
                             onClick={this.btnChangeThemeClick}

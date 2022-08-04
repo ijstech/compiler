@@ -1,5 +1,5 @@
 import { Control, ControlElement, customElements, LibPath, RequireJS, Icon } from '@ijstech/components';
-import MiniSearch from './search.d';
+import MiniSearch from './miniSearch';
 import './search.css';
 
 export interface SearchElement extends ControlElement {}

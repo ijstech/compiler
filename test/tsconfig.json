@@ -21,7 +21,8 @@
     "include": [
         "static/**/.ts",
         "static/**/*.tsx",
-        "scripts/*.tsx",
-        "scripts/*.ts"
+        "scripts/**/*.tsx",
+        "scripts/**/*.ts",
+        "*.ts"
     ]
 }

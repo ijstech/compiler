@@ -417,8 +417,8 @@ export default class CodeEditorModule extends Module {
 
 
 
-  protected async init(){
-    await super.init();
+  protected init(){
+    super.init();
     this.loadFiles();
   }
 
@@ -429,7 +429,7 @@ export default class CodeEditorModule extends Module {
           <i-panel dock="right">
             <i-button
               caption="Run"
-              icon="caret-right"
+              icon={{name:"caret-right"}}
               height={30}
               width={100}
               margin={{ top: 5, left: 4 }}
@@ -515,7 +515,7 @@ export default class CodeEditorModule extends Module {
             dock="fill"
             draggable={true}
             closable={true}
-            onTabClosed={this.handleEditorTabClose}
+            onCloseTab={this.handleEditorTabClose}
           >
             <i-tab id="tabCodeTemp" caption="untitled">
               <i-code-editor
@@ -530,15 +530,15 @@ export default class CodeEditorModule extends Module {
         <i-panel id="pnlPreview" dock="right" width="35%" resizer={true}>
           <i-panel dock="top" height={30} padding={{ top: 5, bottom: 5 }}>
             <i-panel dock="left" width={80}>
-              <i-button icon="angle-left" width={20} height={20}></i-button>
+              <i-button icon={{name:"angle-left"}} width={20} height={20}></i-button>
               <i-button
-                icon="angle-right"
+                icon={{name:"angle-right"}}
                 margin={{ left: 4 }}
                 width={20}
                 height={20}
               ></i-button>
               <i-button
-                icon="redo"
+                icon={{name:"redo"}}
                 margin={{ left: 4 }}
                 width={20}
                 height={20}

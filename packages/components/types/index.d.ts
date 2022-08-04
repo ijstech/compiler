@@ -2891,6 +2891,7 @@ declare module "@ijstech/*base/src/component" {
         protected _top: number | string;
         protected _width: number | string;
         protected _left: number | string;
+        protected _bottom: number | string;
         protected options: any;
         protected defaults: any;
         initialized: boolean;
@@ -2968,7 +2969,7 @@ declare module "@ijstech/*base/src/control" {
     import { notifyEventCallback } from "@ijstech/*base/@ijstech/components";
     export type DockStyle = 'none' | 'bottom' | 'center' | 'fill' | 'left' | 'right' | 'top';
     export type LineHeightType = string | number | 'normal' | 'initial' | 'inherit';
-    export type DisplayType = 'inline-block' | 'block' | 'inline-flex' | 'flex' | 'inline' | 'initial' | 'inherit';
+    export type DisplayType = 'inline-block' | 'block' | 'inline-flex' | 'flex' | 'inline' | 'initial' | 'inherit' | 'none';
     export interface IMediaQuery<T> {
         minWidth?: string | number;
         maxWidth?: string | number;
@@ -2990,6 +2991,7 @@ declare module "@ijstech/*base/src/control" {
         set bottom(value: string | number | undefined);
         update(value?: ISpace): void;
     }
+    export type PositionType = 'static' | 'relative' | 'absolute' | 'fixed' | 'sticky' | 'inherit' | 'initial';
     export type BorderStylesSideType = 'top' | 'right' | 'bottom' | 'left';
     export type BorderStyleType = 'none' | 'hidden' | 'dotted' | 'dashed' | 'solid' | 'double' | 'groove' | 'ridge' | 'inset' | 'outset';
     export interface IBorderCornerStyles {
@@ -3057,6 +3059,7 @@ declare module "@ijstech/*base/src/control" {
         area?: string;
     }
     export class Control extends Component {
+        protected _controls: Control[];
         protected _enabled: boolean;
         protected _onClick: notifyEventCallback;
         protected _onDblClick: notifyEventCallback;
@@ -3079,7 +3082,7 @@ declare module "@ijstech/*base/src/control" {
         protected _stack: IStack;
         protected _grid: IGrid;
         protected _lineHeight: LineHeightType;
-        protected _parent: Container | undefined;
+        protected _parent: Control | undefined;
         protected _dock: DockStyle;
         protected _linkTo: Control;
         protected _border: Border;
@@ -3097,8 +3100,10 @@ declare module "@ijstech/*base/src/control" {
         set margin(value: ISpace);
         get padding(): ISpace;
         set padding(value: ISpace);
-        get parent(): Container | undefined;
-        set parent(value: Container | undefined);
+        protected addChildControl(control: Control): void;
+        protected removeChildControl(control: Control): void;
+        get parent(): Control | undefined;
+        set parent(value: Control | undefined);
         protected getSpacingValue(value: string | number): string;
         connectedCallback(): void;
         disconnectCallback(): void;
@@ -3130,13 +3135,14 @@ declare module "@ijstech/*base/src/control" {
         protected setProperty(propName: string, value: any): void;
         protected setAttributeToProperty<P extends keyof Control>(propertyName: P): void;
         protected init(): void;
-        calculatePositon(): void;
+        protected setElementPosition(elm: HTMLElement, prop: any, value: any): void;
         protected setPosition(prop: any, value: any): void;
         get height(): number | string;
         set height(value: number | string);
         get left(): number | string;
         set left(value: number | string);
         set right(value: number | string);
+        set bottom(value: number | string);
         get top(): number | string;
         set top(value: number | string);
         get visible(): boolean;
@@ -3149,10 +3155,14 @@ declare module "@ijstech/*base/src/control" {
         set grid(value: IGrid);
         get background(): string;
         set background(value: string);
+        get zIndex(): string | number;
+        set zIndex(value: string | number);
         get lineHeight(): LineHeightType;
         set lineHeight(value: LineHeightType);
         get linkTo(): Control;
         set linkTo(value: Control);
+        get position(): PositionType;
+        set position(value: PositionType);
         get minHeight(): string | number;
         set minHeight(value: string | number);
         get border(): Border;
@@ -3180,7 +3190,7 @@ declare module "@ijstech/*base/src/control" {
         private get resizer();
     }
     export class Container extends Control {
-        controls: Control[];
+        get controls(): Control[];
         get resizer(): boolean;
         set resizer(value: boolean);
         protected init(): void;
@@ -3197,9 +3207,9 @@ declare module "@ijstech/*base/src/types" {
 declare module "@ijstech/*base/@ijstech/components" {
     export { Observe, Unobserve, ClearObservers, Observables, isObservable, observable } from "@ijstech/*base/src/observable";
     export { IFont, Component, BorderSides, ISpace, IStack, FontStyle } from "@ijstech/*base/src/component";
-    export { IBorder, BorderStylesSideType, IBorderSideStyles, IMediaQuery } from "@ijstech/*base/src/control";
+    export { IBorder, BorderStylesSideType, IBorderSideStyles, IMediaQuery, DisplayType } from "@ijstech/*base/src/control";
     import { IStack, IFont, ISpace } from "@ijstech/*base/src/component";
-    import { Control, Container, DockStyle, LineHeightType, IBorder, IGrid, DisplayType } from "@ijstech/*base/src/control";
+    import { Control, Container, DockStyle, LineHeightType, IBorder, IGrid, DisplayType, PositionType } from "@ijstech/*base/src/control";
     import { ITooltip } from "@ijstech/*tooltip/@ijstech/components";
     export { Control, Container };
     export * as Types from "@ijstech/*base/src/types";
@@ -3213,12 +3223,12 @@ declare module "@ijstech/*base/@ijstech/components" {
     export type notifyEventCallback = (target: Control, event: Event) => void;
     export interface ControlElement {
         class?: string;
-        bottom?: number;
+        bottom?: number | string;
         dock?: DockStyle;
         enabled?: boolean;
         height?: number | string;
         id?: string;
-        left?: number;
+        left?: number | string;
         maxWidth?: string;
         minWidth?: string;
         minHeight?: number | string;
@@ -3230,8 +3240,8 @@ declare module "@ijstech/*base/@ijstech/components" {
         paddingLeft?: number;
         paddingRight?: number;
         paddingTop?: number;
-        right?: number;
-        top?: number;
+        right?: number | string;
+        top?: number | string;
         visible?: boolean;
         width?: number | string;
         margin?: ISpace;
@@ -3240,6 +3250,8 @@ declare module "@ijstech/*base/@ijstech/components" {
         grid?: IGrid;
         background?: string;
         lineHeight?: LineHeightType;
+        zIndex?: string | number;
+        position?: PositionType;
         linkTo?: string;
         border?: IBorder;
         font?: IFont;
@@ -3273,7 +3285,7 @@ declare module "@ijstech/*module/src/module" {
         private $render;
         static create(options?: ModuleElement, parent?: Container, defaults?: ModuleElement): Promise<Module>;
         constructor(parent?: Container, options?: any, defaults?: any);
-        init(): void;
+        protected init(): void;
         flattenArray(arr: any[]): any;
         _render(...params: any[]): HTMLElement;
         render(): void;
@@ -3310,16 +3322,14 @@ declare module "@ijstech/*application/src/event-bus" {
 }
 declare module "@ijstech/*checkbox/src/style/checkbox.css" { }
 declare module "@ijstech/*checkbox/src/checkbox" {
-    import { ControlElement, Control } from "@ijstech/*base/@ijstech/components";
+    import { ControlElement, Control, notifyEventCallback } from "@ijstech/*base/@ijstech/components";
     import "@ijstech/*checkbox/src/style/checkbox.css";
     export interface CheckboxElement extends ControlElement {
         checked?: boolean;
         indeterminate?: boolean;
-        name?: string;
-        value?: string | boolean;
-        onChange?: any;
         caption?: string;
-        captionWidth?: number;
+        captionWidth?: number | string;
+        onChanged?: notifyEventCallback;
         onRender?: any;
     }
     global {
@@ -3330,7 +3340,6 @@ declare module "@ijstech/*checkbox/src/checkbox" {
         }
     }
     export class Checkbox extends Control {
-        private _value;
         private _caption;
         private _captionWidth;
         private _indeterminate;
@@ -3340,25 +3349,23 @@ declare module "@ijstech/*checkbox/src/checkbox" {
         private captionSpanElm;
         private inputElm;
         private checkmarklElm;
-        onChange: any;
+        onChanged: notifyEventCallback;
         onRender: any;
         constructor(parent?: Control, options?: any);
         get caption(): string;
         set caption(value: string);
-        get captionWidth(): number;
-        set captionWidth(value: number);
+        get captionWidth(): number | string;
+        set captionWidth(value: number | string);
         get height(): number;
         set height(value: number);
-        get value(): any;
-        set value(value: any);
-        get width(): number;
-        set width(value: number);
         get indeterminate(): boolean;
         set indeterminate(value: boolean);
         get checked(): boolean;
         set checked(value: boolean);
-        _handleChange(source: any, event?: Event): void;
-        addClass(value: boolean, className: string): void;
+        get value(): any;
+        set value(data: any);
+        private _handleChange;
+        private addClass;
         init(): void;
         static create(options?: CheckboxElement, parent?: Control): Promise<Checkbox>;
     }
@@ -6674,19 +6681,22 @@ declare module "@ijstech/*combo-box/src/style/combo-box.css" {
     export let ItemListStyle: string;
 }
 declare module "@ijstech/*combo-box/src/combo-box" {
-    import { Control, ControlElement } from "@ijstech/*base/@ijstech/components";
-    import { IconName } from "@ijstech/*icon/@ijstech/components";
+    import { Control, ControlElement, notifyEventCallback } from "@ijstech/*base/@ijstech/components";
+    import { Icon, IconElement } from "@ijstech/*icon/@ijstech/components";
     import "@ijstech/*combo-box/src/style/combo-box.css";
-    interface IOption {
-        value: any;
+    interface IComboItem {
+        value: string;
         label: string;
+        isNew?: boolean;
     }
+    type ModeType = 'single' | 'multiple' | 'tags';
     export interface ComboBoxElement extends ControlElement {
-        value?: string | IOption;
-        items?: Array<string | IOption>;
-        icon?: IconName;
-        onSelect?: any;
-        multi?: boolean;
+        selectedItem?: IComboItem | IComboItem[];
+        items?: IComboItem[];
+        icon?: IconElement;
+        mode?: ModeType;
+        placeholder?: string;
+        onChanged?: notifyEventCallback;
     }
     global {
         namespace JSX {
@@ -6696,40 +6706,43 @@ declare module "@ijstech/*combo-box/src/combo-box" {
         }
     }
     export class ComboBox extends Control {
-        private _value;
+        private _selectedItem;
         private _caption;
         private _captionWidth;
         private _items;
         private _icon;
+        private _mode;
         private _searchStr;
+        private newItem;
         private isListShown;
-        private isMulti;
-        private _selected;
         private captionSpanElm;
         private labelElm;
+        private inputWrapElm;
         private inputElm;
         private iconElm;
         private listElm;
         private callback;
-        private onSelect;
+        onChanged: notifyEventCallback;
         constructor(parent?: Control, options?: any);
-        get value(): string | IOption;
-        set value(value: string | IOption);
-        get selected(): Array<string | IOption>;
-        set selected(value: Array<string | IOption>);
+        get value(): IComboItem | IComboItem[];
+        set value(value: IComboItem | IComboItem[]);
+        get selectedItem(): IComboItem | IComboItem[];
+        set selectedItem(value: IComboItem | IComboItem[]);
         get caption(): string;
         set caption(value: string);
-        get captionWidth(): number;
-        set captionWidth(value: number);
-        get items(): Array<string | IOption>;
-        set items(items: Array<string | IOption>);
-        get icon(): string;
-        set icon(icon: string);
+        get captionWidth(): number | string;
+        set captionWidth(value: number | string);
+        get items(): IComboItem[];
+        set items(items: IComboItem[]);
+        get icon(): Icon;
+        set icon(value: Icon);
         get searchStr(): string;
         set searchStr(str: string);
-        set enabled(value: boolean);
-        get multi(): boolean;
-        set multi(value: boolean);
+        get placeholder(): string;
+        set placeholder(value: string);
+        get mode(): ModeType;
+        set mode(value: ModeType);
+        get isMulti(): boolean;
         private isValueValid;
         private getItemIndex;
         private openList;
@@ -6738,6 +6751,8 @@ declare module "@ijstech/*combo-box/src/combo-box" {
         private toggleList;
         private escapeRegExp;
         private renderItems;
+        private add;
+        private handleRemove;
         private onItemClick;
         init(): void;
         disconnectCallback(): void;
@@ -6754,7 +6769,7 @@ declare module "@ijstech/*datepicker/src/datepicker" {
     type dateType = 'date' | 'dateTime' | 'time';
     export interface DatepickerElement extends ControlElement {
         caption?: string;
-        captionWidth?: number;
+        captionWidth?: number | string;
         value?: string;
         placeholder?: string;
         type?: dateType;
@@ -6788,7 +6803,7 @@ declare module "@ijstech/*datepicker/src/datepicker" {
         get caption(): string;
         set caption(value: string);
         get captionWidth(): number;
-        set captionWidth(value: number);
+        set captionWidth(value: number | string);
         get height(): number;
         set height(value: number);
         get width(): number;
@@ -6816,19 +6831,19 @@ declare module "@ijstech/*datepicker/@ijstech/components" {
 }
 declare module "@ijstech/*range/src/style/range.css" { }
 declare module "@ijstech/*range/src/range" {
-    import { Control, ControlElement } from "@ijstech/*base/@ijstech/components";
+    import { Control, ControlElement, notifyEventCallback } from "@ijstech/*base/@ijstech/components";
     import "@ijstech/*range/src/style/range.css";
     export interface RangeElement extends ControlElement {
         caption?: string;
-        captionWidth?: number;
+        captionWidth?: number | string;
         value?: string;
         min?: number;
         max?: number;
         step?: number;
-        labels?: string;
         stepDots?: boolean | number;
-        tipFormatter?: any;
+        tooltipFormatter?: any;
         tooltipVisible?: boolean;
+        onChanged?: notifyEventCallback;
     }
     global {
         namespace JSX {
@@ -6841,24 +6856,22 @@ declare module "@ijstech/*range/src/range" {
         private _value;
         private _caption;
         private _captionWidth;
-        private _labels;
+        private tooltipFormatter;
+        private _tooltipVisible;
         private captionSpanElm;
         private labelElm;
         private inputElm;
-        private rangeLabelListElm;
         private inputContainerElm;
         private tooltipElm;
-        onChange: any;
+        onChanged: notifyEventCallback;
         onMouseUp: any;
         onKeyUp: any;
         private callback;
-        private tipFormatter;
-        private _tooltipVisible;
         constructor(parent?: Control, options?: any);
         get caption(): string;
         set caption(value: string);
         get captionWidth(): number;
-        set captionWidth(value: number);
+        set captionWidth(value: number | string);
         get height(): number;
         set height(value: number);
         get value(): any;
@@ -6866,13 +6879,10 @@ declare module "@ijstech/*range/src/range" {
         get width(): number;
         set width(value: number);
         get _ratio(): number;
-        get labels(): string[];
-        set labels(labels: string[]);
         set enabled(value: boolean);
         get tooltipVisible(): boolean;
         set tooltipVisible(value: boolean);
         onSliderChange(): void;
-        renderLabels(): void;
         onUpdateTooltip(init: boolean): void;
         init(): void;
         static create(options?: RangeElement, parent?: Control): Promise<Range>;
@@ -6885,19 +6895,18 @@ declare module "@ijstech/*radio/src/radio.css" {
     export const captionStyle: string;
 }
 declare module "@ijstech/*radio/src/radio" {
-    import { Control, ControlElement } from "@ijstech/*base/@ijstech/components";
+    import { Control, ControlElement, notifyEventCallback } from "@ijstech/*base/@ijstech/components";
     export interface RadioElement extends ControlElement {
         caption?: string;
-        captionWidth?: number;
+        captionWidth?: number | string;
         value?: string;
         checked?: boolean;
-        name?: string;
         onRender?: any;
     }
     export interface RadioGroupElement extends ControlElement {
-        value?: string;
-        name?: string;
-        onChange?: any;
+        selectedValue?: string;
+        radioItems?: RadioElement[];
+        onChanged?: notifyEventCallback;
     }
     global {
         namespace JSX {
@@ -6911,35 +6920,39 @@ declare module "@ijstech/*radio/src/radio" {
         private _value;
         private _caption;
         private _captionWidth;
-        private callback;
         private labelElm;
         private inputElm;
         private captionSpanElm;
         onRender: any;
         constructor(parent?: Control, options?: any);
-        get value(): any;
-        set value(value: any);
+        get value(): string;
+        set value(value: string);
         get caption(): string;
         set caption(value: string);
-        get captionWidth(): number;
-        set captionWidth(value: number);
+        get captionWidth(): number | string;
+        set captionWidth(value: number | string);
         addClass(value: boolean): void;
         get checked(): boolean;
         set checked(value: boolean);
-        _handleChange(source: any, event?: Event): void;
-        updateCheckedUI(elms: HTMLCollection | any[]): void;
         init(): void;
         static create(options?: RadioElement, parent?: Control): Promise<Radio>;
     }
     export class RadioGroup extends Control {
-        private _value;
-        onChange: any;
-        checked: Radio;
+        private _selectedValue;
+        private _radioItems;
+        private _group;
+        private name;
+        onChanged: notifyEventCallback;
         constructor(parent?: Control, options?: any);
-        get value(): string;
-        set value(value: string);
-        _handleChange(source: any, event?: Event): void;
-        updateUI(inputElm: HTMLInputElement): void;
+        get selectedValue(): string;
+        set selectedValue(value: string);
+        get radioItems(): RadioElement[];
+        set radioItems(value: RadioElement[]);
+        private renderUI;
+        private appendIem;
+        private _handleChange;
+        add(options: RadioElement): Promise<Radio>;
+        delete(index: number): void;
         init(): void;
         static create(options?: RadioGroupElement, parent?: Control): Promise<RadioGroup>;
     }
@@ -6949,7 +6962,7 @@ declare module "@ijstech/*radio/@ijstech/components" {
 }
 declare module "@ijstech/*input/src/style/input.css" { }
 declare module "@ijstech/*input/src/input" {
-    import { Control, ControlElement } from "@ijstech/*base/@ijstech/components";
+    import { Control, ControlElement, notifyEventCallback } from "@ijstech/*base/@ijstech/components";
     import { Checkbox, CheckboxElement } from "@ijstech/*checkbox/@ijstech/components";
     import { ComboBox, ComboBoxElement } from "@ijstech/*combo-box/@ijstech/components";
     import { Datepicker, DatepickerElement } from "@ijstech/*datepicker/@ijstech/components";
@@ -6958,22 +6971,25 @@ declare module "@ijstech/*input/src/input" {
     import "@ijstech/*input/src/style/input.css";
     export type InputType = 'checkbox' | 'radio' | 'range' | 'date' | 'time' | 'dateTime' | 'password' | 'combobox' | 'number' | 'textarea';
     type InputControlType = Checkbox | ComboBox | Datepicker | Range | Radio;
+    type actionCallback = (target: Input) => void;
+    type changeCallback = (target: Input, val: string) => void;
     export interface InputElement extends ControlElement, CheckboxElement, ComboBoxElement, DatepickerElement, RangeElement, RadioElement {
         caption?: string;
-        captionWidth?: number;
+        captionWidth?: number | string;
         inputType?: InputType;
-        value?: any;
+        value?: string;
         placeholder?: string;
         readOnly?: boolean;
-        onChange?: any;
-        onKeyDown?: any;
-        onKeyUp?: any;
-        onMouseUp?: any;
-        onBlur?: any;
-        onFocus?: any;
-        clearable?: boolean;
-        clearCallback?: any;
+        showClearButton?: boolean;
         rows?: number;
+        multiline?: boolean;
+        onChanged?: notifyEventCallback;
+        onKeyDown?: changeCallback;
+        onKeyUp?: changeCallback;
+        onMouseUp?: changeCallback;
+        onBlur?: actionCallback;
+        onFocus?: actionCallback;
+        onClearClick?: actionCallback;
         onRender?: any;
     }
     global {
@@ -6990,28 +7006,27 @@ declare module "@ijstech/*input/src/input" {
         private _inputType;
         private _placeholder;
         private _readOnly;
-        private _clearable;
+        private _showClearButton;
         private _clearBtnWidth;
-        private clearCallback;
         private _rows;
+        private onClearClick;
         private captionSpanElm;
         private labelElm;
         private inputElm;
         private _inputControl;
         private clearIconElm;
-        onChange: any;
-        onMouseUp: any;
-        onKeyDown: any;
-        onKeyUp: any;
-        onSelect: any;
-        onBlur: any;
-        onFocus: any;
+        onMouseUp: changeCallback;
+        onKeyDown: changeCallback;
+        onKeyUp: changeCallback;
+        onChanged: notifyEventCallback;
+        onBlur: actionCallback;
+        onFocus: actionCallback;
         onRender: any;
         constructor(parent?: Control, options?: any);
         get caption(): string;
         set caption(value: string);
-        get captionWidth(): number;
-        set captionWidth(value: number);
+        get captionWidth(): number | string;
+        set captionWidth(value: number | string);
         get height(): number;
         set height(value: number);
         get value(): any;
@@ -7080,6 +7095,7 @@ declare module "@ijstech/*tab/src/tab" {
     import "@ijstech/*tab/src/style/tab.css";
     type TabModeType = "horizontal" | "vertical";
     type TabsEventCallback = (target: Tabs, activeTab: Tab) => void;
+    type TabCloseEventCallback = (target: Tabs, tab: Tab) => void;
     export interface TabsElement extends ContainerElement {
         activeTab?: Tab;
         activeTabIndex?: number;
@@ -7087,6 +7103,7 @@ declare module "@ijstech/*tab/src/tab" {
         draggable?: boolean;
         mode?: TabModeType;
         onChanged?: TabsEventCallback;
+        onCloseTab?: TabCloseEventCallback;
     }
     export interface TabElement extends ContainerElement {
         caption?: string;
@@ -7115,6 +7132,7 @@ declare module "@ijstech/*tab/src/tab" {
         private accumTabIndex;
         private curDragTab;
         onChanged: TabsEventCallback;
+        onCloseTab: TabCloseEventCallback;
         constructor(parent?: Container, options?: any);
         get activeTab(): Tab;
         set activeTab(item: Tab);
@@ -7127,7 +7145,7 @@ declare module "@ijstech/*tab/src/tab" {
         set draggable(value: boolean);
         get mode(): TabModeType;
         set mode(type: TabModeType);
-        add(options?: ITab): Promise<Tab>;
+        add(options?: ITab): Tab;
         delete(tab: Tab): void;
         private appendTab;
         private handleTagDrag;
@@ -7142,19 +7160,25 @@ declare module "@ijstech/*tab/src/tab" {
     export class Tab extends Container {
         private tabContainer;
         private captionElm;
+        private _contentElm;
         private _icon;
         protected _parent: Tabs;
         active(): void;
+        protected addChildControl(control: Control): void;
+        protected removeChildControl(control: Control): void;
         get caption(): string;
         set caption(value: string);
+        close(): void;
         get index(): number;
         get icon(): Icon;
         set icon(elm: Icon);
+        get innerHTML(): string;
+        set innerHTML(value: string);
         get font(): IFont;
         set font(value: IFont);
         _handleClick(event: Event): boolean;
         private handleCloseTab;
-        init(): Promise<void>;
+        init(): void;
         static create(options?: TabElement, parent?: Control): Promise<Tab>;
     }
 }
@@ -7522,7 +7546,8 @@ declare module "@ijstech/*tree-view/src/treeView" {
         appendNode(childNode: TreeNode): void;
         initChildNodeElm(): void;
         _handleClick(event: Event): boolean;
-        init(): Promise<void>;
+        _handleDblClick(event: Event): boolean;
+        init(): void;
         static create(options?: TreeNodeElement, parent?: Control): Promise<TreeNode>;
     }
 }
@@ -8050,6 +8075,7 @@ declare module "@ijstech/*iframe/src/iframe" {
         private _url;
         private iframeElm;
         constructor(parent?: Control, options?: any);
+        reload(): Promise<void>;
         get url(): string;
         set url(value: string);
         init(): void;
@@ -8065,6 +8091,7 @@ declare module "@ijstech/*layout/src/style/panel.css" {
     export const overflowStyle: string;
     export const vStackStyle: string;
     export const hStackStyle: string;
+    export const gridStyle: string;
     export const getStackDirectionStyleClass: (direction: StackDirectionType) => string;
     export const getStackMediaQueriesStyleClass: (mediaQueries: IStackMediaQuery[]) => string;
     export const justifyContentStartStyle: string;
@@ -8201,7 +8228,7 @@ declare module "@ijstech/*layout/src/panel" {
     }
 }
 declare module "@ijstech/*layout/src/grid" {
-    import { Control, ControlElement, Container, IMediaQuery } from "@ijstech/*base/@ijstech/components";
+    import { Control, ControlElement, Container, IMediaQuery, DisplayType } from "@ijstech/*base/@ijstech/components";
     export interface IGap {
         row?: string | number;
         column?: string | number;
@@ -8210,6 +8237,7 @@ declare module "@ijstech/*layout/src/grid" {
         templateColumns?: string[];
         templateRows?: string[];
         templateAreas?: string[][];
+        display?: DisplayType;
     }
     export type IGridLayoutMediaQuery = IMediaQuery<IGridLayoutMediaQueryProps>;
     export type GridLayoutHorizontalAlignmentType = "stretch" | "start" | "end" | "center";
@@ -8218,6 +8246,7 @@ declare module "@ijstech/*layout/src/grid" {
         templateColumns?: string[];
         templateRows?: string[];
         templateAreas?: string[][];
+        display?: DisplayType;
         autoColumnSize?: string;
         autoRowSize?: string;
         columnsPerRow?: number;
@@ -8508,7 +8537,6 @@ declare module "@ijstech/*table/src/tableColumn" {
         private _sortOrder;
         private isHeader;
         onSortChange: any;
-        constructor(parent?: Control, options?: any);
         private _columnData;
         get dataSource(): number | string;
         set dataSource(value: number | string);
