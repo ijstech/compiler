@@ -83,13 +83,42 @@ export default class CodeEditorModule extends Module {
     //   }
     // }
     if (fileTree.tree?.length) this.loadFiles(fileTree.tree)
+
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault()
+
+        if (this.tabCodeTemp?.title && this.edtCodeTemp?.value)
+          this.addDataToIndexedDB(
+            this.tabCodeTemp?.title,
+            this.edtCodeTemp?.value
+          )
+
+        if (this.tabCodeTemp?.title)
+          this.getDataFromIndexedDB(this.tabCodeTemp.title)
+      }
+    })
   }
 
-  addDataToIndexedDB() {
+  addDataToIndexedDB(key: string, value: string) {
     this._indexedDB
       .transaction('changed-files', 'readwrite')
       .objectStore('changed-files')
-      .add('value-demo')
+      .add(value, key)
+  }
+
+  getDataFromIndexedDB(key: string) {
+    const request = this._indexedDB
+      .transaction('changed-files', 'readwrite')
+      .objectStore('changed-files')
+      .get(key)
+    request.onsuccess = () => {
+      // Do something with the request.result!
+      console.log(`File is ${request.result}`)
+    }
+    request.onerror = () => {
+      // Handle errors!
+    }
   }
 
   async loadFiles(fileTree: any[]) {
@@ -219,6 +248,7 @@ export default class CodeEditorModule extends Module {
             this.tabCodeTemp.caption =
               tag.fileName.split('/').pop() || 'Untitled'
             this.tabCodeTemp.active()
+            this.tabCodeTemp.style.fontStyle = 'italic'
           }
         }
       }
@@ -415,12 +445,12 @@ export default class CodeEditorModule extends Module {
 
   handleTreeViewDblClick() {
     console.log('handleTreeViewDblClick')
-    return;
+    return
     let nodeData: ITreeNodeData = this.tvFiles.activeItem?.tag
-    console.log('node', this.tvFiles.activeItem);
-    console.log('nodeData', nodeData);
+    console.log('node', this.tvFiles.activeItem)
+    console.log('nodeData', nodeData)
     if (this.tabCodeTemp && nodeData && !nodeData.tab) {
-      // this.tabCodeTemp.font.style = 'normal'
+      // this.tabCodeTemp.style.fontStyle = 'normal'
       nodeData.tab = this.tabCodeTemp
       nodeData.editor = this.edtCodeTemp
       this.tabCodeTemp = undefined
