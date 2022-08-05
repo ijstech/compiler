@@ -37,16 +37,43 @@ async function writeFile(fileName, content) {
     }
     catch (err) { }
 }
-async function bundle() {
-    await mkdir(Path.resolve(__dirname, '../bundle'));
-    let es5 = await readFile(Path.resolve(__dirname, '../node_modules/typescript/lib/lib.es5.d.ts'));
-    es5 = es5.replace(/\`/g, '"')
-    let dom = await readFile(Path.resolve(__dirname, '../node_modules/typescript/lib/lib.dom.d.ts'));
-    dom = dom.replace(/\`/g, '"')
+
+/// <reference lib= />
+/// <reference lib= />
+/// <reference lib= />
+/// <reference lib= />
+/// <reference lib= />
+/// <reference lib= />
+/// <reference lib= />
+const libs = [
+    'es5',
+    'dom',
+    'dom.iterable',
+    'es2015.core',
+    'es2015.collection',
+    "es2015.iterable",
+    "es2015.generator", 
+    "es2015.promise",
+    "es2015.proxy",
+    "es2015.reflect",
+    "es2015.symbol",
+    "es2015.symbol.wellknown",
+    "es2016.array.include",
+    "es2017.object",
+    "es2017.sharedmemory",
+    "es2017.string",
+    "es2017.intl",
+    "es2017.typedarrays"
+]
+async function bundle(){
+    await mkdir(Path.resolve(__dirname, '../bundle'));    
+    let content = '';
+    for (let i = 0; i < libs.length; i ++){
+        content += await readFile(Path.resolve(__dirname, `../node_modules/typescript/lib/lib.${libs[i]}.d.ts`));
+    }
     await writeFile(Path.resolve(__dirname, '../bundle/lib.ts'), `
 declare var global:any;
-${es5}
-${dom}
-`);
+${content}
+`);    
 };
 bundle();

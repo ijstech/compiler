@@ -15227,5 +15227,903 @@ declare type VisibilityState = "hidden" | "visible";
 declare type WebGLPowerPreference = "default" | "high-performance" | "low-power";
 declare type WorkerType = "classic" | "module";
 declare type XMLHttpRequestResponseType = "" | "arraybuffer" | "blob" | "document" | "json" | "text";
+interface AudioParam {
+    setValueCurveAtTime(values: Iterable<number>, startTime: number, duration: number): AudioParam;
+}
+interface AudioParamMap extends ReadonlyMap<string, AudioParam> {
+}
+interface BaseAudioContext {
+    createIIRFilter(feedforward: Iterable<number>, feedback: Iterable<number>): IIRFilterNode;
+    createPeriodicWave(real: Iterable<number>, imag: Iterable<number>, constraints?: PeriodicWaveConstraints): PeriodicWave;
+}
+interface CSSRuleList {
+    [Symbol.iterator](): IterableIterator<CSSRule>;
+}
+interface CSSStyleDeclaration {
+    [Symbol.iterator](): IterableIterator<string>;
+}
+interface Cache {
+    addAll(requests: Iterable<RequestInfo>): Promise<void>;
+}
+interface CanvasPathDrawingStyles {
+    setLineDash(segments: Iterable<number>): void;
+}
+interface ClientRectList {
+    [Symbol.iterator](): IterableIterator<ClientRect>;
+}
+interface DOMRectList {
+    [Symbol.iterator](): IterableIterator<DOMRect>;
+}
+interface DOMStringList {
+    [Symbol.iterator](): IterableIterator<string>;
+}
+interface DOMTokenList {
+    [Symbol.iterator](): IterableIterator<string>;
+    entries(): IterableIterator<[number, string]>;
+    keys(): IterableIterator<number>;
+    values(): IterableIterator<string>;
+}
+interface DataTransferItemList {
+    [Symbol.iterator](): IterableIterator<DataTransferItem>;
+}
+interface FileList {
+    [Symbol.iterator](): IterableIterator<File>;
+}
+interface FormData {
+    [Symbol.iterator](): IterableIterator<[string, FormDataEntryValue]>;
+    entries(): IterableIterator<[string, FormDataEntryValue]>;
+    keys(): IterableIterator<string>;
+    values(): IterableIterator<FormDataEntryValue>;
+}
+interface HTMLAllCollection {
+    [Symbol.iterator](): IterableIterator<Element>;
+}
+interface HTMLCollectionBase {
+    [Symbol.iterator](): IterableIterator<Element>;
+}
+interface HTMLCollectionOf<T extends Element> {
+    [Symbol.iterator](): IterableIterator<T>;
+}
+interface HTMLFormElement {
+    [Symbol.iterator](): IterableIterator<Element>;
+}
+interface HTMLSelectElement {
+    [Symbol.iterator](): IterableIterator<Element>;
+}
+interface Headers {
+    [Symbol.iterator](): IterableIterator<[string, string]>;
+    entries(): IterableIterator<[string, string]>;
+    keys(): IterableIterator<string>;
+    values(): IterableIterator<string>;
+}
+interface IDBDatabase {
+    transaction(storeNames: string | Iterable<string>, mode?: IDBTransactionMode): IDBTransaction;
+}
+interface IDBObjectStore {
+    createIndex(name: string, keyPath: string | Iterable<string>, options?: IDBIndexParameters): IDBIndex;
+}
+interface MediaKeyStatusMap {
+    [Symbol.iterator](): IterableIterator<[BufferSource, MediaKeyStatus]>;
+    entries(): IterableIterator<[BufferSource, MediaKeyStatus]>;
+    keys(): IterableIterator<BufferSource>;
+    values(): IterableIterator<MediaKeyStatus>;
+}
+interface MediaList {
+    [Symbol.iterator](): IterableIterator<string>;
+}
+interface MimeTypeArray {
+    [Symbol.iterator](): IterableIterator<MimeType>;
+}
+interface NamedNodeMap {
+    [Symbol.iterator](): IterableIterator<Attr>;
+}
+interface Navigator {
+    requestMediaKeySystemAccess(keySystem: string, supportedConfigurations: Iterable<MediaKeySystemConfiguration>): Promise<MediaKeySystemAccess>;
+}
+interface NodeList {
+    [Symbol.iterator](): IterableIterator<Node>;
+    entries(): IterableIterator<[number, Node]>;
+    keys(): IterableIterator<number>;
+    values(): IterableIterator<Node>;
+}
+interface NodeListOf<TNode extends Node> {
+    [Symbol.iterator](): IterableIterator<TNode>;
+    entries(): IterableIterator<[number, TNode]>;
+    keys(): IterableIterator<number>;
+    values(): IterableIterator<TNode>;
+}
+interface Plugin {
+    [Symbol.iterator](): IterableIterator<MimeType>;
+}
+interface PluginArray {
+    [Symbol.iterator](): IterableIterator<Plugin>;
+}
+interface RTCRtpTransceiver {
+    setCodecPreferences(codecs: Iterable<RTCRtpCodecCapability>): void;
+}
+interface RTCStatsReport extends ReadonlyMap<string, any> {
+}
+interface SVGLengthList {
+    [Symbol.iterator](): IterableIterator<SVGLength>;
+}
+interface SVGNumberList {
+    [Symbol.iterator](): IterableIterator<SVGNumber>;
+}
+interface SVGPointList {
+    [Symbol.iterator](): IterableIterator<DOMPoint>;
+}
+interface SVGStringList {
+    [Symbol.iterator](): IterableIterator<string>;
+}
+interface SourceBufferList {
+    [Symbol.iterator](): IterableIterator<SourceBuffer>;
+}
+interface SpeechGrammarList {
+    [Symbol.iterator](): IterableIterator<SpeechGrammar>;
+}
+interface SpeechRecognitionResult {
+    [Symbol.iterator](): IterableIterator<SpeechRecognitionAlternative>;
+}
+interface SpeechRecognitionResultList {
+    [Symbol.iterator](): IterableIterator<SpeechRecognitionResult>;
+}
+interface StyleSheetList {
+    [Symbol.iterator](): IterableIterator<CSSStyleSheet>;
+}
+interface TextTrackCueList {
+    [Symbol.iterator](): IterableIterator<TextTrackCue>;
+}
+interface TextTrackList {
+    [Symbol.iterator](): IterableIterator<TextTrack>;
+}
+interface TouchList {
+    [Symbol.iterator](): IterableIterator<Touch>;
+}
+interface URLSearchParams {
+    [Symbol.iterator](): IterableIterator<[string, string]>;
+    entries(): IterableIterator<[string, string]>;
+    keys(): IterableIterator<string>;
+    values(): IterableIterator<string>;
+}
+interface VRDisplay {
+    requestPresent(layers: Iterable<VRLayer>): Promise<void>;
+}
+interface WEBGL_draw_buffers {
+    drawBuffersWEBGL(buffers: Iterable<GLenum>): void;
+}
+interface WebGL2RenderingContextBase {
+    clearBufferfv(buffer: GLenum, drawbuffer: GLint, values: Iterable<GLfloat>, srcOffset?: GLuint): void;
+    clearBufferiv(buffer: GLenum, drawbuffer: GLint, values: Iterable<GLint>, srcOffset?: GLuint): void;
+    clearBufferuiv(buffer: GLenum, drawbuffer: GLint, values: Iterable<GLuint>, srcOffset?: GLuint): void;
+    drawBuffers(buffers: Iterable<GLenum>): void;
+    getActiveUniforms(program: WebGLProgram, uniformIndices: Iterable<GLuint>, pname: GLenum): any;
+    getUniformIndices(program: WebGLProgram, uniformNames: Iterable<string>): Iterable<GLuint> | null;
+    invalidateFramebuffer(target: GLenum, attachments: Iterable<GLenum>): void;
+    invalidateSubFramebuffer(target: GLenum, attachments: Iterable<GLenum>, x: GLint, y: GLint, width: GLsizei, height: GLsizei): void;
+    transformFeedbackVaryings(program: WebGLProgram, varyings: Iterable<string>, bufferMode: GLenum): void;
+    uniform1uiv(location: WebGLUniformLocation | null, data: Iterable<GLuint>, srcOffset?: GLuint, srcLength?: GLuint): void;
+    uniform2uiv(location: WebGLUniformLocation | null, data: Iterable<GLuint>, srcOffset?: GLuint, srcLength?: GLuint): void;
+    uniform3uiv(location: WebGLUniformLocation | null, data: Iterable<GLuint>, srcOffset?: GLuint, srcLength?: GLuint): void;
+    uniform4uiv(location: WebGLUniformLocation | null, data: Iterable<GLuint>, srcOffset?: GLuint, srcLength?: GLuint): void;
+    uniformMatrix2x3fv(location: WebGLUniformLocation | null, transpose: GLboolean, data: Iterable<GLfloat>, srcOffset?: GLuint, srcLength?: GLuint): void;
+    uniformMatrix2x4fv(location: WebGLUniformLocation | null, transpose: GLboolean, data: Iterable<GLfloat>, srcOffset?: GLuint, srcLength?: GLuint): void;
+    uniformMatrix3x2fv(location: WebGLUniformLocation | null, transpose: GLboolean, data: Iterable<GLfloat>, srcOffset?: GLuint, srcLength?: GLuint): void;
+    uniformMatrix3x4fv(location: WebGLUniformLocation | null, transpose: GLboolean, data: Iterable<GLfloat>, srcOffset?: GLuint, srcLength?: GLuint): void;
+    uniformMatrix4x2fv(location: WebGLUniformLocation | null, transpose: GLboolean, data: Iterable<GLfloat>, srcOffset?: GLuint, srcLength?: GLuint): void;
+    uniformMatrix4x3fv(location: WebGLUniformLocation | null, transpose: GLboolean, data: Iterable<GLfloat>, srcOffset?: GLuint, srcLength?: GLuint): void;
+    vertexAttribI4iv(index: GLuint, values: Iterable<GLint>): void;
+    vertexAttribI4uiv(index: GLuint, values: Iterable<GLuint>): void;
+}
+interface WebGL2RenderingContextOverloads {
+    uniform1fv(location: WebGLUniformLocation | null, data: Iterable<GLfloat>, srcOffset?: GLuint, srcLength?: GLuint): void;
+    uniform1iv(location: WebGLUniformLocation | null, data: Iterable<GLint>, srcOffset?: GLuint, srcLength?: GLuint): void;
+    uniform2fv(location: WebGLUniformLocation | null, data: Iterable<GLfloat>, srcOffset?: GLuint, srcLength?: GLuint): void;
+    uniform2iv(location: WebGLUniformLocation | null, data: Iterable<GLint>, srcOffset?: GLuint, srcLength?: GLuint): void;
+    uniform3fv(location: WebGLUniformLocation | null, data: Iterable<GLfloat>, srcOffset?: GLuint, srcLength?: GLuint): void;
+    uniform3iv(location: WebGLUniformLocation | null, data: Iterable<GLint>, srcOffset?: GLuint, srcLength?: GLuint): void;
+    uniform4fv(location: WebGLUniformLocation | null, data: Iterable<GLfloat>, srcOffset?: GLuint, srcLength?: GLuint): void;
+    uniform4iv(location: WebGLUniformLocation | null, data: Iterable<GLint>, srcOffset?: GLuint, srcLength?: GLuint): void;
+    uniformMatrix2fv(location: WebGLUniformLocation | null, transpose: GLboolean, data: Iterable<GLfloat>, srcOffset?: GLuint, srcLength?: GLuint): void;
+    uniformMatrix3fv(location: WebGLUniformLocation | null, transpose: GLboolean, data: Iterable<GLfloat>, srcOffset?: GLuint, srcLength?: GLuint): void;
+    uniformMatrix4fv(location: WebGLUniformLocation | null, transpose: GLboolean, data: Iterable<GLfloat>, srcOffset?: GLuint, srcLength?: GLuint): void;
+}
+interface WebGLRenderingContextBase {
+    vertexAttrib1fv(index: GLuint, values: Iterable<GLfloat>): void;
+    vertexAttrib2fv(index: GLuint, values: Iterable<GLfloat>): void;
+    vertexAttrib3fv(index: GLuint, values: Iterable<GLfloat>): void;
+    vertexAttrib4fv(index: GLuint, values: Iterable<GLfloat>): void;
+}
+interface WebGLRenderingContextOverloads {
+    uniform1fv(location: WebGLUniformLocation | null, v: Iterable<GLfloat>): void;
+    uniform1iv(location: WebGLUniformLocation | null, v: Iterable<GLint>): void;
+    uniform2fv(location: WebGLUniformLocation | null, v: Iterable<GLfloat>): void;
+    uniform2iv(location: WebGLUniformLocation | null, v: Iterable<GLint>): void;
+    uniform3fv(location: WebGLUniformLocation | null, v: Iterable<GLfloat>): void;
+    uniform3iv(location: WebGLUniformLocation | null, v: Iterable<GLint>): void;
+    uniform4fv(location: WebGLUniformLocation | null, v: Iterable<GLfloat>): void;
+    uniform4iv(location: WebGLUniformLocation | null, v: Iterable<GLint>): void;
+    uniformMatrix2fv(location: WebGLUniformLocation | null, transpose: GLboolean, value: Iterable<GLfloat>): void;
+    uniformMatrix3fv(location: WebGLUniformLocation | null, transpose: GLboolean, value: Iterable<GLfloat>): void;
+    uniformMatrix4fv(location: WebGLUniformLocation | null, transpose: GLboolean, value: Iterable<GLfloat>): void;
+}
+interface Array<T> {
+    find<S extends T>(predicate: (this: void, value: T, index: number, obj: T[]) => value is S, thisArg?: any): S | undefined;
+    find(predicate: (value: T, index: number, obj: T[]) => unknown, thisArg?: any): T | undefined;
+    findIndex(predicate: (value: T, index: number, obj: T[]) => unknown, thisArg?: any): number;
+    fill(value: T, start?: number, end?: number): this;
+    copyWithin(target: number, start: number, end?: number): this;
+}
+interface ArrayConstructor {
+    from<T>(arrayLike: ArrayLike<T>): T[];
+    from<T, U>(arrayLike: ArrayLike<T>, mapfn: (v: T, k: number) => U, thisArg?: any): U[];
+    of<T>(...items: T[]): T[];
+}
+interface DateConstructor {
+    new (value: number | string | Date): Date;
+}
+interface Function {
+    readonly name: string;
+}
+interface Math {
+    clz32(x: number): number;
+    imul(x: number, y: number): number;
+    sign(x: number): number;
+    log10(x: number): number;
+    log2(x: number): number;
+    log1p(x: number): number;
+    expm1(x: number): number;
+    cosh(x: number): number;
+    sinh(x: number): number;
+    tanh(x: number): number;
+    acosh(x: number): number;
+    asinh(x: number): number;
+    atanh(x: number): number;
+    hypot(...values: number[]): number;
+    trunc(x: number): number;
+    fround(x: number): number;
+    cbrt(x: number): number;
+}
+interface NumberConstructor {
+    readonly EPSILON: number;
+    isFinite(number: unknown): boolean;
+    isInteger(number: unknown): boolean;
+    isNaN(number: unknown): boolean;
+    isSafeInteger(number: unknown): boolean;
+    readonly MAX_SAFE_INTEGER: number;
+    readonly MIN_SAFE_INTEGER: number;
+    parseFloat(string: string): number;
+    parseInt(string: string, radix?: number): number;
+}
+interface ObjectConstructor {
+    assign<T, U>(target: T, source: U): T & U;
+    assign<T, U, V>(target: T, source1: U, source2: V): T & U & V;
+    assign<T, U, V, W>(target: T, source1: U, source2: V, source3: W): T & U & V & W;
+    assign(target: object, ...sources: any[]): any;
+    getOwnPropertySymbols(o: any): symbol[];
+    keys(o: {}): string[];
+    is(value1: any, value2: any): boolean;
+    setPrototypeOf(o: any, proto: object | null): any;
+}
+interface ReadonlyArray<T> {
+    find<S extends T>(predicate: (this: void, value: T, index: number, obj: readonly T[]) => value is S, thisArg?: any): S | undefined;
+    find(predicate: (value: T, index: number, obj: readonly T[]) => unknown, thisArg?: any): T | undefined;
+    findIndex(predicate: (value: T, index: number, obj: readonly T[]) => unknown, thisArg?: any): number;
+}
+interface RegExp {
+    readonly flags: string;
+    readonly sticky: boolean;
+    readonly unicode: boolean;
+}
+interface RegExpConstructor {
+    new (pattern: RegExp | string, flags?: string): RegExp;
+    (pattern: RegExp | string, flags?: string): RegExp;
+}
+interface String {
+    codePointAt(pos: number): number | undefined;
+    includes(searchString: string, position?: number): boolean;
+    endsWith(searchString: string, endPosition?: number): boolean;
+    normalize(form: "NFC" | "NFD" | "NFKC" | "NFKD"): string;
+    normalize(form?: string): string;
+    repeat(count: number): string;
+    startsWith(searchString: string, position?: number): boolean;
+    anchor(name: string): string;
+    big(): string;
+    blink(): string;
+    bold(): string;
+    fixed(): string;
+    fontcolor(color: string): string;
+    fontsize(size: number): string;
+    fontsize(size: string): string;
+    italics(): string;
+    link(url: string): string;
+    small(): string;
+    strike(): string;
+    sub(): string;
+    sup(): string;
+}
+interface StringConstructor {
+    fromCodePoint(...codePoints: number[]): string;
+    raw(template: TemplateStringsArray, ...substitutions: any[]): string;
+}
+interface Map<K, V> {
+    clear(): void;
+    delete(key: K): boolean;
+    forEach(callbackfn: (value: V, key: K, map: Map<K, V>) => void, thisArg?: any): void;
+    get(key: K): V | undefined;
+    has(key: K): boolean;
+    set(key: K, value: V): this;
+    readonly size: number;
+}
+interface MapConstructor {
+    new (): Map<any, any>;
+    new <K, V>(entries?: readonly (readonly [K, V])[] | null): Map<K, V>;
+    readonly prototype: Map<any, any>;
+}
+declare var Map: MapConstructor;
+interface ReadonlyMap<K, V> {
+    forEach(callbackfn: (value: V, key: K, map: ReadonlyMap<K, V>) => void, thisArg?: any): void;
+    get(key: K): V | undefined;
+    has(key: K): boolean;
+    readonly size: number;
+}
+interface WeakMap<K extends object, V> {
+    delete(key: K): boolean;
+    get(key: K): V | undefined;
+    has(key: K): boolean;
+    set(key: K, value: V): this;
+}
+interface WeakMapConstructor {
+    new <K extends object = object, V = any>(entries?: readonly [K, V][] | null): WeakMap<K, V>;
+    readonly prototype: WeakMap<object, any>;
+}
+declare var WeakMap: WeakMapConstructor;
+interface Set<T> {
+    add(value: T): this;
+    clear(): void;
+    delete(value: T): boolean;
+    forEach(callbackfn: (value: T, value2: T, set: Set<T>) => void, thisArg?: any): void;
+    has(value: T): boolean;
+    readonly size: number;
+}
+interface SetConstructor {
+    new <T = any>(values?: readonly T[] | null): Set<T>;
+    readonly prototype: Set<any>;
+}
+declare var Set: SetConstructor;
+interface ReadonlySet<T> {
+    forEach(callbackfn: (value: T, value2: T, set: ReadonlySet<T>) => void, thisArg?: any): void;
+    has(value: T): boolean;
+    readonly size: number;
+}
+interface WeakSet<T extends object> {
+    add(value: T): this;
+    delete(value: T): boolean;
+    has(value: T): boolean;
+}
+interface WeakSetConstructor {
+    new <T extends object = object>(values?: readonly T[] | null): WeakSet<T>;
+    readonly prototype: WeakSet<object>;
+}
+declare var WeakSet: WeakSetConstructor;
+interface SymbolConstructor {
+    readonly iterator: unique symbol;
+}
+interface IteratorYieldResult<TYield> {
+    done?: false;
+    value: TYield;
+}
+interface IteratorReturnResult<TReturn> {
+    done: true;
+    value: TReturn;
+}
+declare type IteratorResult<T, TReturn = any> = IteratorYieldResult<T> | IteratorReturnResult<TReturn>;
+interface Iterator<T, TReturn = any, TNext = undefined> {
+    next(...args: [] | [TNext]): IteratorResult<T, TReturn>;
+    return?(value?: TReturn): IteratorResult<T, TReturn>;
+    throw?(e?: any): IteratorResult<T, TReturn>;
+}
+interface Iterable<T> {
+    [Symbol.iterator](): Iterator<T>;
+}
+interface IterableIterator<T> extends Iterator<T> {
+    [Symbol.iterator](): IterableIterator<T>;
+}
+interface Array<T> {
+    [Symbol.iterator](): IterableIterator<T>;
+    entries(): IterableIterator<[number, T]>;
+    keys(): IterableIterator<number>;
+    values(): IterableIterator<T>;
+}
+interface ArrayConstructor {
+    from<T>(iterable: Iterable<T> | ArrayLike<T>): T[];
+    from<T, U>(iterable: Iterable<T> | ArrayLike<T>, mapfn: (v: T, k: number) => U, thisArg?: any): U[];
+}
+interface ReadonlyArray<T> {
+    [Symbol.iterator](): IterableIterator<T>;
+    entries(): IterableIterator<[number, T]>;
+    keys(): IterableIterator<number>;
+    values(): IterableIterator<T>;
+}
+interface IArguments {
+    [Symbol.iterator](): IterableIterator<any>;
+}
+interface Map<K, V> {
+    [Symbol.iterator](): IterableIterator<[K, V]>;
+    entries(): IterableIterator<[K, V]>;
+    keys(): IterableIterator<K>;
+    values(): IterableIterator<V>;
+}
+interface ReadonlyMap<K, V> {
+    [Symbol.iterator](): IterableIterator<[K, V]>;
+    entries(): IterableIterator<[K, V]>;
+    keys(): IterableIterator<K>;
+    values(): IterableIterator<V>;
+}
+interface MapConstructor {
+    new <K, V>(iterable: Iterable<readonly [K, V]>): Map<K, V>;
+}
+interface WeakMap<K extends object, V> {
+}
+interface WeakMapConstructor {
+    new <K extends object, V>(iterable: Iterable<[K, V]>): WeakMap<K, V>;
+}
+interface Set<T> {
+    [Symbol.iterator](): IterableIterator<T>;
+    entries(): IterableIterator<[T, T]>;
+    keys(): IterableIterator<T>;
+    values(): IterableIterator<T>;
+}
+interface ReadonlySet<T> {
+    [Symbol.iterator](): IterableIterator<T>;
+    entries(): IterableIterator<[T, T]>;
+    keys(): IterableIterator<T>;
+    values(): IterableIterator<T>;
+}
+interface SetConstructor {
+    new <T>(iterable?: Iterable<T> | null): Set<T>;
+}
+interface WeakSet<T extends object> {
+}
+interface WeakSetConstructor {
+    new <T extends object = object>(iterable: Iterable<T>): WeakSet<T>;
+}
+interface Promise<T> {
+}
+interface PromiseConstructor {
+    all<T>(values: Iterable<T | PromiseLike<T>>): Promise<T[]>;
+    race<T>(values: Iterable<T>): Promise<T extends PromiseLike<infer U> ? U : T>;
+    race<T>(values: Iterable<T | PromiseLike<T>>): Promise<T>;
+}
+interface String {
+    [Symbol.iterator](): IterableIterator<string>;
+}
+interface Int8Array {
+    [Symbol.iterator](): IterableIterator<number>;
+    entries(): IterableIterator<[number, number]>;
+    keys(): IterableIterator<number>;
+    values(): IterableIterator<number>;
+}
+interface Int8ArrayConstructor {
+    new (elements: Iterable<number>): Int8Array;
+    from(arrayLike: Iterable<number>, mapfn?: (v: number, k: number) => number, thisArg?: any): Int8Array;
+}
+interface Uint8Array {
+    [Symbol.iterator](): IterableIterator<number>;
+    entries(): IterableIterator<[number, number]>;
+    keys(): IterableIterator<number>;
+    values(): IterableIterator<number>;
+}
+interface Uint8ArrayConstructor {
+    new (elements: Iterable<number>): Uint8Array;
+    from(arrayLike: Iterable<number>, mapfn?: (v: number, k: number) => number, thisArg?: any): Uint8Array;
+}
+interface Uint8ClampedArray {
+    [Symbol.iterator](): IterableIterator<number>;
+    entries(): IterableIterator<[number, number]>;
+    keys(): IterableIterator<number>;
+    values(): IterableIterator<number>;
+}
+interface Uint8ClampedArrayConstructor {
+    new (elements: Iterable<number>): Uint8ClampedArray;
+    from(arrayLike: Iterable<number>, mapfn?: (v: number, k: number) => number, thisArg?: any): Uint8ClampedArray;
+}
+interface Int16Array {
+    [Symbol.iterator](): IterableIterator<number>;
+    entries(): IterableIterator<[number, number]>;
+    keys(): IterableIterator<number>;
+    values(): IterableIterator<number>;
+}
+interface Int16ArrayConstructor {
+    new (elements: Iterable<number>): Int16Array;
+    from(arrayLike: Iterable<number>, mapfn?: (v: number, k: number) => number, thisArg?: any): Int16Array;
+}
+interface Uint16Array {
+    [Symbol.iterator](): IterableIterator<number>;
+    entries(): IterableIterator<[number, number]>;
+    keys(): IterableIterator<number>;
+    values(): IterableIterator<number>;
+}
+interface Uint16ArrayConstructor {
+    new (elements: Iterable<number>): Uint16Array;
+    from(arrayLike: Iterable<number>, mapfn?: (v: number, k: number) => number, thisArg?: any): Uint16Array;
+}
+interface Int32Array {
+    [Symbol.iterator](): IterableIterator<number>;
+    entries(): IterableIterator<[number, number]>;
+    keys(): IterableIterator<number>;
+    values(): IterableIterator<number>;
+}
+interface Int32ArrayConstructor {
+    new (elements: Iterable<number>): Int32Array;
+    from(arrayLike: Iterable<number>, mapfn?: (v: number, k: number) => number, thisArg?: any): Int32Array;
+}
+interface Uint32Array {
+    [Symbol.iterator](): IterableIterator<number>;
+    entries(): IterableIterator<[number, number]>;
+    keys(): IterableIterator<number>;
+    values(): IterableIterator<number>;
+}
+interface Uint32ArrayConstructor {
+    new (elements: Iterable<number>): Uint32Array;
+    from(arrayLike: Iterable<number>, mapfn?: (v: number, k: number) => number, thisArg?: any): Uint32Array;
+}
+interface Float32Array {
+    [Symbol.iterator](): IterableIterator<number>;
+    entries(): IterableIterator<[number, number]>;
+    keys(): IterableIterator<number>;
+    values(): IterableIterator<number>;
+}
+interface Float32ArrayConstructor {
+    new (elements: Iterable<number>): Float32Array;
+    from(arrayLike: Iterable<number>, mapfn?: (v: number, k: number) => number, thisArg?: any): Float32Array;
+}
+interface Float64Array {
+    [Symbol.iterator](): IterableIterator<number>;
+    entries(): IterableIterator<[number, number]>;
+    keys(): IterableIterator<number>;
+    values(): IterableIterator<number>;
+}
+interface Float64ArrayConstructor {
+    new (elements: Iterable<number>): Float64Array;
+    from(arrayLike: Iterable<number>, mapfn?: (v: number, k: number) => number, thisArg?: any): Float64Array;
+}
+interface Generator<T = unknown, TReturn = any, TNext = unknown> extends Iterator<T, TReturn, TNext> {
+    next(...args: [] | [TNext]): IteratorResult<T, TReturn>;
+    return(value: TReturn): IteratorResult<T, TReturn>;
+    throw(e: any): IteratorResult<T, TReturn>;
+    [Symbol.iterator](): Generator<T, TReturn, TNext>;
+}
+interface GeneratorFunction {
+    new (...args: any[]): Generator;
+    (...args: any[]): Generator;
+    readonly length: number;
+    readonly name: string;
+    readonly prototype: Generator;
+}
+interface GeneratorFunctionConstructor {
+    new (...args: string[]): GeneratorFunction;
+    (...args: string[]): GeneratorFunction;
+    readonly length: number;
+    readonly name: string;
+    readonly prototype: GeneratorFunction;
+}
+interface PromiseConstructor {
+    readonly prototype: Promise<any>;
+    new <T>(executor: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void): Promise<T>;
+    all<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>, T3 | PromiseLike<T3>, T4 | PromiseLike<T4>, T5 | PromiseLike<T5>, T6 | PromiseLike<T6>, T7 | PromiseLike<T7>, T8 | PromiseLike<T8>, T9 | PromiseLike<T9>, T10 | PromiseLike<T10>]): Promise<[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]>;
+    all<T1, T2, T3, T4, T5, T6, T7, T8, T9>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>, T3 | PromiseLike<T3>, T4 | PromiseLike<T4>, T5 | PromiseLike<T5>, T6 | PromiseLike<T6>, T7 | PromiseLike<T7>, T8 | PromiseLike<T8>, T9 | PromiseLike<T9>]): Promise<[T1, T2, T3, T4, T5, T6, T7, T8, T9]>;
+    all<T1, T2, T3, T4, T5, T6, T7, T8>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>, T3 | PromiseLike<T3>, T4 | PromiseLike<T4>, T5 | PromiseLike<T5>, T6 | PromiseLike<T6>, T7 | PromiseLike<T7>, T8 | PromiseLike<T8>]): Promise<[T1, T2, T3, T4, T5, T6, T7, T8]>;
+    all<T1, T2, T3, T4, T5, T6, T7>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>, T3 | PromiseLike<T3>, T4 | PromiseLike<T4>, T5 | PromiseLike<T5>, T6 | PromiseLike<T6>, T7 | PromiseLike<T7>]): Promise<[T1, T2, T3, T4, T5, T6, T7]>;
+    all<T1, T2, T3, T4, T5, T6>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>, T3 | PromiseLike<T3>, T4 | PromiseLike<T4>, T5 | PromiseLike<T5>, T6 | PromiseLike<T6>]): Promise<[T1, T2, T3, T4, T5, T6]>;
+    all<T1, T2, T3, T4, T5>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>, T3 | PromiseLike<T3>, T4 | PromiseLike<T4>, T5 | PromiseLike<T5>]): Promise<[T1, T2, T3, T4, T5]>;
+    all<T1, T2, T3, T4>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>, T3 | PromiseLike<T3>, T4 | PromiseLike<T4>]): Promise<[T1, T2, T3, T4]>;
+    all<T1, T2, T3>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>, T3 | PromiseLike<T3>]): Promise<[T1, T2, T3]>;
+    all<T1, T2>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>]): Promise<[T1, T2]>;
+    all<T>(values: readonly (T | PromiseLike<T>)[]): Promise<T[]>;
+    race<T>(values: readonly T[]): Promise<T extends PromiseLike<infer U> ? U : T>;
+    reject<T = never>(reason?: any): Promise<T>;
+    resolve(): Promise<void>;
+    resolve<T>(value: T | PromiseLike<T>): Promise<T>;
+}
+declare var Promise: PromiseConstructor;
+interface ProxyHandler<T extends object> {
+    apply?(target: T, thisArg: any, argArray: any[]): any;
+    construct?(target: T, argArray: any[], newTarget: Function): object;
+    defineProperty?(target: T, p: string | symbol, attributes: PropertyDescriptor): boolean;
+    deleteProperty?(target: T, p: string | symbol): boolean;
+    get?(target: T, p: string | symbol, receiver: any): any;
+    getOwnPropertyDescriptor?(target: T, p: string | symbol): PropertyDescriptor | undefined;
+    getPrototypeOf?(target: T): object | null;
+    has?(target: T, p: string | symbol): boolean;
+    isExtensible?(target: T): boolean;
+    ownKeys?(target: T): ArrayLike<string | symbol>;
+    preventExtensions?(target: T): boolean;
+    set?(target: T, p: string | symbol, value: any, receiver: any): boolean;
+    setPrototypeOf?(target: T, v: object | null): boolean;
+}
+interface ProxyConstructor {
+    revocable<T extends object>(target: T, handler: ProxyHandler<T>): {
+        proxy: T;
+        revoke: () => void;
+    };
+    new <T extends object>(target: T, handler: ProxyHandler<T>): T;
+}
+declare var Proxy: ProxyConstructor;
+declare namespace Reflect {
+    function apply(target: Function, thisArgument: any, argumentsList: ArrayLike<any>): any;
+    function construct(target: Function, argumentsList: ArrayLike<any>, newTarget?: Function): any;
+    function defineProperty(target: object, propertyKey: PropertyKey, attributes: PropertyDescriptor): boolean;
+    function deleteProperty(target: object, propertyKey: PropertyKey): boolean;
+    function get(target: object, propertyKey: PropertyKey, receiver?: any): any;
+    function getOwnPropertyDescriptor(target: object, propertyKey: PropertyKey): PropertyDescriptor | undefined;
+    function getPrototypeOf(target: object): object | null;
+    function has(target: object, propertyKey: PropertyKey): boolean;
+    function isExtensible(target: object): boolean;
+    function ownKeys(target: object): (string | symbol)[];
+    function preventExtensions(target: object): boolean;
+    function set(target: object, propertyKey: PropertyKey, value: any, receiver?: any): boolean;
+    function setPrototypeOf(target: object, proto: object | null): boolean;
+}
+interface SymbolConstructor {
+    readonly prototype: Symbol;
+    (description?: string | number): symbol;
+    for(key: string): symbol;
+    keyFor(sym: symbol): string | undefined;
+}
+declare var Symbol: SymbolConstructor;
+interface SymbolConstructor {
+    readonly hasInstance: unique symbol;
+    readonly isConcatSpreadable: unique symbol;
+    readonly match: unique symbol;
+    readonly replace: unique symbol;
+    readonly search: unique symbol;
+    readonly species: unique symbol;
+    readonly split: unique symbol;
+    readonly toPrimitive: unique symbol;
+    readonly toStringTag: unique symbol;
+    readonly unscopables: unique symbol;
+}
+interface Symbol {
+    [Symbol.toPrimitive](hint: string): symbol;
+    readonly [Symbol.toStringTag]: string;
+}
+interface Array<T> {
+    [Symbol.unscopables](): {
+        copyWithin: boolean;
+        entries: boolean;
+        fill: boolean;
+        find: boolean;
+        findIndex: boolean;
+        keys: boolean;
+        values: boolean;
+    };
+}
+interface Date {
+    [Symbol.toPrimitive](hint: "default"): string;
+    [Symbol.toPrimitive](hint: "string"): string;
+    [Symbol.toPrimitive](hint: "number"): number;
+    [Symbol.toPrimitive](hint: string): string | number;
+}
+interface Map<K, V> {
+    readonly [Symbol.toStringTag]: string;
+}
+interface WeakMap<K extends object, V> {
+    readonly [Symbol.toStringTag]: string;
+}
+interface Set<T> {
+    readonly [Symbol.toStringTag]: string;
+}
+interface WeakSet<T extends object> {
+    readonly [Symbol.toStringTag]: string;
+}
+interface JSON {
+    readonly [Symbol.toStringTag]: string;
+}
+interface Function {
+    [Symbol.hasInstance](value: any): boolean;
+}
+interface GeneratorFunction {
+    readonly [Symbol.toStringTag]: string;
+}
+interface Math {
+    readonly [Symbol.toStringTag]: string;
+}
+interface Promise<T> {
+    readonly [Symbol.toStringTag]: string;
+}
+interface PromiseConstructor {
+    readonly [Symbol.species]: PromiseConstructor;
+}
+interface RegExp {
+    [Symbol.match](string: string): RegExpMatchArray | null;
+    [Symbol.replace](string: string, replaceValue: string): string;
+    [Symbol.replace](string: string, replacer: (substring: string, ...args: any[]) => string): string;
+    [Symbol.search](string: string): number;
+    [Symbol.split](string: string, limit?: number): string[];
+}
+interface RegExpConstructor {
+    readonly [Symbol.species]: RegExpConstructor;
+}
+interface String {
+    match(matcher: {
+        [Symbol.match](string: string): RegExpMatchArray | null;
+    }): RegExpMatchArray | null;
+    replace(searchValue: {
+        [Symbol.replace](string: string, replaceValue: string): string;
+    }, replaceValue: string): string;
+    replace(searchValue: {
+        [Symbol.replace](string: string, replacer: (substring: string, ...args: any[]) => string): string;
+    }, replacer: (substring: string, ...args: any[]) => string): string;
+    search(searcher: {
+        [Symbol.search](string: string): number;
+    }): number;
+    split(splitter: {
+        [Symbol.split](string: string, limit?: number): string[];
+    }, limit?: number): string[];
+}
+interface ArrayBuffer {
+    readonly [Symbol.toStringTag]: string;
+}
+interface DataView {
+    readonly [Symbol.toStringTag]: string;
+}
+interface Int8Array {
+    readonly [Symbol.toStringTag]: "Int8Array";
+}
+interface Uint8Array {
+    readonly [Symbol.toStringTag]: "Uint8Array";
+}
+interface Uint8ClampedArray {
+    readonly [Symbol.toStringTag]: "Uint8ClampedArray";
+}
+interface Int16Array {
+    readonly [Symbol.toStringTag]: "Int16Array";
+}
+interface Uint16Array {
+    readonly [Symbol.toStringTag]: "Uint16Array";
+}
+interface Int32Array {
+    readonly [Symbol.toStringTag]: "Int32Array";
+}
+interface Uint32Array {
+    readonly [Symbol.toStringTag]: "Uint32Array";
+}
+interface Float32Array {
+    readonly [Symbol.toStringTag]: "Float32Array";
+}
+interface Float64Array {
+    readonly [Symbol.toStringTag]: "Float64Array";
+}
+interface ArrayConstructor {
+    readonly [Symbol.species]: ArrayConstructor;
+}
+interface MapConstructor {
+    readonly [Symbol.species]: MapConstructor;
+}
+interface SetConstructor {
+    readonly [Symbol.species]: SetConstructor;
+}
+interface ArrayBufferConstructor {
+    readonly [Symbol.species]: ArrayBufferConstructor;
+}
+interface Array<T> {
+    includes(searchElement: T, fromIndex?: number): boolean;
+}
+interface ReadonlyArray<T> {
+    includes(searchElement: T, fromIndex?: number): boolean;
+}
+interface Int8Array {
+    includes(searchElement: number, fromIndex?: number): boolean;
+}
+interface Uint8Array {
+    includes(searchElement: number, fromIndex?: number): boolean;
+}
+interface Uint8ClampedArray {
+    includes(searchElement: number, fromIndex?: number): boolean;
+}
+interface Int16Array {
+    includes(searchElement: number, fromIndex?: number): boolean;
+}
+interface Uint16Array {
+    includes(searchElement: number, fromIndex?: number): boolean;
+}
+interface Int32Array {
+    includes(searchElement: number, fromIndex?: number): boolean;
+}
+interface Uint32Array {
+    includes(searchElement: number, fromIndex?: number): boolean;
+}
+interface Float32Array {
+    includes(searchElement: number, fromIndex?: number): boolean;
+}
+interface Float64Array {
+    includes(searchElement: number, fromIndex?: number): boolean;
+}
+interface ObjectConstructor {
+    values<T>(o: {
+        [s: string]: T;
+    } | ArrayLike<T>): T[];
+    values(o: {}): any[];
+    entries<T>(o: {
+        [s: string]: T;
+    } | ArrayLike<T>): [string, T][];
+    entries(o: {}): [string, any][];
+    getOwnPropertyDescriptors<T>(o: T): {
+        [P in keyof T]: TypedPropertyDescriptor<T[P]>;
+    } & {
+        [x: string]: PropertyDescriptor;
+    };
+}
+interface SharedArrayBuffer {
+    readonly byteLength: number;
+    slice(begin: number, end?: number): SharedArrayBuffer;
+    readonly [Symbol.species]: SharedArrayBuffer;
+    readonly [Symbol.toStringTag]: "SharedArrayBuffer";
+}
+interface SharedArrayBufferConstructor {
+    readonly prototype: SharedArrayBuffer;
+    new (byteLength: number): SharedArrayBuffer;
+}
+declare var SharedArrayBuffer: SharedArrayBufferConstructor;
+interface ArrayBufferTypes {
+    SharedArrayBuffer: SharedArrayBuffer;
+}
+interface Atomics {
+    add(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number, value: number): number;
+    and(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number, value: number): number;
+    compareExchange(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number, expectedValue: number, replacementValue: number): number;
+    exchange(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number, value: number): number;
+    isLockFree(size: number): boolean;
+    load(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number): number;
+    or(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number, value: number): number;
+    store(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number, value: number): number;
+    sub(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number, value: number): number;
+    wait(typedArray: Int32Array, index: number, value: number, timeout?: number): "ok" | "not-equal" | "timed-out";
+    notify(typedArray: Int32Array, index: number, count?: number): number;
+    xor(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number, value: number): number;
+    readonly [Symbol.toStringTag]: "Atomics";
+}
+declare var Atomics: Atomics;
+interface String {
+    padStart(maxLength: number, fillString?: string): string;
+    padEnd(maxLength: number, fillString?: string): string;
+}
+declare namespace Intl {
+    type DateTimeFormatPartTypes = "day" | "dayPeriod" | "era" | "hour" | "literal" | "minute" | "month" | "second" | "timeZoneName" | "weekday" | "year";
+    interface DateTimeFormatPart {
+        type: DateTimeFormatPartTypes;
+        value: string;
+    }
+    interface DateTimeFormat {
+        formatToParts(date?: Date | number): DateTimeFormatPart[];
+    }
+}
+interface Int8ArrayConstructor {
+    new (): Int8Array;
+}
+interface Uint8ArrayConstructor {
+    new (): Uint8Array;
+}
+interface Uint8ClampedArrayConstructor {
+    new (): Uint8ClampedArray;
+}
+interface Int16ArrayConstructor {
+    new (): Int16Array;
+}
+interface Uint16ArrayConstructor {
+    new (): Uint16Array;
+}
+interface Int32ArrayConstructor {
+    new (): Int32Array;
+}
+interface Uint32ArrayConstructor {
+    new (): Uint32Array;
+}
+interface Float32ArrayConstructor {
+    new (): Float32Array;
+}
+interface Float64ArrayConstructor {
+    new (): Float64Array;
+}
 `;
 export default Lib;

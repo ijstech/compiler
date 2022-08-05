@@ -33,15 +33,7 @@ export class DocsPaging extends Module {
     private paging: Panel;
     private labelPrev: Label;
     private labelNext: Label;
-    constructor(parent?: Control, options?: any) {
-        super(parent, options);
-    }
-
-    async init() {
-        super.init();
-
-    }
-
+        
     set flatTree(value: any) {
         this._flatTree = value;
         if(!this._currentNode && value && value.length > 0) {
@@ -66,7 +58,7 @@ export class DocsPaging extends Module {
     updatePager() {
         let prevNodeIndex = -1, nextNodeIndex = -1;
         if(this._flatTree) {
-            this._flatTree.forEach((value, index) => {
+            this._flatTree.forEach((value: any, index: any) => {
                 if(value.slug == this._currentNode.slug){
                     let prevValid = false, nextValid = false;
                     prevNodeIndex = index - 1;
@@ -114,7 +106,7 @@ export class DocsPaging extends Module {
     nextPageOnClick() {
         let nextNodeIndex = -1;
         if(this._flatTree && this.currentNode) {
-            this._flatTree.forEach((value, index) => {
+            this._flatTree.forEach((value: any, index: any) => {
                 if(value.slug == this._currentNode.slug){
                     let valid = false;
                     nextNodeIndex = index + 1;
@@ -135,7 +127,7 @@ export class DocsPaging extends Module {
     prevPageOnClick() {
         let prevNodeIndex = -1;
         if(this._flatTree && this.currentNode) {
-            this._flatTree.forEach((value, index) => {
+            this._flatTree.forEach((value: any, index: any) => {
                 if(value.slug == this._currentNode.slug){
                     let valid = false;
                     prevNodeIndex = index - 1;

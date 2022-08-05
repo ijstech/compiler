@@ -45,7 +45,7 @@ export class Compiler {
     // private fileNames: string[];
     private packages: {[index: string]: IPackage} = {};
     private libs: {[index: string]: string};
-
+    private fileNotExists: string;
     constructor() {
         this.scriptOptions = {
             allowJs: false,
@@ -87,34 +87,36 @@ export class Compiler {
         );
         result = result || [];
         for (let i = 0; i < ast.statements.length; i ++){
-            let node = ast.statements[i];            
-            if (node.kind == TS.SyntaxKind.ImportDeclaration){                
-                let module = (<TS.LiteralLikeNode>(node as any).moduleSpecifier).text;
-                if (module.startsWith('.')){                    
-                    let filePath = resolveAbsolutePath(fileName, module)                    
-                    if (this.files[filePath] == undefined && this.files[filePath + '.ts'] == undefined && this.files[filePath + '.tsx'] == undefined){                        
-                        let file = await fileImporter(filePath);
-                        if (file){
-                            result.push(file.fileName);
-                            this.addFile(file.fileName, file.content);
-                            await this.importDependencies(filePath, file.content, fileImporter, result);
-                        }                        
+            let node = ast.statements[i];                        
+            if (node.kind == TS.SyntaxKind.ImportDeclaration || node.kind == TS.SyntaxKind.ExportDeclaration){
+                if ((node as any).moduleSpecifier){
+                    let module = (<TS.LiteralLikeNode>(node as any).moduleSpecifier).text;
+                    if (module.startsWith('.')){                    
+                        let filePath = resolveAbsolutePath(fileName, module)                    
+                        if (this.files[filePath] == undefined && this.files[filePath + '.ts'] == undefined && this.files[filePath + '.tsx'] == undefined){                        
+                            let file = await fileImporter(filePath);
+                            if (file){
+                                result.push(file.fileName);
+                                this.addFile(file.fileName, file.content);
+                                await this.importDependencies(filePath, file.content, fileImporter, result);
+                            }                        
+                        }
                     }
-                }
-                else if (!this.packages[module]){
-                    let file = await fileImporter(module);
-                    if (file){
-                        result.push(module);
-                        let pack: IPackage = {
-                            dts: {
-                                [file.fileName]: file.content
-                            },
-                            version: ''
+                    else if (!this.packages[module]){
+                        let file = await fileImporter(module);
+                        if (file){
+                            result.push(module);
+                            let pack: IPackage = {
+                                dts: {
+                                    [file.fileName]: file.content
+                                },
+                                version: ''
+                            };
+                            this.addPackage(module, pack);
                         };
-                        this.addPackage(module, pack);
-                    };
-                };   
-            };
+                    }; 
+                } 
+            }            
         };
         return result;
     }
@@ -163,23 +165,31 @@ export class Compiler {
         
         for (let f in this.files)
             fileNames.push(f);
-
-        let program = TS.createProgram(fileNames, this.scriptOptions, host);
-        const emitResult = program.emit();
-        emitResult.diagnostics.forEach(item => {
-            result.errors.push({
-                category: item.category,
-                code: item.code,
-                file: item.file?item.file.fileName:'',
-                length: item.length?item.length:0,
-                message: item.messageText,
-                start: item.start?item.start:0
+        
+        try{
+            let program = TS.createProgram(fileNames, this.scriptOptions, host);
+            const emitResult = program.emit();
+            emitResult.diagnostics.forEach(item => {
+                result.errors.push({
+                    category: item.category,
+                    code: item.code,
+                    file: item.file?item.file.fileName:'',
+                    length: item.length?item.length:0,
+                    message: item.messageText,
+                    start: item.start?item.start:0
+                });
             });
-        });
-        if (emitDeclaration){
-            program = TS.createProgram(fileNames, this.dtsOptions, host);
-            program.emit();
-        };
+            if (emitDeclaration){
+                program = TS.createProgram(fileNames, this.dtsOptions, host);
+                program.emit();
+            };
+        }
+        catch(err){
+            if (this.fileNotExists)
+                console.dir('File not exists: ' + this.fileNotExists)
+            else
+                console.trace(err)
+        }
         return result;
     };
     fileExists(fileName: string): boolean {                
@@ -188,7 +198,9 @@ export class Compiler {
         if (!result && fileName.endsWith('.ts'))
             result = this.packages[fileName.slice(0, -3)] != undefined;
         if (!result)        
-            console.dir('File not exists: ' + fileName);
+            this.fileNotExists = fileName
+        else
+            this.fileNotExists = '';
         return result
     };
     async getDependencies(fileName: string, content: string, fileImporter?: FileImporter, result?: string[]): Promise<string[]>{
@@ -200,7 +212,7 @@ export class Compiler {
         );
         result = result || [];
         for (let i = 0; i < ast.statements.length; i ++){
-            let node = ast.statements[i];            
+            let node = ast.statements[i];                        
             if (node.kind == TS.SyntaxKind.ImportDeclaration){                
                 let module = (<TS.LiteralLikeNode>(node as any).moduleSpecifier).text;                
                 if (module.startsWith('.')){

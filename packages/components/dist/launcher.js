@@ -7281,7 +7281,6 @@ var Component = class extends HTMLElement {
   constructor(parent, options, defaults) {
     super();
     this.attrs = {};
-    this._parent = parent;
     this.options = options || {};
     this.defaults = defaults || {};
     initObservables(this);
@@ -7381,6 +7380,8 @@ cssRule("body", {
   backgroundAttachment: "fixed !important",
   margin: 0,
   padding: 0,
+  overflowX: "hidden",
+  overflowY: "auto",
   $nest: {
     "*, *:before, *:after": {
       boxSizing: "border-box"
@@ -7490,42 +7491,45 @@ var disabledStyle = style({
 });
 var containerStyle = style({
   $nest: {
-    ".resizer:hover": {
+    "span.resizer": {
+      zIndex: 999
+    },
+    "span.resizer:hover": {
       backgroundColor: theme_exports.ThemeVars.colors.info.main,
       transitionDelay: "0.5s"
     },
-    ".resizer.highlight": {
+    "span.resizer.highlight": {
       backgroundColor: theme_exports.ThemeVars.colors.info.main
     },
-    ".e-resize": {
+    "span.e-resize": {
       position: "absolute",
       right: "0px",
       height: "100%",
       width: "4px",
       cursor: "e-resize"
     },
-    ".n-resize": {
+    "span.n-resize": {
       position: "absolute",
       top: "0px",
       height: "4px",
       width: "100%",
       cursor: "n-resize"
     },
-    ".s-resize": {
+    "span.s-resize": {
       position: "absolute",
       bottom: "0px",
       height: "4px",
       width: "100%",
       cursor: "s-resize"
     },
-    ".w-resize": {
+    "span.w-resize": {
       position: "absolute",
       left: "0px",
       height: "100%",
       width: "4px",
       cursor: "w-resize"
     },
-    ".resizing": {
+    "span.resizing": {
       userSelect: "none",
       pointerEvents: "none"
     }
@@ -7863,15 +7867,16 @@ var Tooltip = class {
     this.positionAt(elm, this.tooltipElm, this.placement);
   }
   close() {
+    if (this.tooltipElm && document.body.contains(this.tooltipElm))
+      document.body.removeChild(this.tooltipElm);
+  }
+  onHandleClick(elm) {
+    this.show(elm);
     this.timeout = setTimeout(() => {
       clearTimeout(this.timeout);
       if (this.tooltipElm && document.body.contains(this.tooltipElm))
         document.body.removeChild(this.tooltipElm);
     }, 200);
-  }
-  onHandleClick(elm) {
-    this.show(elm);
-    this.close();
   }
   renderTooltip() {
     this.tooltipElm = document.createElement("div");
@@ -7937,7 +7942,6 @@ function refresh() {
           node.style.position = "absolute";
           node.style.width = "100%";
           node.style.height = "100%";
-          node.style.overflowX = "hidden";
           node.refresh();
         }
       }
@@ -8167,6 +8171,7 @@ var Border = class {
 var Control = class extends Component {
   constructor(parent, options, defaults) {
     super(parent, options, defaults);
+    this._controls = [];
     this._enabled = true;
     this._paddingLeft = 0;
     this._paddingTop = 0;
@@ -8181,8 +8186,7 @@ var Control = class extends Component {
     this._anchorRight = false;
     this._anchorBottom = false;
     this._visible = true;
-    if (parent instanceof Container)
-      this.parent = parent;
+    this.parent = parent;
   }
   static async create(options, parent, defaults) {
     let self = new this(parent, options);
@@ -8241,27 +8245,34 @@ var Control = class extends Component {
     this._paddingRight = padding.right;
     this._paddingBottom = padding.bottom;
   }
+  addChildControl(control) {
+    if (!control.parentNode)
+      this.appendChild(control);
+  }
+  removeChildControl(control) {
+    if (this.contains(control))
+      this.removeChild(control);
+  }
   get parent() {
     return this._parent;
   }
   set parent(value) {
+    if (value && value._controls.indexOf(this) < 0)
+      value._controls.push(this);
     if (this._parent != value) {
       if (this._parent) {
-        this._parent.controls.splice(this._parent.controls.indexOf(this), 1);
-        if (this._parent.contains(this))
-          this._parent.removeChild(this);
+        if (this._parent._controls.indexOf(this) > -1)
+          this._parent._controls.splice(this._parent._controls.indexOf(this), 1);
+        this._parent.removeChildControl(this);
         if (!_refreshTimeout)
           this._parent.refresh();
       }
       ;
       this._parent = value;
       if (this._parent) {
-        this._parent.controls.push(this);
-        if (this.parentNode != value) {
-          this._parent.appendChild(this);
-          if (!_refreshTimeout)
-            this._parent.refresh();
-        }
+        this._parent.addChildControl(this);
+        if (!_refreshTimeout)
+          this._parent.refresh();
       }
     }
   }
@@ -8305,8 +8316,8 @@ var Control = class extends Component {
       return 0;
     else {
       let result = this._parent._paddingLeft;
-      for (let i = 0; i < this._parent.controls.length; i++) {
-        let control = this._parent.controls[i];
+      for (let i = 0; i < this._parent._controls.length; i++) {
+        let control = this._parent._controls[i];
         if (control === this) {
           if (this.dock == "left")
             return result;
@@ -8324,8 +8335,8 @@ var Control = class extends Component {
       return 0;
     else {
       let result = this._parent._paddingRight;
-      for (let i = 0; i < this._parent.controls.length; i++) {
-        let control = this._parent.controls[i];
+      for (let i = 0; i < this._parent._controls.length; i++) {
+        let control = this._parent._controls[i];
         if (control === this) {
           if (this.dock == "right")
             return result;
@@ -8343,8 +8354,8 @@ var Control = class extends Component {
       return 0;
     else {
       let result = this._parent._paddingBottom;
-      for (let i = 0; i < this._parent.controls.length; i++) {
-        let control = this._parent.controls[i];
+      for (let i = 0; i < this._parent._controls.length; i++) {
+        let control = this._parent._controls[i];
         if (control === this) {
           if (this.dock == "bottom")
             return result;
@@ -8362,8 +8373,8 @@ var Control = class extends Component {
       return 0;
     else {
       let result = this._parent._paddingTop;
-      for (let i = 0; i < this._parent.controls.length; i++) {
-        let control = this._parent.controls[i];
+      for (let i = 0; i < this._parent._controls.length; i++) {
+        let control = this._parent._controls[i];
         if (control === this) {
           if (this.dock == "top")
             return result;
@@ -8537,7 +8548,7 @@ var Control = class extends Component {
   }
   setAttributeToProperty(propertyName) {
     const prop = this.getAttribute(propertyName, true);
-    if (prop)
+    if (prop !== null && prop !== void 0)
       this[propertyName] = prop;
   }
   init() {
@@ -8546,6 +8557,7 @@ var Control = class extends Component {
     this.setAttributeToProperty("left");
     this.setAttributeToProperty("top");
     this.setAttributeToProperty("right");
+    this.setAttributeToProperty("bottom");
     this.setAttributeToProperty("width");
     this.setAttributeToProperty("dock");
     this.setAttributeToProperty("margin");
@@ -8570,6 +8582,7 @@ var Control = class extends Component {
       this.enabled = false;
     if (this.getAttribute("visible") == false)
       this.visible = false;
+    this.setAttributeToProperty("position");
     this.setAttributeToProperty("background");
     this.setAttributeToProperty("zIndex");
     this.setAttributeToProperty("lineHeight");
@@ -8617,6 +8630,9 @@ var Control = class extends Component {
   }
   set right(value) {
     this.setPosition("right", value);
+  }
+  set bottom(value) {
+    this.setPosition("bottom", value);
   }
   get top() {
     return !isNaN(this._top) ? this._top : this.offsetTop;
@@ -8697,6 +8713,12 @@ var Control = class extends Component {
   }
   set linkTo(value) {
     this._linkTo = value;
+  }
+  get position() {
+    return this.style.position;
+  }
+  set position(value) {
+    this.style.position = value;
   }
   get minHeight() {
     return this.style.minHeight;
@@ -8779,8 +8801,6 @@ var ContainerResizer = class {
     ;
   }
   handleMouseDown(e) {
-    e.preventDefault();
-    e.stopPropagation();
     this.target.classList.add("resizing");
     this._origHeight = this.target.offsetHeight;
     this._origWidth = this.target.offsetWidth;
@@ -8822,8 +8842,6 @@ var ContainerResizer = class {
   handleMouseUp(e) {
     document.removeEventListener("mousemove", this._mouseMoveHandler);
     document.removeEventListener("mouseup", this._mouseUpHandler);
-    e.preventDefault();
-    e.stopPropagation();
     this.target.classList.remove("resizing");
     if (this._resizer)
       this._resizer.classList.remove("highlight");
@@ -8839,9 +8857,8 @@ var ContainerResizer = class {
   }
 };
 var Container = class extends Control {
-  constructor() {
-    super(...arguments);
-    this.controls = [];
+  get controls() {
+    return this._controls;
   }
   get resizer() {
     return this.attrs["resizer"] == true;
@@ -8863,8 +8880,8 @@ var Container = class extends Control {
     ;
   }
   refreshControls() {
-    for (let i = 0; i < this.controls.length; i++)
-      this.controls[i].refresh();
+    for (let i = 0; i < this._controls.length; i++)
+      this._controls[i].refresh();
   }
   refresh(skipRefreshControls) {
     super.refresh();
@@ -9049,8 +9066,8 @@ var Checkbox = class extends Control {
     });
     if (options == null ? void 0 : options.onRender)
       this.onRender = options.onRender;
-    if (options == null ? void 0 : options.onChange)
-      this.onChange = options.onChange;
+    if (options == null ? void 0 : options.onChanged)
+      this.onChanged = options.onChanged;
   }
   get caption() {
     return this._caption;
@@ -9105,8 +9122,8 @@ var Checkbox = class extends Control {
   _handleChange(event) {
     this.checked = this.inputElm.checked || false;
     this.addClass(this.checked, "is-checked");
-    if (this.onChange)
-      this.onChange(this, event);
+    if (this.onChanged)
+      this.onChanged(this, event);
   }
   addClass(value, className) {
     if (value)
@@ -9782,15 +9799,19 @@ var Image2 = class extends Control {
     imageObj.src = url;
     return canvas;
   }
-  async init() {
+  async fetchData(url) {
+    if (!url)
+      return;
+    await fetch(url).then((response) => response.blob()).then((imageBlob) => {
+      const imageObjectURL = URL.createObjectURL(imageBlob);
+      this.dataUrl = imageObjectURL;
+    });
+  }
+  init() {
     super.init();
     this._defaultUrl = this.getAttribute("defaultUrl", true, "");
     const dataUrlAttr = this.getAttribute("dataUrl", true);
-    if (dataUrlAttr)
-      await fetch(dataUrlAttr).then((response) => response.blob()).then((imageBlob) => {
-        const imageObjectURL = URL.createObjectURL(imageBlob);
-        this.dataUrl = imageObjectURL;
-      });
+    this.fetchData(dataUrlAttr);
     const urlAttr = this.getAttribute("url", true);
     urlAttr && !dataUrlAttr && (this.url = urlAttr);
     this.rotate = this.getAttribute("rotate", true);
@@ -9876,7 +9897,7 @@ var Icon = class extends Control {
     super(parent, options);
     loadIconFile();
   }
-  async init() {
+  init() {
     if (!this.initialized) {
       super.init();
       let fill = this.getAttribute("fill");
@@ -9889,7 +9910,7 @@ var Icon = class extends Control {
       if (image) {
         image.height = image.height || this.height || "16px";
         image.width = image.width || this.width || "16px";
-        this.image = await Image2.create(image);
+        this.image = new Image2(this, image);
       }
       this.spin = this.getAttribute("spin", true, false);
     }
@@ -10002,7 +10023,7 @@ var Button = class extends Control {
   static async create(options, parent) {
     let self = new this(parent, options);
     if (!self.initialized)
-      await self.init();
+      self.init();
     return self;
   }
   constructor(parent, options) {
@@ -10017,7 +10038,6 @@ var Button = class extends Control {
   get icon() {
     if (!this._icon) {
       this._icon = new Icon(this, defaultIcon);
-      this._icon.init();
       this.prependIcon(this._icon);
     }
     return this._icon;
@@ -10033,8 +10053,6 @@ var Button = class extends Control {
       this._rightIcon = new Icon(this, __spreadProps(__spreadValues({}, defaultIcon), {
         name: "spinner"
       }));
-      this._rightIcon.init();
-      this._rightIcon.visible = true;
       this.appendIcon(this._rightIcon);
     }
     return this._rightIcon;
@@ -10085,14 +10103,12 @@ var Button = class extends Control {
       if (iconAttr) {
         iconAttr = __spreadValues(__spreadValues({}, defaultIcon), iconAttr);
         const icon = new Icon(this, iconAttr);
-        icon.init();
         this.icon = icon;
       }
       let rightIconAttr = this.getAttribute("rightIcon", true);
       if (rightIconAttr) {
         rightIconAttr = __spreadValues(__spreadProps(__spreadValues({}, defaultIcon), { name: "spinner" }), rightIconAttr);
         const icon = new Icon(this, rightIconAttr);
-        icon.init();
         this.rightIcon = icon;
       }
     }
@@ -10587,70 +10603,152 @@ var ItemListStyle = style({
 });
 cssRule("i-combo-box", {
   position: "relative",
-  display: "inline-flex!important",
+  display: "flex",
   fontFamily: Theme7.typography.fontFamily,
   fontSize: Theme7.typography.fontSize,
+  color: Theme7.text.primary,
+  alignItems: "center",
   $nest: {
-    "*": {
-      boxSizing: "border-box"
-    },
-    "> i-input input": {
-      width: "100%!important",
-      padding: "1px 0.5rem"
+    "&.i-combo-box-multi": {
+      height: "auto !important"
     },
     "> .icon-btn": {
-      display: "inline-block",
-      verticalAlign: "middle",
-      backgroundColor: "#6c757d",
+      display: "inline-flex",
+      flexWrap: "nowrap",
+      whiteSpace: "nowrap",
+      backgroundColor: Theme7.action.focus,
       padding: "8px",
       marginLeft: "-1px",
       borderRadius: "0 3px 3px 0",
-      cursor: "pointer"
+      cursor: "pointer",
+      height: "100%",
+      alignItems: "center",
+      position: "absolute",
+      right: 0
     },
     "> .icon-btn:hover": {
-      backgroundColor: "#545b62"
+      backgroundColor: Theme7.action.hover
     },
     "> .icon-btn i-icon": {
       display: "inline-block",
       width: "12px",
       height: "12px"
+    },
+    ".selection": {
+      display: "inline-flex",
+      alignItems: "center",
+      flexWrap: "wrap",
+      maxWidth: "calc(100% - 32px)",
+      height: "100%",
+      border: `1px solid ${Theme7.divider}`,
+      backgroundColor: "#fff",
+      borderRadius: "3px 0 0 3px",
+      padding: "2px 4px",
+      transition: "all .3s cubic-bezier(.645,.045,.355,1)",
+      gap: 5,
+      $nest: {
+        ".selection-item": {
+          border: `1px solid ${Theme7.divider}`,
+          backgroundColor: Theme7.action.selectedOpacity,
+          borderRadius: 3,
+          display: "inline-flex",
+          alignItems: "center",
+          padding: "3px 5px",
+          gap: 4,
+          maxWidth: "clamp(100px, 50%, 200px)",
+          userSelect: "none",
+          $nest: {
+            ".close-icon": {
+              cursor: "pointer",
+              opacity: "0.5"
+            },
+            ".close-icon:hover": {
+              opacity: 1
+            },
+            "> span:first-child": {
+              display: "inline-block",
+              overflow: "hidden",
+              whiteSpace: "pre",
+              textOverflow: "ellipsis"
+            }
+          }
+        },
+        "input": {
+          padding: "1px 0.5rem",
+          border: "none",
+          boxShadow: "none",
+          outline: "none",
+          width: "auto !important",
+          maxWidth: "100%",
+          flex: 1
+        }
+      }
     }
   }
 });
 
 // packages/combo-box/src/combo-box.ts
+var defaultIcon2 = {
+  width: 16,
+  height: 16,
+  fill: theme_exports.ThemeVars.text.primary
+};
 var ComboBox = class extends Control {
   constructor(parent, options) {
-    super(parent, options);
+    super(parent, options, {
+      mode: "single"
+    });
+    this.newItem = null;
     this.isListShown = false;
-    this._selected = [];
   }
   get value() {
-    return this._value;
+    return this.selectedItem;
   }
   set value(value) {
-    if (this.isValueValid(value)) {
-      if (value == null)
-        value = "";
-      this._value = value;
-      this.inputElm.value = typeof value === "object" ? value.label : value || "";
-      if (this.callback) {
-        this.callback(value);
-      }
-    }
   }
-  get selected() {
-    return this._selected;
+  get selectedItem() {
+    return this._selectedItem;
   }
-  set selected(value) {
-    this._selected = value;
-    if (this.multi) {
-      this.inputElm.value = this.selected.map((selectedItem) => {
-        const itemLabel = typeof selectedItem === "object" ? selectedItem.label : selectedItem;
-        return itemLabel;
-      }).toString();
+  set selectedItem(value) {
+    let isValueValid = false;
+    let validValue;
+    if (this.isMulti) {
+      const formattedValue = Array.isArray(value) ? value : [value];
+      validValue = formattedValue.filter((item) => this.isValueValid(item));
+      isValueValid = !!validValue.length;
     } else {
-      this.inputElm.value = typeof this.value === "object" ? this.value.label : this.value || "";
+      validValue = value;
+      isValueValid = this.isValueValid(value);
+    }
+    if (isValueValid) {
+      this._selectedItem = validValue;
+      if (Array.isArray(this._selectedItem)) {
+        this.inputElm.value = "";
+        const selectionItems = Array.from(this.inputWrapElm.querySelectorAll(".selection-item"));
+        selectionItems.forEach((elm) => this.inputWrapElm.removeChild(elm));
+        this._selectedItem.forEach((item) => {
+          const itemElm = this.createElement("div");
+          itemElm.classList.add("selection-item");
+          const content = this.createElement("span", itemElm);
+          content.textContent = item.label;
+          itemElm.appendChild(content);
+          const closeButton = this.createElement("span", itemElm);
+          closeButton.classList.add("close-icon");
+          closeButton.innerHTML = "&times;";
+          closeButton.addEventListener("click", (event) => this.handleRemove(event, item));
+          this.inputWrapElm.appendChild(itemElm);
+          this.inputWrapElm.insertBefore(itemElm, this.inputElm);
+        });
+      } else {
+        this.inputElm.value = this._selectedItem.label;
+      }
+      if (this.callback)
+        this.callback(value);
+    } else if (this.isMulti) {
+      this._selectedItem = validValue;
+      this.inputElm.value = "";
+      const selectionItems = Array.from(this.inputWrapElm.querySelectorAll(".selection-item"));
+      selectionItems.forEach((elm) => this.inputWrapElm.removeChild(elm));
     }
   }
   get caption() {
@@ -10658,8 +10756,7 @@ var ComboBox = class extends Control {
   }
   set caption(value) {
     this._caption = value;
-    this._caption = value;
-    this.labelElm.textContent = this._caption || "";
+    this.labelElm.innerHTML = this._caption || "";
     if (!value)
       this.labelElm.style.display = "none";
     else
@@ -10679,44 +10776,61 @@ var ComboBox = class extends Control {
     this._items = items;
   }
   get icon() {
+    if (!this._icon) {
+      this._icon = new Icon(void 0, defaultIcon2);
+      if (this.iconElm)
+        this.iconElm.appendChild(this._icon);
+    }
     return this._icon;
   }
-  set icon(icon) {
-    this._icon = icon;
+  set icon(value) {
+    if (this.iconElm) {
+      if (this._icon && this.iconElm.contains(this._icon))
+        this.iconElm.removeChild(this._icon);
+      this._icon = value;
+      if (this._icon)
+        this.iconElm.appendChild(this._icon);
+    }
   }
   get searchStr() {
     return this._searchStr;
   }
   set searchStr(str) {
-    if (str == null)
+    if (str === null)
       str = "";
     this._searchStr = str;
   }
-  set enabled(value) {
-    this.inputElm.disabled = !value;
+  get placeholder() {
+    return this.inputElm.placeholder;
   }
-  get multi() {
-    return this.isMulti;
+  set placeholder(value) {
+    this.inputElm.placeholder = value;
   }
-  set multi(value) {
-    this.isMulti = value;
-    this.selected = [];
-    this.inputElm.readOnly = value;
+  get mode() {
+    return this._mode;
+  }
+  set mode(value) {
+    this._mode = value;
+    if (this.isMulti)
+      this.classList.add("i-combo-box-multi");
+    else
+      this.classList.remove("i-combo-box-multi");
+  }
+  get isMulti() {
+    return this.mode === "tags" || this.mode === "multiple";
   }
   isValueValid(value) {
-    const _value = typeof value === "object" ? value.value : value;
-    if (!_value)
-      return true;
+    if (!value)
+      return false;
     const index = this.getItemIndex(this.items, value);
     return index >= 0;
   }
   getItemIndex(items, item) {
-    const value = typeof item === "object" ? item.value.toString() : item;
+    const value = item == null ? void 0 : item.value.toString();
+    if (!value)
+      return -1;
     const index = items.findIndex((_item) => {
-      if (typeof _item === "string")
-        return _item.toLowerCase() === value.toLowerCase();
-      else
-        return _item.value.toString().toLowerCase() === value.toLowerCase();
+      return _item.value.toString().toLowerCase() === value.toLowerCase();
     });
     return index;
   }
@@ -10735,22 +10849,24 @@ var ComboBox = class extends Control {
     const scrollTop = document.documentElement.scrollTop || window.pageYOffset;
     const scrollLeft = document.documentElement.scrollLeft || window.pageXOffset;
     const top = rect.top + scrollTop + rect.height;
-    const left = rect.left + scrollLeft;
-    const width = rect.right - rect.left;
+    const left = rect.left + scrollLeft + this.captionSpanElm.offsetWidth;
+    const width = rect.right - rect.left - this.captionSpanElm.offsetWidth;
     this.listElm.style.top = top + "px";
     this.listElm.style.left = left + "px";
     this.listElm.style.width = width + "px";
   }
   closeList() {
+    var _a;
     this.isListShown = false;
     this.listElm.remove();
     this.listElm.style.display = "none";
     this.listElm.classList.remove("show");
     this.searchStr = "";
-    if (this.multi || Array.isArray(this.value))
+    if (this.isMulti || Array.isArray(this.selectedItem))
       return;
-    const label = typeof this.value === "object" ? this.value.label : this.value;
-    this.inputElm.value = label;
+    const label = (_a = this.selectedItem) == null ? void 0 : _a.label;
+    if (label && this.inputElm)
+      this.inputElm.value = label;
   }
   toggleList() {
     this.isListShown ? this.closeList() : this.openList();
@@ -10759,23 +10875,36 @@ var ComboBox = class extends Control {
     return text ? text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&") : text;
   }
   renderItems() {
+    if (this.mode === "tags" && this.newItem) {
+      const liElm = this.listElm.querySelector(`li[data-key="${this.newItem.value}"]`);
+      if (liElm) {
+        if (this.searchStr) {
+          liElm.classList.add("matched");
+          liElm.innerHTML = `<span class="highlight">${this.searchStr}</span>`;
+          this.newItem.label = this.searchStr;
+          return;
+        } else {
+          liElm.remove();
+          this.newItem = null;
+        }
+      }
+    }
     const regExp = new RegExp(this.escapeRegExp(this.searchStr), "g");
     this.listElm.innerHTML = "";
-    if (this.searchStr) {
+    if (this.searchStr)
       this.openList();
-    }
     const ulElm = this.createElement("ul", this.listElm);
     for (let item of this.items) {
-      const label = typeof item === "object" ? item.label : item;
+      const label = item.label;
       if (!this.searchStr || label.toLowerCase().includes(this.searchStr.toLowerCase())) {
         const liElm = this.createElement("li", ulElm);
+        liElm.setAttribute("data-key", item.value);
         liElm.addEventListener("click", () => this.onItemClick(liElm, item));
-        if (this.multi) {
-          const index = this.getItemIndex(this.selected, item);
-          if (index >= 0) {
+        if (Array.isArray(this.selectedItem)) {
+          const index = this.getItemIndex(this.selectedItem, item);
+          if (index >= 0)
             liElm.classList.add("matched");
-          }
-        } else if (item === this.value) {
+        } else if (item === this.selectedItem) {
           liElm.classList.add("matched");
         }
         const displayItem = this.searchStr ? label.replace(regExp, `<span class="highlight">${this.searchStr}</span>`) : label;
@@ -10783,82 +10912,107 @@ var ComboBox = class extends Control {
       }
     }
     if (!ulElm.innerHTML) {
-      this.listElm.classList.remove("show");
+      if (this.mode === "tags" && !this.newItem) {
+        this.newItem = {
+          value: new Date().getTime().toString(),
+          label: this.searchStr
+        };
+        this.add(this.newItem, ulElm);
+        return;
+      } else {
+        ulElm.innerHTML = '<li style="text-align:center;">No data</li>';
+      }
     }
   }
-  onItemClick(liElm, item) {
-    const label = typeof item === "object" ? item.label : item;
-    if (this.multi) {
-      const index = this.getItemIndex(this.selected, item);
-      if (index >= 0) {
-        this.selected.splice(index, 1);
-      } else {
-        this.selected.push(item);
+  add(item, parent) {
+    const liElm = this.createElement("li", parent);
+    liElm.setAttribute("data-key", item.value);
+    liElm.addEventListener("click", () => this.onItemClick(liElm, item));
+    liElm.classList.add("matched");
+    liElm.innerHTML = `<span class="highlight">${this.searchStr}</span>`;
+  }
+  handleRemove(event, item) {
+    event.stopPropagation();
+    if (!this.enabled)
+      return;
+    const liElm = this.listElm.querySelector(`li[data-key="${item.value}"]`);
+    if (liElm) {
+      liElm.classList.remove("matched");
+      if (this.mode === "tags" && item.isNew) {
+        liElm.remove();
+        this.items = this.items.filter((data) => data.value !== item.value);
       }
-      this.inputElm.value = this.selected.map((selectedItem) => {
-        const itemLabel = typeof selectedItem === "object" ? selectedItem.label : selectedItem;
-        return itemLabel;
-      }).toString();
+    }
+    const selectedItem = this.selectedItem;
+    const selectedIndex = this.getItemIndex(selectedItem, item);
+    if (selectedIndex >= 0)
+      selectedItem.splice(selectedIndex, 1);
+    this.selectedItem = selectedItem;
+    if (this.onChanged && typeof this.onChanged === "function")
+      this.onChanged(this, this.selectedItem);
+  }
+  onItemClick(liElm, item) {
+    var _a;
+    if (((_a = this.newItem) == null ? void 0 : _a.value) === item.value) {
+      item = __spreadProps(__spreadValues({}, this.newItem), { isNew: true });
+      this.items.push(item);
+      this.newItem = null;
+    }
+    if (Array.isArray(this.selectedItem)) {
+      const index = this.getItemIndex(this.selectedItem, item);
+      const selectedItem = this.selectedItem;
+      if (index >= 0) {
+        selectedItem.splice(index, 1);
+      } else {
+        selectedItem.push(item);
+      }
+      this.selectedItem = selectedItem;
       liElm.classList.toggle("matched");
     } else {
-      this.value = item;
-      this.inputElm.value = label;
+      this.selectedItem = item;
       this.closeList();
     }
-    if (this.onSelect) {
-      this.onSelect(this.value);
-    }
+    if (this.onChanged && typeof this.onChanged === "function")
+      this.onChanged(this, this.selectedItem);
   }
   init() {
     if (!this.inputElm) {
       this.callback = this.getAttribute("parentCallback", true);
-      this.onSelect = this.getAttribute("onSelect", true) || this.onSelect;
-      const width = this.getAttribute("width", true);
-      const height = this.getAttribute("height", true);
-      const value = this.attrs.value || this.getAttribute("value", true);
-      this.items = this.attrs.items || this.getAttribute("items", true) || [];
-      this.icon = this.getAttribute("icon", true);
+      const placeholder = this.getAttribute("placeholder", true);
+      this.mode = this.getAttribute("mode", true);
+      this.items = this.getAttribute("items", true, []);
       this.captionSpanElm = this.createElement("span", this);
       this.labelElm = this.createElement("label", this.captionSpanElm);
-      this.inputElm = this.createElement("input", this);
-      this.inputElm.width = width - height;
-      this.inputElm.height = height;
-      this.value = value;
-      this.multi = this.getAttribute("multi", true);
+      this.inputWrapElm = this.createElement("div", this);
+      this.inputWrapElm.classList.add("selection");
+      this.inputElm = this.createElement("input", this.inputWrapElm);
+      const disabled = this.getAttribute("enabled") === false;
+      this.inputElm.disabled = disabled;
       this.inputElm.addEventListener("click", (e) => {
         this.openList();
         if (this.onClick)
           this.onClick(this, e);
       });
       this.inputElm.addEventListener("keyup", () => {
-        if (this.multi || Array.isArray(this.value))
-          return;
-        let label = typeof this.value === "string" ? this.value : this.value.label;
-        if (this.inputElm.value.toLowerCase() !== label.toLowerCase()) {
-          this.searchStr = this.inputElm.value;
-          this.renderItems();
-          if (!this.inputElm.value) {
-            this.value = "";
-          } else {
-            const index = this.getItemIndex(this.items, this.inputElm.value);
-            if (index >= 0)
-              this.value = this.items[index];
-          }
-        }
+        this.searchStr = this.inputElm.value;
+        this.renderItems();
       });
-      this.appendChild(this.inputElm);
-      const iconName = this.getAttribute("icon", true);
+      this.inputWrapElm.appendChild(this.inputElm);
+      placeholder && (this.placeholder = placeholder);
       this.iconElm = this.createElement("span", this);
       this.iconElm.classList.add("icon-btn");
-      this.iconElm.style.width = this.options.height + "px";
-      this.iconElm.style.height = this.options.height + "px";
-      const icon = new Icon(this, { name: this.icon, fill: "white" });
-      this.iconElm.appendChild(icon);
       this.iconElm.addEventListener("click", () => {
         if (!this._enabled)
           return false;
         this.toggleList();
       });
+      let iconAttr = this.getAttribute("icon", true);
+      if (iconAttr) {
+        iconAttr = __spreadValues(__spreadValues({}, defaultIcon2), iconAttr);
+        const icon = new Icon(void 0, iconAttr);
+        this.icon = icon;
+      }
+      this.selectedItem = this.getAttribute("selectedItem", true);
       this.listElm = this.createElement("div");
       this.listElm.classList.add(ItemListStyle);
       this.listElm.classList.add("item-list");
@@ -10866,11 +11020,9 @@ var ComboBox = class extends Control {
       document.addEventListener("click", (e) => {
         if (!this._enabled)
           return false;
-        if (!this.contains(e.target)) {
+        if (!this.contains(e.target))
           this.closeList();
-        }
       });
-      this.enabled = this.getAttribute("enabled") !== false;
       super.init();
       window.addEventListener("resize", this.calculatePositon.bind(this));
     }
@@ -10884,9 +11036,6 @@ var ComboBox = class extends Control {
     return component;
   }
 };
-__decorateClass([
-  observable("value")
-], ComboBox.prototype, "_value", 2);
 ComboBox = __decorateClass([
   customElements2("i-combo-box")
 ], ComboBox);
@@ -11162,7 +11311,7 @@ var Datepicker = class extends Control {
   set onSelect(callback) {
     this._onSelect = callback;
   }
-  async init() {
+  init() {
     if (!this.captionSpanElm) {
       this.callback = this.getAttribute("parentCallback", true);
       this._placeholder = this.getAttribute("placeholder", true) || "";
@@ -11185,8 +11334,11 @@ var Datepicker = class extends Control {
       this.toggleElm.classList.add("datepicker-toggle");
       this.toggleElm.style.width = this._iconWidth + "px";
       this.toggleElm.style.height = this._iconWidth + "px";
-      this.toggleIconElm = await Icon.create({
-        name: this._type === "time" ? "clock" : "calendar"
+      this.toggleIconElm = new Icon(void 0, {
+        name: this._type === "time" ? "clock" : "calendar",
+        width: 12,
+        height: 12,
+        fill: theme_exports.ThemeVars.text.primary
       });
       this.toggleElm.appendChild(this.toggleIconElm);
       this.datepickerElm = this.createElement("input", this.toggleIconElm);
@@ -11369,7 +11521,6 @@ var defaultCaptionWidth2 = 40;
 var Range = class extends Control {
   constructor(parent, options) {
     super(parent, options, {
-      captionWidth: defaultCaptionWidth2,
       height: 25,
       width: 100
     });
@@ -11391,12 +11542,9 @@ var Range = class extends Control {
   set captionWidth(value) {
     this._captionWidth = value;
     this.setElementPosition(this.labelElm, "width", value);
-    const width = typeof this._width === "string" ? this._width : `${this._width}px`;
-    const captionWidth = typeof this._captionWidth === "string" ? this._captionWidth : `${this._captionWidth}px`;
+    const width = typeof this.width === "string" ? this.width : `${this.width}px`;
+    const captionWidth = typeof this.captionWidth === "string" ? this.captionWidth : `${this.captionWidth}px`;
     this.inputContainerElm.style.width = `calc(${width} - ${captionWidth})`;
-    if (this.labels) {
-      this.rangeLabelListElm.style.paddingLeft = captionWidth;
-    }
   }
   get height() {
     return this.offsetHeight;
@@ -11428,23 +11576,14 @@ var Range = class extends Control {
   set width(value) {
     this._width = value;
     this.style.width = value + "px";
-    const width = typeof this._width === "string" ? this._width : `${this._width}px`;
-    const captionWidth = typeof this._captionWidth === "string" ? this._captionWidth : `${this._captionWidth}px`;
+    const width = typeof this.width === "string" ? this.width : `${this.width}px`;
+    const captionWidth = typeof this.captionWidth === "string" ? this.captionWidth : `${this.captionWidth}px`;
     this.inputContainerElm.style.width = `calc(${width} - ${captionWidth})`;
-    if (this.labels) {
-      this.rangeLabelListElm.style.paddingLeft = captionWidth;
-    }
   }
   get _ratio() {
     var min = this.inputElm.min === "" ? 0 : parseInt(this.inputElm.min);
     var max = this.inputElm.max === "" ? 100 : parseInt(this.inputElm.max);
     return (this.value - min) / (max - min);
-  }
-  get labels() {
-    return this._labels;
-  }
-  set labels(labels) {
-    this._labels = labels;
   }
   set enabled(value) {
     this.inputElm.disabled = !value;
@@ -11461,19 +11600,13 @@ var Range = class extends Control {
     const min = Number(this.inputElm.min);
     const max = Number(this.inputElm.max);
     this.inputElm.style.backgroundSize = (this._value - min) * 100 / (max - min) + "% 100%";
-    if (this.onChange)
-      this.onChange(this, this.value);
+    if (this.onChanged)
+      this.onChanged(this, this.value);
     this.onUpdateTooltip(false);
-  }
-  renderLabels() {
-    this.labels.forEach((label) => {
-      const labelElm = this.createElement("li", this.rangeLabelListElm);
-      labelElm.innerHTML = label;
-    });
   }
   onUpdateTooltip(init) {
     let inputValue = this._value;
-    let formattedValue = this.tipFormatter ? this.tipFormatter(inputValue) : inputValue;
+    let formattedValue = this.tooltipFormatter ? this.tooltipFormatter(inputValue) : inputValue;
     const min = Number(this.inputElm.min);
     const max = Number(this.inputElm.max);
     if (init) {
@@ -11485,12 +11618,13 @@ var Range = class extends Control {
   init() {
     if (!this.captionSpanElm) {
       this.callback = this.getAttribute("parentCallback", true);
-      const min = this.getAttribute("min", true) || 0;
-      const max = this.getAttribute("max", true) || 100;
-      const step = this.getAttribute("step", true) || 0;
-      const labels = this.getAttribute("labels", true) || "";
+      const min = this.getAttribute("min", true, 0);
+      const max = this.getAttribute("max", true, 100);
+      const step = this.getAttribute("step", true, 0);
       const stepDots = this.getAttribute("stepDots", true);
-      this.tipFormatter = this.getAttribute("tipFormatter", true) || this.tipFormatter;
+      const tooltipVisible = this.getAttribute("tooltipVisible", true, false);
+      const formatter = this.getAttribute("tooltipFormatter", true) || this.tooltipFormatter;
+      this.tooltipFormatter = formatter;
       this.captionSpanElm = this.createElement("span", this);
       this.labelElm = this.createElement("label", this.captionSpanElm);
       this.inputContainerElm = this.createElement("div", this);
@@ -11500,7 +11634,7 @@ var Range = class extends Control {
       this.inputElm.type = "range";
       this.inputElm.min = min;
       this.inputElm.max = max;
-      if (step != 0) {
+      if (step !== 0) {
         this.inputElm.step = step;
       }
       this.inputElm.addEventListener("input", this.onSliderChange.bind(this));
@@ -11516,7 +11650,7 @@ var Range = class extends Control {
         });
       this.tooltipElm = this.createElement("span", this.inputContainerElm);
       this.tooltipElm.classList.add("tooltip");
-      this.tooltipVisible = this.getAttribute("tipFormatter", true);
+      this.tooltipVisible = tooltipVisible || this.tooltipFormatter || false;
       if (stepDots) {
         this.classList.add("--step");
         const stepContainer = this.createElement("div", this);
@@ -11538,13 +11672,6 @@ var Range = class extends Control {
       this.value = this.getAttribute("value", true);
       if (this._value > 0) {
         this.inputElm.style.backgroundSize = (this._value - min) * 100 / (max - min) + "% 100%";
-      }
-      if (labels) {
-        this.rangeLabelListElm = this.createElement("ul", this);
-        this.rangeLabelListElm.classList.add("range-labels");
-        this.rangeLabelListElm.style.paddingLeft = this.captionWidth + "px";
-        this.labels = JSON.parse(labels);
-        this.renderLabels();
       }
       this.onUpdateTooltip(true);
       super.init();
@@ -11586,20 +11713,13 @@ var Radio = class extends Control {
     });
     if (options == null ? void 0 : options.onRender)
       this.onRender = options.onRender;
-    if (options == null ? void 0 : options.onChange)
-      this.onRender = options.onChange;
   }
   get value() {
     return this._value;
   }
   set value(value) {
-    if (value == null)
-      value = this.inputElm.min;
-    this._value = value;
+    this._value = value || "";
     this.inputElm.value = value;
-    if (this.callback) {
-      this.callback(value);
-    }
   }
   get caption() {
     return this._caption;
@@ -11621,73 +11741,42 @@ var Radio = class extends Control {
   }
   addClass(value) {
     if (value)
-      this.labelElm.classList.add("is-checked");
+      this.classList.add("is-checked");
     else
-      this.labelElm.classList.remove("is-checked");
+      this.classList.remove("is-checked");
   }
   get checked() {
     return this.inputElm.checked;
   }
   set checked(value) {
     this.inputElm.checked = value;
-    if (value)
-      this.labelElm.classList.add("is-checked");
-    else
-      this.labelElm.classList.remove("is-checked");
-  }
-  _handleChange(source, event) {
-    var _a;
-    const checked = this.inputElm.checked || false;
-    const parentElm = (_a = this.parentElement) == null ? void 0 : _a.closest("i-radio-group");
-    if (parentElm) {
-      if (checked)
-        parentElm.checked = this;
-      const radioElm = parentElm.querySelector("i-radio.is-checked");
-      if (radioElm) {
-        radioElm.classList.remove("is-checked");
-      }
-    } else {
-      const inputElms = document.querySelectorAll(`input[name="${this.inputElm.name}"`);
-      const radioElms = Array.from(inputElms).map((elm) => {
-        var _a2;
-        return (_a2 = elm.parentElement) == null ? void 0 : _a2.closest(".i-radio");
-      });
-      this.updateCheckedUI(radioElms);
-    }
-    this.addClass(checked);
-  }
-  updateCheckedUI(elms) {
-    Array.from(elms).forEach((elm) => {
-      elm.classList.remove("is-checked");
-    });
+    this.addClass(value);
   }
   init() {
-    super.init();
-    this.classList.add(captionStyle);
-    this.callback = this.getAttribute("parentCallback", true);
-    this.labelElm = this.createElement("label", this);
-    this.labelElm.classList.add("i-radio");
-    this.inputElm = this.createElement("input", this.labelElm);
-    this.inputElm.type = "radio";
-    const nameAttr = this.getAttribute("name");
-    nameAttr && (this.inputElm.name = nameAttr);
-    const checkAttr = this.getAttribute("checked");
-    this.inputElm.checked = checkAttr;
-    this.addClass(checkAttr || false);
-    const disabled = this.getAttribute("enabled") === false;
-    this.inputElm.disabled = disabled;
-    this.value = this.getAttribute("value");
-    this.captionSpanElm = this.createElement("span", this.labelElm);
-    this.captionSpanElm.classList.add("i-radio_label");
-    this.caption = this.getAttribute("caption") || "";
-    this.captionWidth = this.getAttribute("captionWidth") || defaultCaptionWidth3;
-    this.labelElm.style.color = "#000";
-    if (this.onRender && typeof this.onRender === "function") {
-      this.inputElm.style.display = "none";
-      this.captionSpanElm.style.opacity = "0";
-      this.onRender(this.labelElm);
+    if (!this.initialized) {
+      super.init();
+      this.classList.add(captionStyle);
+      this.labelElm = this.createElement("label", this);
+      this.labelElm.classList.add("i-radio");
+      this.inputElm = this.createElement("input", this.labelElm);
+      this.inputElm.type = "radio";
+      const checkAttr = this.getAttribute("checked", true, false);
+      this.inputElm.checked = checkAttr;
+      this.addClass(checkAttr);
+      const disabled = this.getAttribute("enabled") === false;
+      this.inputElm.disabled = disabled;
+      this.value = this.getAttribute("value");
+      this.captionSpanElm = this.createElement("span", this.labelElm);
+      this.captionSpanElm.classList.add("i-radio_label");
+      this.caption = this.getAttribute("caption", true, "");
+      this.captionWidth = this.getAttribute("captionWidth", true, defaultCaptionWidth3);
+      this.labelElm.style.color = theme_exports.ThemeVars.text.primary;
+      if (this.onRender && typeof this.onRender === "function") {
+        this.inputElm.style.display = "none";
+        this.captionSpanElm.style.opacity = "0";
+        this.onRender(this.labelElm);
+      }
     }
-    this.inputElm.addEventListener("click", this._handleChange.bind(this));
   }
   static async create(options, parent) {
     let component = new this(parent, options);
@@ -11704,50 +11793,88 @@ Radio = __decorateClass([
 var RadioGroup = class extends Control {
   constructor(parent, options) {
     super(parent, options);
+    this._group = [];
   }
-  get value() {
-    return this._value;
+  get selectedValue() {
+    return this._selectedValue;
   }
-  set value(value) {
-    this._value = value;
-    if (this.hasChildNodes()) {
-      const elms = Array.from(this.children);
-      elms.forEach((elm) => {
-        const inputElm = elm.getElementsByTagName("input")[0];
-        this.updateUI(inputElm);
-      });
-    }
+  set selectedValue(value) {
+    this._group.forEach((item) => {
+      if (item.value === value) {
+        this._selectedValue = value;
+        item.checked = true;
+      } else {
+        item.checked = false;
+      }
+    });
+  }
+  get radioItems() {
+    return this._radioItems;
+  }
+  set radioItems(value) {
+    this._radioItems = value;
+    this.renderUI();
+  }
+  renderUI() {
+    this.clearInnerHTML();
+    this._group = [];
+    this.name = new Date().getTime().toString();
+    this.radioItems.forEach((item) => {
+      const elm = new Radio(this, item);
+      this.appendIem(elm);
+    });
+  }
+  appendIem(elm) {
+    this.appendChild(elm);
+    elm.onClick = this._handleChange.bind(this);
+    const inputElm = elm.getElementsByTagName("input")[0];
+    inputElm && inputElm.setAttribute("name", this.name);
+    this._group.push(elm);
   }
   _handleChange(source, event) {
-    const value = source.target.value;
-    this._value = value;
-    if (this.onChange)
-      this.onChange(this, this.value);
+    const selectedValue = this.selectedValue;
+    const value = source.value;
+    this._selectedValue = value;
+    const radioElm = this.querySelector("i-radio.is-checked");
+    if (radioElm && !radioElm.isSameNode(source))
+      radioElm.checked = false;
+    source.classList.add("is-checked");
+    if (this.onChanged && selectedValue !== value)
+      this.onChanged(this, event);
   }
-  updateUI(inputElm) {
-    if (inputElm) {
-      const isValue = inputElm.value === this._value;
-      if (isValue && !inputElm.checked || !isValue && inputElm.checked)
-        inputElm.click();
+  async add(options) {
+    const elm = await Radio.create(options);
+    this.appendIem(elm);
+    this.selectedValue = elm.value;
+    return elm;
+  }
+  delete(index) {
+    if (index >= 0) {
+      const radio = this._group[index];
+      this._group.splice(index, 1);
+      radio.remove();
     }
   }
   init() {
-    this.classList.add("i-radio-group");
-    this.setAttribute("role", "radiogroup");
-    this.value = this.getAttribute("value");
-    const nameAttr = this.getAttribute("name", true) || "group" + Date.now();
-    if (this.hasChildNodes()) {
-      const elms = Array.from(this.children);
-      elms.forEach((elm) => {
-        const inputElm = elm.getElementsByTagName("input")[0];
-        if (inputElm) {
-          this.updateUI(inputElm);
-          inputElm.setAttribute("name", nameAttr);
-          inputElm.addEventListener("input", this._handleChange.bind(this));
+    if (!this.initialized) {
+      this.classList.add("i-radio-group");
+      this.setAttribute("role", "radiogroup");
+      let group = [];
+      this.childNodes.forEach((node) => {
+        if (node instanceof Radio) {
+          node.onClick = this._handleChange.bind(this);
+          group.push(node);
+        } else {
+          node.remove();
         }
       });
+      this._group = group;
+      const radioItems = this.getAttribute("radioItems", true);
+      radioItems && (this.radioItems = radioItems);
+      const selectedValue = this.getAttribute("selectedValue", true);
+      this.selectedValue = selectedValue;
+      super.init();
     }
-    super.init();
   }
   static async create(options, parent) {
     let component = new this(parent, options);
@@ -11756,8 +11883,8 @@ var RadioGroup = class extends Control {
   }
 };
 __decorateClass([
-  observable("value")
-], RadioGroup.prototype, "_value", 2);
+  observable("selectedValue")
+], RadioGroup.prototype, "_selectedValue", 2);
 RadioGroup = __decorateClass([
   customElements2("i-radio-group")
 ], RadioGroup);
@@ -11792,9 +11919,12 @@ cssRule("i-input", {
       display: "none",
       verticalAlign: "middle",
       padding: "6px",
+      backgroundColor: Theme11.action.focus,
       $nest: {
         "&.active": {
-          display: "inline-block",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
           cursor: "pointer"
         }
       }
@@ -11893,7 +12023,7 @@ var Input = class extends Control {
       this.inputElm.style.width = value == null ? void 0 : value.toString();
     } else {
       this.style.width = value + "px";
-      const clearBtnWidth = this._clearable ? this._clearBtnWidth : 0;
+      const clearBtnWidth = this._showClearButton ? this._clearBtnWidth : 0;
       const captionWidth = typeof this._captionWidth === "string" ? this._captionWidth : `${this._captionWidth}px`;
       const width = typeof this._width === "string" ? this._width : `${this._width}px`;
       this.inputElm.style.width = `calc(${width} - ${captionWidth} - ${clearBtnWidth}px)`;
@@ -11954,23 +12084,25 @@ var Input = class extends Control {
         });
         if (this.onRender)
           this._inputControl.onRender = this.onRender;
-        this._inputControl.onChange = this.onChange;
+        if (this.onChanged)
+          this._inputControl.onChanged = this.onChanged;
         this.appendChild(this._inputControl);
         this.inputElm = this._inputControl.querySelector('input[type="checkbox"]');
         break;
       case "combobox":
         this._inputControl = new ComboBox(this, {
-          value: this.attrs.value,
+          selectedItem: this.getAttribute("selectedItem", true),
           items: this.getAttribute("items", true),
           width,
           height,
           enabled,
           icon: this.getAttribute("icon", true),
-          multi: this.getAttribute("multi", true),
-          onSelect: this.onSelect,
-          linkTo: this.getAttribute("linkTo", true),
+          mode: this.getAttribute("mode", true),
+          placeholder: this.getAttribute("placeholder", true),
           parentCallback: this._inputCallback
         });
+        if (this.onChanged)
+          this._inputControl.onChanged = this.onChanged;
         this.appendChild(this._inputControl);
         this.inputElm = this._inputControl.querySelector("input");
         break;
@@ -12001,13 +12133,12 @@ var Input = class extends Control {
           min: this.getAttribute("min", true),
           max: this.getAttribute("max", true),
           step: this.getAttribute("step", true),
-          labels: this.getAttribute("labels", true),
           stepDots: this.getAttribute("stepDots", true),
-          tipFormatter: this.getAttribute("tipFormatter", true),
+          tooltipFormatter: this.getAttribute("tooltipFormatter", true),
           tooltipVisible: this.getAttribute("tooltipVisible", true),
           parentCallback: this._inputCallback
         });
-        this._inputControl.onChange = this.onChange;
+        this._inputControl.onChanged = this.onChanged;
         this._inputControl.onMouseUp = this.onMouseUp;
         this._inputControl.onKeyUp = this.onKeyUp;
         this.appendChild(this._inputControl);
@@ -12062,8 +12193,8 @@ var Input = class extends Control {
         this.inputElm.addEventListener("keyup", this._handleInputKeyUp.bind(this));
         this.inputElm.addEventListener("blur", this._handleOnBlur.bind(this));
         this.inputElm.addEventListener("focus", this._handleOnFocus.bind(this));
-        this._clearable = this.getAttribute("clearable", true);
-        if (this._clearable) {
+        this._showClearButton = this.getAttribute("showClearButton", true);
+        if (this._showClearButton) {
           this.clearIconElm = this.createElement("span", this);
           this.clearIconElm.classList.add("clear-btn");
           this.clearIconElm.style.width = this._clearBtnWidth + "px";
@@ -12073,7 +12204,7 @@ var Input = class extends Control {
               return false;
             this._clearValue();
           });
-          const clearIcon = new Icon(this, { name: "times" });
+          const clearIcon = new Icon(this, { name: "times", width: 12, height: 12, fill: theme_exports.ThemeVars.text.primary });
           this.clearIconElm.appendChild(clearIcon);
         }
         break;
@@ -12085,16 +12216,16 @@ var Input = class extends Control {
       return;
     }
     this._value = this.inputElm.value;
-    if (this.onChange)
-      this.onChange(this, this.value);
+    if (this.onChanged)
+      this.onChanged(this, this.value);
   }
   _handleInputKeyDown(event) {
     if (this.onKeyDown)
-      this.onKeyDown(this, event);
+      this.onKeyDown(this, this.value);
   }
   _handleInputKeyUp(event) {
     if (this.onKeyUp)
-      this.onKeyUp(this, event);
+      this.onKeyUp(this, this.value);
     if (this.clearIconElm) {
       if (this.value) {
         this.clearIconElm.classList.add("active");
@@ -12106,20 +12237,20 @@ var Input = class extends Control {
   _handleOnBlur(event) {
     if (this.onBlur) {
       event.preventDefault();
-      this.onBlur(this, this.value);
+      this.onBlur(this);
     }
   }
   _handleOnFocus(event) {
     if (this.onFocus) {
       event.preventDefault();
-      this.onFocus(this, event);
+      this.onFocus(this);
     }
   }
   _clearValue() {
     this.value = "";
     this.clearIconElm.classList.remove("active");
-    if (this.clearCallback)
-      this.clearCallback();
+    if (this.onClearClick)
+      this.onClearClick(this);
   }
   init() {
     if (!this.inputType) {
@@ -12134,7 +12265,7 @@ var Input = class extends Control {
         this.readOnly = readOnly;
       if (this.value && this.clearIconElm)
         this.clearIconElm.classList.add("active");
-      this.clearCallback = this.getAttribute("clearCallback", true) || this.clearCallback;
+      this.onClearClick = this.getAttribute("onClearClick", true) || this.onClearClick;
       super.init();
     }
   }
@@ -12536,8 +12667,6 @@ cssRule("i-tabs", {
 var Tabs = class extends Container {
   constructor(parent, options) {
     super(parent, options);
-    this.contentPanes = [];
-    this._tabs = [];
     this.accumTabIndex = 0;
     this.dragStartHandler = this.dragStartHandler.bind(this);
     this.dragOverHandler = this.dragOverHandler.bind(this);
@@ -12610,8 +12739,8 @@ var Tabs = class extends Container {
       this.classList.remove("vertical");
     }
   }
-  async add(options) {
-    const tab = await Tab.create(options);
+  add(options) {
+    const tab = new Tab(this, options);
     if (options == null ? void 0 : options.children) {
       tab.append(options == null ? void 0 : options.children);
     }
@@ -12649,6 +12778,7 @@ var Tabs = class extends Container {
       tab.id = `tab-${this.accumTabIndex++}`;
     this.tabsNavElm.appendChild(tab);
     const contentPane = this.createElement("div", this.tabsContentElm);
+    tab._contentElm = contentPane;
     contentPane.classList.add("content-pane");
     contentPane.style.display = "none";
     this.contentPanes.push(contentPane);
@@ -12659,8 +12789,8 @@ var Tabs = class extends Container {
       if (children[i] instanceof Control) {
         children[i].parent = tab;
       }
-      contentPane.appendChild(children[i]);
     }
+    ;
   }
   handleTagDrag(tabs) {
     tabs.forEach((tab) => {
@@ -12718,8 +12848,10 @@ var Tabs = class extends Container {
     }
   }
   init() {
+    super.init();
     if (!this.tabsNavElm) {
-      super.init();
+      this.contentPanes = [];
+      this._tabs = [];
       const _tabs = [];
       this.childNodes.forEach((node) => {
         if (node instanceof Tab) {
@@ -12767,11 +12899,22 @@ var Tab = class extends Container {
   active() {
     this._parent.activeTab = this;
   }
+  addChildControl(control) {
+    if (this._contentElm)
+      this._contentElm.appendChild(control);
+  }
+  removeChildControl(control) {
+    if (this._contentElm && this._contentElm.contains(control))
+      this._contentElm.removeChild(control);
+  }
   get caption() {
     return this.captionElm.innerHTML;
   }
   set caption(value) {
     this.captionElm.innerHTML = value;
+  }
+  close() {
+    this.handleCloseTab();
   }
   get index() {
     return this._parent.items.findIndex((t) => t.id === this.id);
@@ -12792,6 +12935,12 @@ var Tab = class extends Container {
     this._icon = elm;
     if (this._icon)
       this.tabContainer.prepend(this._icon);
+  }
+  get innerHTML() {
+    return this._contentElm.innerHTML;
+  }
+  set innerHTML(value) {
+    this._contentElm.innerHTML = value;
   }
   get font() {
     return {
@@ -12823,16 +12972,20 @@ var Tab = class extends Container {
     return super._handleClick(event);
   }
   handleCloseTab(event) {
-    event.stopPropagation();
-    event.preventDefault();
-    if (!this._parent || !this.enabled || !this._parent.closable)
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    if (!this._parent || !this.enabled || event && !this._parent.closable)
       return;
     const isActiveChange = this._parent.activeTab.isSameNode(this);
+    if (this._parent.onCloseTab)
+      this._parent.onCloseTab(this._parent, this);
     this._parent.delete(this);
     if (isActiveChange && this._parent.onChanged)
       this._parent.onChanged(this._parent, this._parent.activeTab);
   }
-  async init() {
+  init() {
     if (!this.captionElm) {
       super.init();
       this.tabContainer = this.createElement("div", this);
@@ -12843,7 +12996,7 @@ var Tab = class extends Container {
       if (icon) {
         icon.height = icon.height || "16px";
         icon.width = icon.width || "16px";
-        this.icon = await Icon.create(icon, this);
+        this.icon = new Icon(void 0, icon);
       }
       ;
       const closeButton = this.createElement("span", this.tabContainer);
@@ -12967,11 +13120,11 @@ var MarkdownEditor = class extends Control {
       this.mdPreviewer.load(value);
     }
   }
-  async init() {
+  init() {
     super.init();
     const container = this.createElement("div", this);
     container.classList.add("editor-container");
-    this.tabs = await Tabs.create({
+    this.tabs = new Tabs(void 0, {
       width: "auto"
     });
     container.appendChild(this.tabs);
@@ -12979,7 +13132,7 @@ var MarkdownEditor = class extends Control {
     this.mdEditor.width = "100%";
     this.mdEditor.height = "646px";
     this.mdEditor.language = "markdown";
-    this.editTab = await this.tabs.add({
+    this.editTab = this.tabs.add({
       caption: "Edit file",
       icon: {
         name: "code",
@@ -12990,7 +13143,7 @@ var MarkdownEditor = class extends Control {
       children: this.mdEditor
     });
     this.mdPreviewer = new Markdown();
-    this.previewTab = await this.tabs.add({
+    this.previewTab = this.tabs.add({
       caption: "Preview",
       icon: {
         name: "eye",
@@ -13861,9 +14014,8 @@ var Menu = class extends Control {
     this.navElm.appendChild(alignElm);
   }
   renderMore() {
-    this._moreElm = new MenuItem();
+    this._moreElm = new MenuItem(this, {});
     this._moreElm.classList.add("more-item");
-    this._moreElm.init();
     const templateHtml = `
       <div class="desktop has-children">
         <button type="button" class="link">
@@ -14080,7 +14232,7 @@ var Menu = class extends Control {
         break;
     }
   }
-  async init() {
+  init() {
     if (!this.navElm) {
       this.title = this.getAttribute("title", true);
       this.platform = this.getAttribute("platform", true, "desktop");
@@ -14210,12 +14362,12 @@ var Module = class extends Container {
           let target = value.__target;
           let paths = value.__path;
           let targetValue = this.getValue(target, paths);
-          let observable2 = getObservable(target, paths);
-          if (isObservable(observable2)) {
+          let observable3 = getObservable(target, paths);
+          if (isObservable(observable3)) {
             if (paths.length > 0)
-              Observe(observable2, bindObservable(elm, prop), { path: paths.join(".") });
+              Observe(observable3, bindObservable(elm, prop), { path: paths.join(".") });
             else {
-              Observe(observable2, bindObservable(elm, prop));
+              Observe(observable3, bindObservable(elm, prop));
             }
           }
           elm[prop] = targetValue;
@@ -14369,7 +14521,6 @@ var Label = class extends Control {
         target: "_blank",
         font: this.font
       });
-      this._link.init();
       this._link.append(this.captionSpan);
       this.appendChild(this._link);
     }
@@ -14413,7 +14564,6 @@ var Label = class extends Control {
         const link = new Link(this, __spreadProps(__spreadValues({}, linkAttr), {
           font: this.font
         }));
-        link.init();
         this.link = link;
       }
       super.init();
@@ -14655,7 +14805,7 @@ cssRule("i-tree-view", {
 // packages/tree-view/src/treeView.ts
 var Theme20 = theme_exports.ThemeVars;
 var beforeExpandEvent = new Event("beforeExpand");
-var defaultIcon2 = {
+var defaultIcon3 = {
   name: "caret-right",
   fill: Theme20.text.secondary,
   width: 12,
@@ -14916,14 +15066,14 @@ var TreeNode = class extends Control {
   }
   get icon() {
     if (!this._iconElm) {
-      this._iconElm = Icon.create(defaultIcon2);
+      this._iconElm = Icon.create(defaultIcon3);
     }
     ;
     return this._iconElm;
   }
   get rightIcon() {
     if (!this._iconRightElm) {
-      this._iconRightElm = Icon.create(defaultIcon2);
+      this._iconRightElm = Icon.create(defaultIcon3);
     }
     ;
     return this._iconRightElm;
@@ -14986,7 +15136,8 @@ var TreeNode = class extends Control {
     ;
     if (this._parent instanceof TreeView) {
       this._parent._setActiveItem(this, event);
-      this._parent.onClick(this._parent, event);
+      if (this._parent.onClick)
+        this._parent.onClick(this._parent, event);
     }
     ;
     return super._handleClick(event, true);
@@ -14995,12 +15146,13 @@ var TreeNode = class extends Control {
     if (this.editable) {
       this.handleEdit(event);
     } else if (this._parent instanceof TreeView) {
-      this._parent.onDblClick(this._parent, event);
+      if (this._parent.onDblClick)
+        this._parent.onDblClick(this._parent, event);
     }
     ;
     return super._handleClick(event, true);
   }
-  async init() {
+  init() {
     var _a, _b;
     if (!this._captionElm) {
       this.classList.add("i-tree-node");
@@ -15017,10 +15169,10 @@ var TreeNode = class extends Control {
       this.isLazyLoad = isLazyLoad;
       this._wrapperElm = this.createElement("div", this);
       this._wrapperElm.classList.add("i-tree-node_content");
-      const iconData = iconAttr || defaultIcon2;
+      const iconData = iconAttr || defaultIcon3;
       iconData.height = iconData.height || "12px";
       iconData.width = iconData.width || "12px";
-      this._iconElm = await Icon.create(iconData);
+      this._iconElm = new Icon(void 0, iconData);
       this._iconElm.classList.add("i-tree-node_icon");
       this._wrapperElm.appendChild(this._iconElm);
       this._captionElm = this.createElement("label", this._wrapperElm);
@@ -15033,7 +15185,7 @@ var TreeNode = class extends Control {
       if (rightIcon) {
         rightIcon.height = rightIcon.height || "12px";
         rightIcon.width = rightIcon.width || "12px";
-        this._iconRightElm = await Icon.create(rightIcon);
+        this._iconRightElm = new Icon(void 0, rightIcon);
         this._iconRightElm.classList.add("i-tree-node_icon");
         rightWrap.appendChild(this._iconRightElm);
         rightWrap.insertBefore(this._iconRightElm, actionGroup);
@@ -15656,7 +15808,6 @@ var modalStyle = style({
   padding: "10px 10px 5px 10px",
   backgroundColor: Theme23.background.modal,
   position: "relative",
-  margin: "0 auto 30px",
   borderRadius: "2px",
   minWidth: "300px",
   width: "inherit"
@@ -15699,7 +15850,7 @@ var Modal = class extends Container {
       this.showBackdrop && (document.body.style.overflow = "hidden");
     } else {
       this.wrapperDiv.classList.remove(visibleStyle);
-      this.showBackdrop && (document.body.style.overflow = "overlay");
+      this.showBackdrop && (document.body.style.overflow = "hidden auto");
       this.onClose && this.onClose(this);
     }
   }
@@ -15786,6 +15937,12 @@ var Modal = class extends Container {
     }
   }
   positionAtFix(placement) {
+    var _a;
+    const inModal = (_a = this.parentElement) == null ? void 0 : _a.closest("i-modal");
+    if (inModal) {
+      this.wrapperDiv.style.top = "-50%";
+      return;
+    }
     let parent = document.body;
     const parentCoords = parent.getBoundingClientRect();
     let left = 0;
@@ -15794,7 +15951,7 @@ var Modal = class extends Container {
     switch (placement) {
       case "center":
         top = parentCoords.height / 2 - this.modalDiv.offsetHeight / 2;
-        left = parentCoords.left / 2 - this.modalDiv.offsetLeft / 2;
+        left = parentCoords.width / 2 - this.modalDiv.offsetWidth / 2;
         break;
       case "top":
         top = pageY - this.modalDiv.offsetHeight - parentCoords.height;
@@ -15880,7 +16037,7 @@ var Modal = class extends Container {
     else
       this.modalDiv.style[name] = value;
   }
-  async init() {
+  init() {
     if (!this.wrapperDiv) {
       this.popupPlacement = this.getAttribute("popupPlacement", true);
       this.closeOnBackdropClick = this.getAttribute("closeOnBackdropClick", true);
@@ -15896,7 +16053,7 @@ var Modal = class extends Container {
         closeIconAttr.height = closeIconAttr.height || "16px";
         closeIconAttr.width = closeIconAttr.width || "16px";
         closeIconAttr.fill = closeIconAttr.fill || Theme24.colors.primary.main;
-        this._icon = await Icon.create(closeIconAttr);
+        this._icon = new Icon(void 0, closeIconAttr);
         this._icon.classList.add("i-modal-close");
         this._icon._handleClick = () => this.visible = false;
         this.titleSpan.appendChild(this._icon);
@@ -16581,12 +16738,12 @@ var Upload = class extends Control {
           };
           itemElm.appendChild(imgElm);
         }
-        const removeIcon = new Icon();
-        removeIcon.init();
-        removeIcon.width = 12;
-        removeIcon.height = 12;
-        removeIcon.fill = Theme26.action.active;
-        removeIcon.name = "trash";
+        const removeIcon = new Icon(void 0, {
+          width: 12,
+          height: 12,
+          fill: Theme26.action.active,
+          name: "trash"
+        });
         itemElm.appendChild(removeIcon);
         removeIcon.addEventListener("click", () => this.handleRemove(file));
       }
@@ -16647,9 +16804,9 @@ var Upload = class extends Control {
       if (!this.enabled)
         this._fileElm.setAttribute("disabled", "");
       this.listType = this.getAttribute("listType", true);
-      const btn = new Button();
-      btn.init();
-      btn.caption = "Choose an image";
+      const btn = new Button(this, {
+        caption: "Choose an image"
+      });
       btn.className = `i-upload_btn ${!this.enabled && "disabled"}`;
       this._wrapperFileElm.appendChild(btn);
       const fileListAttr = this.getAttribute("showFileList", true);
@@ -16695,6 +16852,24 @@ var Iframe = class extends Control {
     super(parent, options, {
       width: 800,
       height: 600
+    });
+    window.addEventListener("mousedown", () => {
+      if (this.iframeElm)
+        this.iframeElm.style.pointerEvents = "none";
+    });
+    window.addEventListener("mouseup", () => {
+      if (this.iframeElm)
+        this.iframeElm.style.pointerEvents = "auto";
+    });
+  }
+  reload() {
+    let iframe = this.iframeElm;
+    return new Promise((resolve) => {
+      iframe.src = iframe.src;
+      iframe.onload = function() {
+        resolve();
+        iframe.onload = null;
+      };
     });
   }
   get url() {
@@ -16743,6 +16918,9 @@ var vStackStyle = style({
 var hStackStyle = style({
   display: "flex",
   flexDirection: "row"
+});
+var gridStyle = style({
+  display: "grid"
 });
 var getStackDirectionStyleClass = (direction) => {
   return style({
@@ -16842,6 +17020,9 @@ var getGridLayoutMediaQueriesStyleClass = (mediaQueries) => {
           templateAreasStr += '"' + mediaQuery.properties.templateAreas[i].join(" ") + '" ';
         }
         styleObj["$nest"][mediaQueryRule]["gridTemplateAreas"] = templateAreasStr;
+      }
+      if (mediaQuery.properties.display) {
+        styleObj["$nest"][mediaQueryRule]["display"] = mediaQuery.properties.display;
       }
     }
   }
@@ -17177,12 +17358,15 @@ var GridLayout = class extends Container {
   }
   setAttributeToProperty(propertyName) {
     const prop = this.getAttribute(propertyName, true);
+    if (this.id == "thisPnl") {
+      console.log(propertyName, prop);
+    }
     if (prop)
       this[propertyName] = prop;
   }
   init() {
     super.init();
-    this.style.display = "grid";
+    this.classList.add(gridStyle);
     this.setAttributeToProperty("templateColumns");
     this.setAttributeToProperty("templateRows");
     this.setAttributeToProperty("templateAreas");
@@ -17303,7 +17487,6 @@ var Pagination = class extends Control {
     });
     this._showPrevMore = false;
     this._showNextMore = false;
-    this.pageItems = [];
   }
   get pagerCount() {
     return this._pagerCount;
@@ -17499,6 +17682,7 @@ var Pagination = class extends Control {
   }
   init() {
     if (!this._paginationDiv) {
+      this.pageItems = [];
       this._paginationDiv = this.createElement("div", this);
       this._paginationDiv.classList.add("pagination");
       this._prevElm = this.createElement("a", this._paginationDiv);
@@ -18389,12 +18573,6 @@ cssRule("i-table", {
 // packages/table/src/tableColumn.ts
 var Theme31 = theme_exports.ThemeVars;
 var TableColumn = class extends Control {
-  constructor(parent, options) {
-    super(parent, options);
-    if (options.column)
-      this.column = options.column;
-    this.isHeader = options.header || false;
-  }
   get dataSource() {
     return this._columnData;
   }
@@ -18476,8 +18654,12 @@ var TableColumn = class extends Control {
   }
   async init() {
     if (!this.columnElm) {
+      if (this.options.column)
+        this.column = this.options.column;
+      this.isHeader = this.options.header || false;
       this.columnElm = this.createElement("div", this);
       this.dataSource = this.getAttribute("data", true);
+      this.rowData = this.getAttribute("rowData", true);
       if (typeof this.column.render === "function" && !this.isHeader) {
         const renderedElm = await this.column.render(this, this.dataSource, this.rowData);
         if (typeof renderedElm === "string") {
@@ -18615,8 +18797,6 @@ var Table = class extends Control {
       rowExpandable: true
     };
     this.sortConfig = { key: "", value: null };
-    if (options == null ? void 0 : options.onRenderEmptyData)
-      this.onRenderEmptyData = options.onRenderEmptyData;
   }
   updatePagination() {
     let size = typeof this.paging === "object" && this.paging.pageSize || pageSize;
@@ -18872,9 +19052,9 @@ var Table = class extends Control {
       const columnData = rowData[column.dataIndex];
       const columnElm = new TableColumn(this, {
         column,
-        data: columnData != null ? columnData : "--"
+        data: columnData != null ? columnData : "--",
+        rowData
       });
-      columnElm.rowData = rowData;
       tdElm.appendChild(columnElm);
     });
   }
@@ -18943,7 +19123,10 @@ var Table = class extends Control {
     this.bordered = this.getAttribute("bordered", true) || "";
   }
   init() {
+    var _a;
     if (!this.tableElm) {
+      if ((_a = this.options) == null ? void 0 : _a.onRenderEmptyData)
+        this.onRenderEmptyData = this.options.onRenderEmptyData;
       this.classList.add("i-table");
       this.wrapperElm = this.createElement("div", this);
       this.wrapperElm.classList.add("i-table-container");
@@ -19143,7 +19326,7 @@ var Networks = {
   }
 };
 var DefaultNetwork = 97;
-if (window.location.hostname != "localhost" && window.location.hostname != "127.0.0.1" && !window.location.hostname.startsWith("192.168"))
+if (window.location.hostname != "localhost" && !/((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}/.test(window.location.hostname))
   application.LibHost = "https://ipfs.ijs.dev/ipfs/";
 async function getDomainOwner(hostname) {
   try {

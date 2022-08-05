@@ -570,7 +570,7 @@ export default class CodeEditorModule extends Module {
             dock="fill"
             draggable={true}
             closable={true}
-            // onTabClosed={this.handleEditorTabClose}
+            onCloseTab={this.handleEditorTabClose}
           >
             <i-tab id="tabCodeTemp" caption="untitled">
               <i-code-editor
@@ -591,7 +591,7 @@ export default class CodeEditorModule extends Module {
                 height={20}
               ></i-button>
               <i-button
-                icon={{ name: 'redo' }}
+                icon={{ name: 'angle-right' }}
                 margin={{ left: 4 }}
                 width={20}
                 height={20}

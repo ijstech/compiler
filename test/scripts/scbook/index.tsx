@@ -214,19 +214,19 @@ export class DocsSite extends Module {
             const response = await fetch(request);
             const script = await response.text();
 
-            const Compiler = require('@ijstech/compiler').Compiler;
-            const compiler = new Compiler();
-            await compiler.addFile('index.tsx', script, async (fileName: string, contnet: string) => {
-                if (fileName == '@ijstech/components'){
-                    let res = await fetch('/dist/lib/compiler/lib/components/index.d.ts');
-                    let content = await res.text();
-                    // CodeEditor.addLib(fileName, content);
-                    return {
-                        fileName: 'index.d.ts',
-                        content: content
-                    }
-                }
-            })
+            // const Compiler = RequireJS.require('@ijstech/compiler').Compiler;
+            // const compiler = new Compiler();
+            // await compiler.addFile('index.tsx', script, async (fileName: string, contnet: string) => {
+            //     if (fileName == '@ijstech/components'){
+            //         let res = await fetch('/dist/lib/compiler/lib/components/index.d.ts');
+            //         let content = await res.text();
+            //         // CodeEditor.addLib(fileName, content);
+            //         return {
+            //             fileName: 'index.d.ts',
+            //             content: content
+            //         }
+            //     }
+            // })
 
             // compiler.addPackage('@ijstech/components', {
             //     dts: {
@@ -235,9 +235,9 @@ export class DocsSite extends Module {
             //     version: '',
             // });
             // compiler.addContent('index.tsx', script);
-            let result = await compiler.compile();
-            console.log('result', result)
-            return result.script['index.js'];
+            // let result = await compiler.compile();
+            // console.log('result', result)
+            // return result.script['index.js'];
         } catch (e) {
             console.log(e);
         }
