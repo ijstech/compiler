@@ -4375,7 +4375,11 @@ var Tooltip = class {
   }
   onHandleClick(elm) {
     this.show(elm);
-    this.close();
+    this.timeout = setTimeout(() => {
+      clearTimeout(this.timeout);
+      if (this.tooltipElm && document.body.contains(this.tooltipElm))
+        document.body.removeChild(this.tooltipElm);
+    }, 200);
   }
   renderTooltip() {
     this.tooltipElm = document.createElement("div");
@@ -6298,15 +6302,19 @@ var Image2 = class extends Control {
     imageObj.src = url;
     return canvas;
   }
-  async init() {
+  async fetchData(url) {
+    if (!url)
+      return;
+    await fetch(url).then((response) => response.blob()).then((imageBlob) => {
+      const imageObjectURL = URL.createObjectURL(imageBlob);
+      this.dataUrl = imageObjectURL;
+    });
+  }
+  init() {
     super.init();
     this._defaultUrl = this.getAttribute("defaultUrl", true, "");
     const dataUrlAttr = this.getAttribute("dataUrl", true);
-    if (dataUrlAttr)
-      await fetch(dataUrlAttr).then((response) => response.blob()).then((imageBlob) => {
-        const imageObjectURL = URL.createObjectURL(imageBlob);
-        this.dataUrl = imageObjectURL;
-      });
+    this.fetchData(dataUrlAttr);
     const urlAttr = this.getAttribute("url", true);
     urlAttr && !dataUrlAttr && (this.url = urlAttr);
     this.rotate = this.getAttribute("rotate", true);
@@ -6392,7 +6400,7 @@ var Icon = class extends Control {
     super(parent, options);
     loadIconFile();
   }
-  async init() {
+  init() {
     if (!this.initialized) {
       super.init();
       let fill = this.getAttribute("fill");
@@ -6405,7 +6413,7 @@ var Icon = class extends Control {
       if (image) {
         image.height = image.height || this.height || "16px";
         image.width = image.width || this.width || "16px";
-        this.image = await Image2.create(image);
+        this.image = new Image2(this, image);
       }
       this.spin = this.getAttribute("spin", true, false);
     }
@@ -6518,7 +6526,7 @@ var Button = class extends Control {
   static async create(options, parent) {
     let self = new this(parent, options);
     if (!self.initialized)
-      await self.init();
+      self.init();
     return self;
   }
   constructor(parent, options) {
@@ -6533,7 +6541,6 @@ var Button = class extends Control {
   get icon() {
     if (!this._icon) {
       this._icon = new Icon(this, defaultIcon);
-      this._icon.init();
       this.prependIcon(this._icon);
     }
     return this._icon;
@@ -6549,8 +6556,6 @@ var Button = class extends Control {
       this._rightIcon = new Icon(this, __spreadProps(__spreadValues({}, defaultIcon), {
         name: "spinner"
       }));
-      this._rightIcon.init();
-      this._rightIcon.visible = true;
       this.appendIcon(this._rightIcon);
     }
     return this._rightIcon;
@@ -6601,14 +6606,12 @@ var Button = class extends Control {
       if (iconAttr) {
         iconAttr = __spreadValues(__spreadValues({}, defaultIcon), iconAttr);
         const icon = new Icon(this, iconAttr);
-        icon.init();
         this.icon = icon;
       }
       let rightIconAttr = this.getAttribute("rightIcon", true);
       if (rightIconAttr) {
         rightIconAttr = __spreadValues(__spreadProps(__spreadValues({}, defaultIcon), { name: "spinner" }), rightIconAttr);
         const icon = new Icon(this, rightIconAttr);
-        icon.init();
         this.rightIcon = icon;
       }
     }
@@ -7106,8 +7109,8 @@ cssRule("i-combo-box", {
   display: "flex",
   fontFamily: Theme7.typography.fontFamily,
   fontSize: Theme7.typography.fontSize,
+  color: Theme7.text.primary,
   alignItems: "center",
-  flexGrow: 1,
   $nest: {
     "&.i-combo-box-multi": {
       height: "auto !important"
@@ -7116,7 +7119,6 @@ cssRule("i-combo-box", {
       display: "inline-flex",
       flexWrap: "nowrap",
       whiteSpace: "nowrap",
-      flexShrink: 1,
       backgroundColor: Theme7.action.focus,
       padding: "8px",
       marginLeft: "-1px",
@@ -7139,7 +7141,6 @@ cssRule("i-combo-box", {
       display: "inline-flex",
       alignItems: "center",
       flexWrap: "wrap",
-      flexGrow: 1,
       maxWidth: "calc(100% - 32px)",
       height: "100%",
       border: `1px solid ${Theme7.divider}`,
@@ -7279,8 +7280,7 @@ var ComboBox = class extends Control {
   }
   get icon() {
     if (!this._icon) {
-      this._icon = new Icon(this, defaultIcon2);
-      this._icon.init();
+      this._icon = new Icon(void 0, defaultIcon2);
       if (this.iconElm)
         this.iconElm.appendChild(this._icon);
     }
@@ -7512,8 +7512,7 @@ var ComboBox = class extends Control {
       let iconAttr = this.getAttribute("icon", true);
       if (iconAttr) {
         iconAttr = __spreadValues(__spreadValues({}, defaultIcon2), iconAttr);
-        const icon = new Icon(this, iconAttr);
-        icon.init();
+        const icon = new Icon(void 0, iconAttr);
         this.icon = icon;
       }
       this.selectedItem = this.getAttribute("selectedItem", true);
@@ -7815,7 +7814,7 @@ var Datepicker = class extends Control {
   set onSelect(callback) {
     this._onSelect = callback;
   }
-  async init() {
+  init() {
     if (!this.captionSpanElm) {
       this.callback = this.getAttribute("parentCallback", true);
       this._placeholder = this.getAttribute("placeholder", true) || "";
@@ -7838,8 +7837,11 @@ var Datepicker = class extends Control {
       this.toggleElm.classList.add("datepicker-toggle");
       this.toggleElm.style.width = this._iconWidth + "px";
       this.toggleElm.style.height = this._iconWidth + "px";
-      this.toggleIconElm = await Icon.create({
-        name: this._type === "time" ? "clock" : "calendar"
+      this.toggleIconElm = new Icon(void 0, {
+        name: this._type === "time" ? "clock" : "calendar",
+        width: 12,
+        height: 12,
+        fill: theme_exports.ThemeVars.text.primary
       });
       this.toggleElm.appendChild(this.toggleIconElm);
       this.datepickerElm = this.createElement("input", this.toggleIconElm);
@@ -8316,16 +8318,13 @@ var RadioGroup = class extends Control {
     this._radioItems = value;
     this.renderUI();
   }
-  async renderUI() {
+  renderUI() {
     this.clearInnerHTML();
     this._group = [];
     this.name = new Date().getTime().toString();
-    this.radioItems.forEach(async (item) => {
-      const elm = await Radio.create(item);
+    this.radioItems.forEach((item) => {
+      const elm = new Radio(this, item);
       this.appendIem(elm);
-      const value = !this.selectedValue && this.getAttribute("selectedValue", true);
-      if (value && elm.value === value)
-        this.selectedValue = value;
     });
   }
   appendIem(elm) {
@@ -8375,6 +8374,8 @@ var RadioGroup = class extends Control {
       this._group = group;
       const radioItems = this.getAttribute("radioItems", true);
       radioItems && (this.radioItems = radioItems);
+      const selectedValue = this.getAttribute("selectedValue", true);
+      this.selectedValue = selectedValue;
       super.init();
     }
   }
@@ -9415,6 +9416,9 @@ var Tab = class extends Container {
   set caption(value) {
     this.captionElm.innerHTML = value;
   }
+  close() {
+    this.handleCloseTab();
+  }
   get index() {
     return this._parent.items.findIndex((t) => t.id === this.id);
   }
@@ -9471,9 +9475,11 @@ var Tab = class extends Container {
     return super._handleClick(event);
   }
   handleCloseTab(event) {
-    event.stopPropagation();
-    event.preventDefault();
-    if (!this._parent || !this.enabled || !this._parent.closable)
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    if (!this._parent || !this.enabled || event && !this._parent.closable)
       return;
     const isActiveChange = this._parent.activeTab.isSameNode(this);
     if (this._parent.onCloseTab)
@@ -9617,11 +9623,11 @@ var MarkdownEditor = class extends Control {
       this.mdPreviewer.load(value);
     }
   }
-  async init() {
+  init() {
     super.init();
     const container = this.createElement("div", this);
     container.classList.add("editor-container");
-    this.tabs = await Tabs.create({
+    this.tabs = new Tabs(void 0, {
       width: "auto"
     });
     container.appendChild(this.tabs);
@@ -9629,7 +9635,7 @@ var MarkdownEditor = class extends Control {
     this.mdEditor.width = "100%";
     this.mdEditor.height = "646px";
     this.mdEditor.language = "markdown";
-    this.editTab = await this.tabs.add({
+    this.editTab = this.tabs.add({
       caption: "Edit file",
       icon: {
         name: "code",
@@ -9640,7 +9646,7 @@ var MarkdownEditor = class extends Control {
       children: this.mdEditor
     });
     this.mdPreviewer = new Markdown();
-    this.previewTab = await this.tabs.add({
+    this.previewTab = this.tabs.add({
       caption: "Preview",
       icon: {
         name: "eye",
@@ -10511,9 +10517,8 @@ var Menu = class extends Control {
     this.navElm.appendChild(alignElm);
   }
   renderMore() {
-    this._moreElm = new MenuItem();
+    this._moreElm = new MenuItem(this, {});
     this._moreElm.classList.add("more-item");
-    this._moreElm.init();
     const templateHtml = `
       <div class="desktop has-children">
         <button type="button" class="link">
@@ -10730,7 +10735,7 @@ var Menu = class extends Control {
         break;
     }
   }
-  async init() {
+  init() {
     if (!this.navElm) {
       this.title = this.getAttribute("title", true);
       this.platform = this.getAttribute("platform", true, "desktop");
@@ -11019,7 +11024,6 @@ var Label = class extends Control {
         target: "_blank",
         font: this.font
       });
-      this._link.init();
       this._link.append(this.captionSpan);
       this.appendChild(this._link);
     }
@@ -11063,7 +11067,6 @@ var Label = class extends Control {
         const link = new Link(this, __spreadProps(__spreadValues({}, linkAttr), {
           font: this.font
         }));
-        link.init();
         this.link = link;
       }
       super.init();
@@ -12308,7 +12311,6 @@ var modalStyle = style({
   padding: "10px 10px 5px 10px",
   backgroundColor: Theme23.background.modal,
   position: "relative",
-  margin: "0 auto 30px",
   borderRadius: "2px",
   minWidth: "300px",
   width: "inherit"
@@ -12438,7 +12440,12 @@ var Modal = class extends Container {
     }
   }
   positionAtFix(placement) {
-    this.wrapperDiv.style.height = window.innerHeight + "px";
+    var _a;
+    const inModal = (_a = this.parentElement) == null ? void 0 : _a.closest("i-modal");
+    if (inModal) {
+      this.wrapperDiv.style.top = "-50%";
+      return;
+    }
     let parent = document.body;
     const parentCoords = parent.getBoundingClientRect();
     let left = 0;
@@ -12447,7 +12454,7 @@ var Modal = class extends Container {
     switch (placement) {
       case "center":
         top = parentCoords.height / 2 - this.modalDiv.offsetHeight / 2;
-        left = parentCoords.left / 2 - this.modalDiv.offsetLeft / 2;
+        left = parentCoords.width / 2 - this.modalDiv.offsetWidth / 2;
         break;
       case "top":
         top = pageY - this.modalDiv.offsetHeight - parentCoords.height;
@@ -12533,7 +12540,7 @@ var Modal = class extends Container {
     else
       this.modalDiv.style[name] = value;
   }
-  async init() {
+  init() {
     if (!this.wrapperDiv) {
       this.popupPlacement = this.getAttribute("popupPlacement", true);
       this.closeOnBackdropClick = this.getAttribute("closeOnBackdropClick", true);
@@ -12549,7 +12556,7 @@ var Modal = class extends Container {
         closeIconAttr.height = closeIconAttr.height || "16px";
         closeIconAttr.width = closeIconAttr.width || "16px";
         closeIconAttr.fill = closeIconAttr.fill || Theme24.colors.primary.main;
-        this._icon = await Icon.create(closeIconAttr);
+        this._icon = new Icon(void 0, closeIconAttr);
         this._icon.classList.add("i-modal-close");
         this._icon._handleClick = () => this.visible = false;
         this.titleSpan.appendChild(this._icon);
@@ -13234,12 +13241,12 @@ var Upload = class extends Control {
           };
           itemElm.appendChild(imgElm);
         }
-        const removeIcon = new Icon();
-        removeIcon.init();
-        removeIcon.width = 12;
-        removeIcon.height = 12;
-        removeIcon.fill = Theme26.action.active;
-        removeIcon.name = "trash";
+        const removeIcon = new Icon(void 0, {
+          width: 12,
+          height: 12,
+          fill: Theme26.action.active,
+          name: "trash"
+        });
         itemElm.appendChild(removeIcon);
         removeIcon.addEventListener("click", () => this.handleRemove(file));
       }
@@ -13300,9 +13307,9 @@ var Upload = class extends Control {
       if (!this.enabled)
         this._fileElm.setAttribute("disabled", "");
       this.listType = this.getAttribute("listType", true);
-      const btn = new Button();
-      btn.init();
-      btn.caption = "Choose an image";
+      const btn = new Button(this, {
+        caption: "Choose an image"
+      });
       btn.className = `i-upload_btn ${!this.enabled && "disabled"}`;
       this._wrapperFileElm.appendChild(btn);
       const fileListAttr = this.getAttribute("showFileList", true);
@@ -13383,7 +13390,6 @@ var Iframe = class extends Control {
       this.iframeElm.height = "100%";
       this.iframeElm.setAttribute("frameBorder", "0");
     }
-    ;
   }
   init() {
     super.init();

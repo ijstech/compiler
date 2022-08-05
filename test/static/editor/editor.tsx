@@ -40,26 +40,327 @@ export default class CodeEditorModule extends Module {
   private _compiler: Compiler
 
   private _gha: GitHubAPI
+  private _indexedDB: any = null
 
-  /// Work with github
+  async init() {
+    await super.init()
+    this._gha = new GitHubAPI(
+      'mike-yuen',
+      'scbook',
+      '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',
+      'develop'
+    )
+    const fileTree = await this._gha.getFileTree(
+      '5c86eb58c6bc8f0c766736f038d7c1ab86cc1619',
+      true
+    )
 
-  // async loadFiles(fileTree: any[]) {
-  //   this.tvFiles.clear()
-  //   let fileNodes: { [idx: string]: TreeNode } = {}
-  //   let self = this
+    const openRequest = await window.indexedDB.open('compiler-db', 1)
+
+    openRequest.onupgradeneeded = (e) => {
+      switch (e.oldVersion) {
+        case 0:
+          this._indexedDB = openRequest.result
+          this._indexedDB.createObjectStore('changed-files', {
+            autoIncrement: true,
+          })
+          break
+      }
+    }
+
+    openRequest.onerror = () => {
+      console.error('Error', openRequest.error)
+    }
+
+    openRequest.onsuccess = () => {
+      this._indexedDB = openRequest.result
+    }
+
+    // if (files.tree?.length) {
+    //   for (let node of files.tree) {
+    //     const file = await gha.getFile(node.path)
+    //     console.log('--------', file)
+    //   }
+    // }
+    if (fileTree.tree?.length) this.loadFiles(fileTree.tree)
+
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault()
+
+        if (this.tabCodeTemp?.title && this.edtCodeTemp?.value)
+          this.addDataToIndexedDB(
+            this.tabCodeTemp?.title,
+            this.edtCodeTemp?.value
+          )
+
+        if (this.tabCodeTemp?.title)
+          this.getDataFromIndexedDB(this.tabCodeTemp.title)
+      }
+    })
+  }
+
+  addDataToIndexedDB(key: string, value: string) {
+    this._indexedDB
+      .transaction('changed-files', 'readwrite')
+      .objectStore('changed-files')
+      .add(value, key)
+  }
+
+  getDataFromIndexedDB(key: string) {
+    const request = this._indexedDB
+      .transaction('changed-files', 'readwrite')
+      .objectStore('changed-files')
+      .get(key)
+    request.onsuccess = () => {
+      // Do something with the request.result!
+      console.log(`File is ${request.result}`)
+    }
+    request.onerror = () => {
+      // Handle errors!
+    }
+  }
+
+  async loadFiles(fileTree: any[]) {
+    this.tvFiles.clear()
+    let fileNodes: { [idx: string]: TreeNode } = {}
+    let self = this
+
+    async function addFileNode(paths: string[]) {
+      let name: string = ''
+      // let items = fileName.split('/');
+      let node: TreeNode | null = null
+      for (let i = 0; i < paths.length; i++) {
+        name = name + '/' + paths[i]
+        if (!fileNodes[name]) {
+          node = await self.tvFiles.add(node, paths[i])
+          fileNodes[name] = node
+        } else node = fileNodes[name]
+      }
+      return node
+    }
+
+    let files: any[] = []
+    fileTree.forEach((file) => {
+      if (file.type !== 'tree')
+        files.push({
+          paths: file.path.split('/'),
+        })
+    })
+    files.sort((item1, item2) => {
+      if (item1.paths.length > item2.paths.length) return -1
+      else if (item1.paths.length < item2.paths.length) return 1
+      else return 0
+    })
+    for (let i = 0; i < files.length; i++) {
+      let node = await addFileNode(files[i].paths)
+      if (node)
+        node.tag = {
+          fileName: files[i].paths.join('/'),
+          content: files[i].paths.join('/'),
+        }
+    }
+  }
+
+  async fileImporter(
+    fileName: string
+  ): Promise<{ fileName: string; content: string } | null> {
+    const getFileFromGithub = async (
+      fileName: string
+    ): Promise<{ fileName: string; content: string } | null> => {
+      const gha = new GitHubAPI(
+        'mike-yuen',
+        'scbook',
+        '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',
+        'develop'
+      )
+      if (fileName.substr(fileName.indexOf('.')) === '.css') {
+        let file = await gha.getFile(`${fileName}.ts`)
+        if (file.content) return { fileName: file.path, content: file.content }
+      }
+      let file = await gha.getFile(fileName)
+      if (file.content) return { fileName: file.path, content: file.content }
+      file = await gha.getFile(`${fileName}.ts`)
+      if (file.content) return { fileName: file.path, content: file.content }
+      file = await gha.getFile(`${fileName}.tsx`)
+      if (file.content) return { fileName: file.path, content: file.content }
+      file = await gha.getFile(`${fileName}.d.ts`)
+      if (file.content) return { fileName: file.path, content: file.content }
+      return null
+    }
+
+    // if (fileName == '@ijstech/components') {
+    if (fileName.indexOf('@ijstech') >= 0) {
+      let res = await fetch('/dist/lib/components/index.d.ts')
+      let content = await res.text()
+      CodeEditor.addLib(fileName, content)
+      return {
+        fileName: 'index.d.ts',
+        content: content,
+      }
+    } else {
+      const file = await getFileFromGithub(fileName)
+      if (file) {
+        console.log('fileImporter', file.fileName)
+        CodeEditor.addFile(file.fileName, file.content)
+        return {
+          fileName: file.fileName,
+          content: file.content,
+        }
+      } else {
+        return null
+      }
+    }
+  }
+
+  async handleTreeViewClick() {
+    console.log('handleTreeViewClick')
+    if (this.tvFiles.activeItem) {
+      let tag: ITreeNodeData = this.tvFiles.activeItem.tag
+      if (tag && tag.fileName) {
+        const language = this.getLanguageByFileName(tag.fileName)
+        const content = await this._gha.getFile(tag.fileName)
+        tag.content = content.content
+        if (tag.tab) return tag.tab.active()
+        else {
+          if (!this.tsEditors.activeTab || !this.tabCodeTemp) {
+            this.tabCodeTemp = await this.tsEditors.add()
+          }
+          if (!this.edtCodeTemp) {
+            this.edtCodeTemp = new CodeEditor(this.tabCodeTemp)
+            this.edtCodeTemp.onChange = this.handleFileChange
+            this.edtCodeTemp.dock = 'fill'
+          }
+          let model = await CodeEditor.getFileModel(tag.fileName)
+          if (!model) {
+            let deps = await this.compiler.getDependencies(
+              tag.fileName,
+              tag.content,
+              this.fileImporter
+            )
+            model = await CodeEditor.addFile(tag.fileName, tag.content)
+          }
+          this.edtCodeTemp.tag = { fileName: tag.fileName }
+          this.edtCodeTemp.loadContent(tag.content, language, tag.fileName)
+          if (this.tabCodeTemp) {
+            this.tabCodeTemp.title = tag.fileName
+            this.tabCodeTemp.tag = { treeNode: this.tvFiles.activeItem }
+            this.tabCodeTemp.caption =
+              tag.fileName.split('/').pop() || 'Untitled'
+            this.tabCodeTemp.active()
+            this.tabCodeTemp.style.fontStyle = 'italic'
+          }
+        }
+      }
+    }
+  }
+
+  async run() {
+    await this.ifrPreview.refresh()
+    let compiler = new Compiler()
+    // await compiler.addFile(
+    //   'src/index.tsx',
+    //   Samples['src/index.tsx'],
+    //   this.fileImporter
+    // )
+    const indexPath = `scbook/modules/index.tsx`
+    const indexContent = await this._gha.getFile(indexPath)
+    console.log('indexContent', indexContent)
+    await compiler.addFile(indexPath, indexContent.content, this.fileImporter)
+    let result = await compiler.compile()
+    console.log('compilation result', result)
+    let contentWindow = (this.ifrPreview as any).iframeElm.contentWindow
+    contentWindow.postMessage(
+      JSON.stringify({ script: result.script['index.js'] })
+    )
+  }
+
+  // async run(){
+  //   await this.ifrPreview.reload();
+  //   let compiler = new Compiler();
+  //   await compiler.addFile('src/index.tsx', Samples['src/index.tsx'], this.fileImporter)
+  //   let result = await compiler.compile();
+  //   console.dir(result);
+  //   let contentWindow = (this.ifrPreview as any).iframeElm.contentWindow;
+  //   contentWindow.postMessage(JSON.stringify({script: result.script['index.js']}));
+  // }
   //
-  //   async function addFileNode(paths: string[]) {
-  //     let name: string = ''
-  //     // let items = fileName.split('/');
-  //     let node: TreeNode | null = null
-  //     for (let i = 0; i < paths.length; i++) {
-  //       name = name + '/' + paths[i]
-  //       if (!fileNodes[name]) {
-  //         node = await self.tvFiles.add(node, paths[i])
-  //         fileNodes[name] = node
-  //       } else node = fileNodes[name]
+  // async handleTreeViewClick(){
+  //   if (this.tvFiles.activeItem){
+  //     let tag: ITreeNodeData = this.tvFiles.activeItem.tag;
+  //     if (tag && tag.fileName){
+  //       if (tag.tab)
+  //         return tag.tab.active()
+  //       else{
+  //         if (!this.tsEditors.activeTab || !this.tabCodeTemp){
+  //           this.tabCodeTemp = this.tsEditors.add();
+  //         };
+  //         if (!this.edtCodeTemp){
+  //           this.edtCodeTemp = new CodeEditor(this.tabCodeTemp);
+  //           this.edtCodeTemp.onChange = this.handleFileChange;
+  //           this.edtCodeTemp.dock = 'fill';
+  //         };
+  //         let model = await CodeEditor.getFileModel(tag.fileName);
+  //         if (!model){
+  //           let deps = await this.compiler.getDependencies(tag.fileName, tag.content, this.fileImporter);
+  //           model = await CodeEditor.addFile(tag.fileName, tag.content)
+  //         };
+  //         this.tabCodeTemp.title = tag.fileName;
+  //         this.tabCodeTemp.tag = {treeNode: this.tvFiles.activeItem}
+  //         this.edtCodeTemp.tag = {fileName:tag.fileName};
+  //         this.edtCodeTemp.loadContent(tag.content, 'typescript', tag.fileName);
+  //         this.tabCodeTemp.caption = tag.fileName.split('/').pop() || 'Untitled';
+  //         this.tabCodeTemp.active();
+  //       }
   //     }
-  //     return node
+  //   }
+  // }
+  //
+  // async fileImporter(fileName: string): Promise<{fileName: string, content: string} | null>{
+  //   if (fileName == '@ijstech/components'){
+  //     let res = await fetch('/dist/lib/components/index.d.ts');
+  //     let content = await res.text();
+  //     CodeEditor.addLib(fileName, content);
+  //     return {
+  //       fileName: 'index.d.ts',
+  //       content: content
+  //     }
+  //   }
+  //   else{
+  //     if (Samples[fileName + '.ts'])
+  //       fileName = fileName + '.ts'
+  //     else if (Samples[fileName + '.tsx'])
+  //       fileName = Samples[fileName + '.tsx']
+  //     else if (Samples[fileName + '.d.ts'])
+  //       fileName = Samples[fileName + '.d.ts']
+  //     else
+  //       return null;
+  //     CodeEditor.addFile(fileName, Samples[fileName]);
+  //     return {
+  //       fileName: fileName,
+  //       content: Samples[fileName]
+  //     };
+  //   };
+  // }
+  //
+  // async loadFiles() {
+  //   this.tvFiles.clear();
+  //   let fileNodes: {[idx: string]:TreeNode} = {};
+  //   let self = this;
+  //   async function addFileNode(paths: string[]){
+  //     let name: string = '';
+  //     // let items = fileName.split('/');
+  //     let node: TreeNode|null = null;
+  //     for (let i = 0; i < paths.length; i ++){
+  //       name = name + '/' + paths[i];
+  //       if (!fileNodes[name]){
+  //         node = await self.tvFiles.add(node, paths[i]);
+  //         fileNodes[name] = node;
+  //       }
+  //       else
+  //         node = fileNodes[name];
+  //     };
+  //     return node;
   //   }
   //
   //   let files: any[] = []
@@ -81,252 +382,8 @@ export default class CodeEditorModule extends Module {
   //         fileName: files[i].paths.join('/'),
   //         content: files[i].paths.join('/'),
   //       }
-  //   }
-  // }
-
-  // async fileImporter(
-  //     fileName: string
-  // ): Promise<{ fileName: string; content: string } | null> {
-  //
-  //   const getFileFromGithub = async (fileName: string): Promise<{fileName: string, content: string} | null> => {
-  //     const gha = new GitHubAPI(
-  //         'mike-yuen',
-  //         'scbook',
-  //         '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',
-  //         'develop'
-  //     );
-  //     if(fileName.substr(fileName.indexOf('.')) === '.css') {
-  //       let file = await gha.getFile(`${fileName}.ts`);
-  //       if(file.content) return { fileName: file.path, content: file.content};
-  //     }
-  //     let file = await gha.getFile(fileName);
-  //     if(file.content) return { fileName: file.path, content: file.content};
-  //     file = await gha.getFile(`${fileName}.ts`);
-  //     if(file.content) return { fileName: file.path, content: file.content};
-  //     file = await gha.getFile(`${fileName}.tsx`);
-  //     if(file.content) return { fileName: file.path, content: file.content};
-  //     file = await gha.getFile(`${fileName}.d.ts`);
-  //     if(file.content) return { fileName: file.path, content: file.content};
-  //     return null;
-  //   }
-  //
-  //   // if (fileName == '@ijstech/components') {
-  //   if(fileName.indexOf('@ijstech') >= 0) {
-  //     let res = await fetch('/dist/lib/components/index.d.ts')
-  //     let content = await res.text()
-  //     CodeEditor.addLib(fileName, content)
-  //     return {
-  //       fileName: 'index.d.ts',
-  //       content: content,
-  //     }
-  //   } else {
-  //     const file = await getFileFromGithub(fileName);
-  //     if(file) {
-  //       console.log('fileImporter', file.fileName)
-  //       CodeEditor.addFile(file.fileName, file.content)
-  //       return {
-  //         fileName: file.fileName,
-  //         content: file.content,
-  //       }
-  //     }
-  //     else {
-  //       return null;
-  //     }
-  //   }
-  // }
-
-  // async handleTreeViewClick() {
-  //   if (this.tvFiles.activeItem) {
-  //     let tag: ITreeNodeData = this.tvFiles.activeItem.tag
-  //     if (tag && tag.fileName) {
-  //       const language = this.getLanguageByFileName(tag.fileName)
-  //       const content = await this._gha.getFile(tag.fileName)
-  //       tag.content = content.content;
-  //       if (tag.tab) return tag.tab.active()
-  //       else {
-  //         if (!this.tsEditors.activeTab || !this.tabCodeTemp) {
-  //           this.tabCodeTemp = this.tsEditors.add()
-  //         }
-  //         if (!this.edtCodeTemp) {
-  //           this.edtCodeTemp = new CodeEditor(this.tabCodeTemp)
-  //           this.edtCodeTemp.onChange = this.handleFileChange
-  //           this.edtCodeTemp.dock = 'fill'
-  //         }
-  //         let model = await CodeEditor.getFileModel(tag.fileName)
-  //         if (!model) {
-  //           let deps = await this.compiler.getDependencies(
-  //               tag.fileName,
-  //               tag.content,
-  //               this.fileImporter
-  //           )
-  //           model = await CodeEditor.addFile(tag.fileName, tag.content)
-  //         }
-  //         this.tabCodeTemp.title = tag.fileName
-  //         this.tabCodeTemp.tag = { treeNode: this.tvFiles.activeItem }
-  //         this.edtCodeTemp.tag = { fileName: tag.fileName }
-  //         this.edtCodeTemp.loadContent(tag.content, language, tag.fileName)
-  //         this.tabCodeTemp.caption = tag.fileName.split('/').pop() || 'Untitled'
-  //         this.tabCodeTemp.active()
-  //       }
-  //     }
-  //   }
-  // }
-
-  // async run() {
-  //   await this.ifrPreview.reload()
-  //   let compiler = new Compiler()
-  //   // await compiler.addFile(
-  //   //   'src/index.tsx',
-  //   //   Samples['src/index.tsx'],
-  //   //   this.fileImporter
-  //   // )
-  //   const indexPath = `scbook/modules/index.tsx`;
-  //   const indexContent = await this._gha.getFile(indexPath);
-  //   console.log('indexContent', indexContent);
-  //   await compiler.addFile(
-  //       indexPath,
-  //       indexContent.content,
-  //       this.fileImporter
-  //   )
-  //   let result = await compiler.compile()
-  //   console.log('compilation result', result);
-  //   let contentWindow = (this.ifrPreview as any).iframeElm.contentWindow
-  //   contentWindow.postMessage(
-  //       JSON.stringify({ script: result.script['index.js'] })
-  //   )
-  // }
-
-  // protected async init() {
-  //   await super.init()
-  //   this._gha = new GitHubAPI(
-  //       'mike-yuen',
-  //       'scbook',
-  //       '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',
-  //       'develop'
-  //   )
-  //   const fileTree = await this._gha.getFileTree(
-  //       '5c86eb58c6bc8f0c766736f038d7c1ab86cc1619',
-  //       true
-  //   )
-  //   // if (files.tree?.length) {
-  //   //   for (let node of files.tree) {
-  //   //     const file = await gha.getFile(node.path)
-  //   //     console.log('--------', file)
-  //   //   }
-  //   // }
-  //   if (fileTree.tree?.length) this.loadFiles(fileTree.tree)
-  // }
-
-  async run(){
-    await this.ifrPreview.reload();
-    let compiler = new Compiler();
-    await compiler.addFile('src/index.tsx', Samples['src/index.tsx'], this.fileImporter)
-    let result = await compiler.compile();
-    console.dir(result);
-    let contentWindow = (this.ifrPreview as any).iframeElm.contentWindow;
-    contentWindow.postMessage(JSON.stringify({script: result.script['index.js']}));
-  }
-
-  async handleTreeViewClick(){
-    if (this.tvFiles.activeItem){
-      let tag: ITreeNodeData = this.tvFiles.activeItem.tag;
-      if (tag && tag.fileName){
-        if (tag.tab)
-          return tag.tab.active()
-        else{
-          if (!this.tsEditors.activeTab || !this.tabCodeTemp){
-            this.tabCodeTemp = this.tsEditors.add();
-          };
-          if (!this.edtCodeTemp){
-            this.edtCodeTemp = new CodeEditor(this.tabCodeTemp);
-            this.edtCodeTemp.onChange = this.handleFileChange;
-            this.edtCodeTemp.dock = 'fill';
-          };
-          let model = await CodeEditor.getFileModel(tag.fileName);
-          if (!model){
-            let deps = await this.compiler.getDependencies(tag.fileName, tag.content, this.fileImporter);
-            model = await CodeEditor.addFile(tag.fileName, tag.content)
-          };
-          this.tabCodeTemp.title = tag.fileName;
-          this.tabCodeTemp.tag = {treeNode: this.tvFiles.activeItem}
-          this.edtCodeTemp.tag = {fileName:tag.fileName};
-          this.edtCodeTemp.loadContent(tag.content, 'typescript', tag.fileName);
-          this.tabCodeTemp.caption = tag.fileName.split('/').pop() || 'Untitled';
-          this.tabCodeTemp.active();
-        }
-      }
-    }
-  }
-
-  async fileImporter(fileName: string): Promise<{fileName: string, content: string} | null>{
-    if (fileName == '@ijstech/components'){
-      let res = await fetch('/dist/lib/components/index.d.ts');
-      let content = await res.text();
-      CodeEditor.addLib(fileName, content);
-      return {
-        fileName: 'index.d.ts',
-        content: content
-      }
-    }
-    else{
-      if (Samples[fileName + '.ts'])
-        fileName = fileName + '.ts'
-      else if (Samples[fileName + '.tsx'])
-        fileName = Samples[fileName + '.tsx']
-      else if (Samples[fileName + '.d.ts'])
-        fileName = Samples[fileName + '.d.ts']
-      else
-        return null;
-      CodeEditor.addFile(fileName, Samples[fileName]);
-      return {
-        fileName: fileName,
-        content: Samples[fileName]
-      };
-    };
-  }
-
-  async loadFiles() {
-    this.tvFiles.clear();
-    let fileNodes: {[idx: string]:TreeNode} = {};
-    let self = this;
-    async function addFileNode(paths: string[]){
-      let name: string = '';
-      // let items = fileName.split('/');
-      let node: TreeNode|null = null;
-      for (let i = 0; i < paths.length; i ++){
-        name = name + '/' + paths[i];
-        if (!fileNodes[name]){
-          node = await self.tvFiles.add(node, paths[i]);
-          fileNodes[name] = node;
-        }
-        else
-          node = fileNodes[name];
-      };
-      return node;
-    }
-    let files = [];
-    for (let fileName in Samples)
-      files.push({
-        paths: fileName.split('/'),
-        content: Samples[fileName]
-      })
-    files.sort((item1, item2)=>{
-      if (item1.paths.length > item2.paths.length)
-        return -1
-      else if (item1.paths.length < item2.paths.length)
-        return 1
-      else
-        return 0
-    });
-    for (let i = 0; i < files.length; i ++){
-      let node = await addFileNode(files[i].paths);
-      if (node)
-        node.tag = {
-          fileName: files[i].paths.join('/'),
-          content: files[i].content
-        }
-    };
-  };
+  //   };
+  // };
 
   handleFileChange(target: Control, event: Event) {
     let fileName: string = target.tag?.fileName
@@ -386,14 +443,14 @@ export default class CodeEditorModule extends Module {
     return language
   }
 
-
-
-
-
   handleTreeViewDblClick() {
+    console.log('handleTreeViewDblClick')
+    return
     let nodeData: ITreeNodeData = this.tvFiles.activeItem?.tag
+    console.log('node', this.tvFiles.activeItem)
+    console.log('nodeData', nodeData)
     if (this.tabCodeTemp && nodeData && !nodeData.tab) {
-      this.tabCodeTemp.font.style = 'normal'
+      // this.tabCodeTemp.style.fontStyle = 'normal'
       nodeData.tab = this.tabCodeTemp
       nodeData.editor = this.edtCodeTemp
       this.tabCodeTemp = undefined
@@ -412,15 +469,13 @@ export default class CodeEditorModule extends Module {
   }
 
   reload() {
-    this.ifrPreview.reload()
+    this.ifrPreview.refresh()
   }
 
-
-
-  protected init(){
-    super.init();
-    this.loadFiles();
-  }
+  // protected async init(){
+  //   await super.init();
+  //   this.loadFiles();
+  // }
 
   render(): any {
     return (
@@ -429,7 +484,7 @@ export default class CodeEditorModule extends Module {
           <i-panel dock="right">
             <i-button
               caption="Run"
-              icon={{name:"caret-right"}}
+              icon={{ name: 'caret-right' }}
               height={30}
               width={100}
               margin={{ top: 5, left: 4 }}
@@ -473,7 +528,6 @@ export default class CodeEditorModule extends Module {
                 >
                   <i-tree-view
                     id="tvFiles"
-                    dock="fill"
                     onClick={this.handleTreeViewClick}
                     onDblClick={this.handleTreeViewDblClick}
                   ></i-tree-view>
@@ -492,7 +546,8 @@ export default class CodeEditorModule extends Module {
                 <i-vstack
                   class="project-sidebar"
                   width="100%"
-                  height="calc(100vh - 22px - 35px - 30px)">
+                  height="calc(100vh - 22px - 35px - 30px)"
+                >
                   {/*<editor-search></editor-search>*/}
                 </i-vstack>
               </i-vstack>
@@ -530,15 +585,19 @@ export default class CodeEditorModule extends Module {
         <i-panel id="pnlPreview" dock="right" width="35%" resizer={true}>
           <i-panel dock="top" height={30} padding={{ top: 5, bottom: 5 }}>
             <i-panel dock="left" width={80}>
-              <i-button icon={{name:"angle-left"}} width={20} height={20}></i-button>
               <i-button
-                icon={{name:"angle-right"}}
+                icon={{ name: 'angle-left' }}
+                width={20}
+                height={20}
+              ></i-button>
+              <i-button
+                icon={{ name: 'angle-right' }}
                 margin={{ left: 4 }}
                 width={20}
                 height={20}
               ></i-button>
               <i-button
-                icon={{name:"redo"}}
+                icon={{ name: 'redo' }}
                 margin={{ left: 4 }}
                 width={20}
                 height={20}

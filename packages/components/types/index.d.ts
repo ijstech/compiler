@@ -3285,7 +3285,7 @@ declare module "@ijstech/*module/src/module" {
         private $render;
         static create(options?: ModuleElement, parent?: Container, defaults?: ModuleElement): Promise<Module>;
         constructor(parent?: Container, options?: any, defaults?: any);
-        protected init(): void;
+        init(): void;
         flattenArray(arr: any[]): any;
         _render(...params: any[]): HTMLElement;
         render(): void;
@@ -3366,7 +3366,7 @@ declare module "@ijstech/*checkbox/src/checkbox" {
         set value(data: any);
         private _handleChange;
         private addClass;
-        init(): void;
+        protected init(): void;
         static create(options?: CheckboxElement, parent?: Control): Promise<Checkbox>;
     }
 }
@@ -3522,7 +3522,8 @@ declare module "@ijstech/*image/src/image" {
         };
         drawImageBox(): void;
         cropImage(url: string): HTMLCanvasElement | undefined;
-        init(): Promise<void>;
+        private fetchData;
+        protected init(): void;
         connectedCallback(): void;
         static create(options?: ImageElement, parent?: Control): Promise<Image>;
     }
@@ -3556,7 +3557,7 @@ declare module "@ijstech/*icon/src/icon" {
         private _image;
         private _spin;
         constructor(parent?: Control, options?: any);
-        init(): Promise<void>;
+        protected init(): void;
         get fill(): Types.Color;
         set fill(color: Types.Color);
         get name(): IconName;
@@ -3607,7 +3608,7 @@ declare module "@ijstech/*button/src/button" {
         private updateButton;
         _handleClick(event: Event): boolean;
         refresh(): void;
-        init(): void;
+        protected init(): void;
     }
 }
 declare module "@ijstech/*button/@ijstech/components" {
@@ -6614,7 +6615,7 @@ declare module "@ijstech/*code-editor/src/code-editor" {
         static getFileModel: typeof getFileModel;
         static updateFile: typeof updateFile;
         get monaco(): Monaco;
-        init(): void;
+        protected init(): void;
         get editor(): IMonaco.editor.IStandaloneCodeEditor;
         get language(): LanguageType;
         set language(value: LanguageType);
@@ -6657,7 +6658,7 @@ declare module "@ijstech/*code-editor/src/diff-editor" {
         static addFile: typeof addFile;
         static getFileModel: typeof getFileModel;
         static updateFile: typeof updateFile;
-        init(): void;
+        protected init(): void;
         get editor(): IMonaco.editor.IDiffEditor;
         get language(): LanguageType;
         set language(value: LanguageType);
@@ -6822,7 +6823,7 @@ declare module "@ijstech/*datepicker/src/datepicker" {
         _dateInputMask: (event: KeyboardEvent) => void;
         _onFocus: () => void;
         _isValidDateFormat: () => void;
-        init(): Promise<void>;
+        protected init(): void;
         static create(options?: DatepickerElement, parent?: Control): Promise<Datepicker>;
     }
 }
@@ -6884,7 +6885,7 @@ declare module "@ijstech/*range/src/range" {
         set tooltipVisible(value: boolean);
         onSliderChange(): void;
         onUpdateTooltip(init: boolean): void;
-        init(): void;
+        protected init(): void;
         static create(options?: RangeElement, parent?: Control): Promise<Range>;
     }
 }
@@ -6953,7 +6954,7 @@ declare module "@ijstech/*radio/src/radio" {
         private _handleChange;
         add(options: RadioElement): Promise<Radio>;
         delete(index: number): void;
-        init(): void;
+        protected init(): void;
         static create(options?: RadioGroupElement, parent?: Control): Promise<RadioGroup>;
     }
 }
@@ -7050,7 +7051,7 @@ declare module "@ijstech/*input/src/input" {
         _handleOnBlur(event: Event): void;
         _handleOnFocus(event: Event): void;
         _clearValue(): void;
-        init(): void;
+        protected init(): void;
         static create(options?: InputElement, parent?: Control): Promise<Input>;
     }
 }
@@ -7082,7 +7083,7 @@ declare module "@ijstech/*markdown/src/markdown" {
         beforeRender(text: string): Promise<void>;
         processText(text: string): Promise<string>;
         loadLib(): Promise<unknown>;
-        init(): void;
+        protected init(): void;
     }
 }
 declare module "@ijstech/*markdown/@ijstech/components" {
@@ -7154,7 +7155,7 @@ declare module "@ijstech/*tab/src/tab" {
         private dragOverHandler;
         private dropHandler;
         refresh(): void;
-        init(): void;
+        protected init(): void;
         static create(options?: TabsElement, parent?: Container): Promise<Tabs>;
     }
     export class Tab extends Container {
@@ -7208,7 +7209,7 @@ declare module "@ijstech/*markdown-editor/src/markdown-editor" {
         private onViewPreview;
         getValue(): string;
         setValue(value: string): void;
-        init(): Promise<void>;
+        protected init(): void;
     }
 }
 declare module "@ijstech/*markdown-editor/@ijstech/components" {
@@ -7274,7 +7275,7 @@ declare module "@ijstech/*menu/src/menu-item" {
         private activeItem;
         renderItem(): void;
         addEvent(): void;
-        init(): void;
+        protected init(): void;
         static create(options?: MenuItemElement, parent?: Control): Promise<MenuItem>;
     }
 }
@@ -7350,7 +7351,7 @@ declare module "@ijstech/*menu/src/menu" {
         setActiveItem(isActive: boolean): void;
         renderItems(items: IMenuItem[]): void;
         append(...nodes: (string | Node)[]): void;
-        init(): Promise<void>;
+        protected init(): void;
         disconnectedCallback(): void;
         static create(options?: MenuElement, parent?: Control): Promise<Menu>;
     }
@@ -7379,7 +7380,7 @@ declare module "@ijstech/*link/src/link" {
         set target(value: TagertType);
         append(children: Control | HTMLElement): void;
         _handleClick(event: Event, stopPropagation?: boolean): boolean;
-        init(): void;
+        protected init(): void;
         static create(options?: LinkElement, parent?: Control): Promise<Link>;
     }
 }
@@ -7413,7 +7414,7 @@ declare module "@ijstech/*label/src/label" {
         set link(value: Link);
         set height(value: number);
         set width(value: number);
-        init(): void;
+        protected init(): void;
         static create(options?: LabelElement, parent?: Control): Promise<Label>;
     }
 }
@@ -7547,7 +7548,7 @@ declare module "@ijstech/*tree-view/src/treeView" {
         initChildNodeElm(): void;
         _handleClick(event: Event): boolean;
         _handleDblClick(event: Event): boolean;
-        init(): void;
+        protected init(): void;
         static create(options?: TreeNodeElement, parent?: Control): Promise<TreeNode>;
     }
 }
@@ -7741,7 +7742,7 @@ declare module "@ijstech/*modal/src/modal" {
         protected _handleOnShow(event: Event): void;
         _handleClick(event: Event): boolean;
         private updateModal;
-        init(): Promise<void>;
+        protected init(): void;
         static create(options?: ModalElement, parent?: Container): Promise<Modal>;
     }
 }
@@ -7762,7 +7763,7 @@ declare module "@ijstech/*chart/src/chart" {
         drawChart(): void;
         updateChartOptions(): void;
         resize(): void;
-        init(): void;
+        protected init(): void;
     }
 }
 declare module "@ijstech/*chart/src/lineChart" {
@@ -7780,7 +7781,7 @@ declare module "@ijstech/*chart/src/lineChart" {
     }
     export class LineChart extends Chart<any> {
         constructor(parent?: Control, options?: any);
-        init(): void;
+        protected init(): void;
     }
 }
 declare module "@ijstech/*chart/src/barChart" {
@@ -7851,7 +7852,7 @@ declare module "@ijstech/*chart/src/barChart" {
     }
     export class BarChart extends Chart<IBarChartData> {
         constructor(parent?: Control, options?: any);
-        init(): void;
+        protected init(): void;
     }
 }
 declare module "@ijstech/*chart/src/barStackChart" {
@@ -7869,7 +7870,7 @@ declare module "@ijstech/*chart/src/barStackChart" {
     }
     export class BarStackChart extends Chart<any> {
         constructor(parent?: Control, options?: any);
-        init(): void;
+        protected init(): void;
     }
 }
 declare module "@ijstech/*chart/src/pieChart" {
@@ -7901,7 +7902,7 @@ declare module "@ijstech/*chart/src/pieChart" {
     }
     export class PieChart extends Chart<IPieChartData> {
         constructor(parent?: Control, options?: any);
-        init(): void;
+        protected init(): void;
     }
 }
 declare module "@ijstech/*chart/src/scatterChart" {
@@ -7919,7 +7920,7 @@ declare module "@ijstech/*chart/src/scatterChart" {
     }
     export class ScatterChart extends Chart<any> {
         constructor(parent?: Control, options?: any);
-        init(): void;
+        protected init(): void;
     }
 }
 declare module "@ijstech/*chart/src/scatterLineChart" {
@@ -7937,7 +7938,7 @@ declare module "@ijstech/*chart/src/scatterLineChart" {
     }
     export class ScatterLineChart extends Chart<any> {
         constructor(parent?: Control, options?: any);
-        init(): void;
+        protected init(): void;
     }
 }
 declare module "@ijstech/*chart/@ijstech/components" {
@@ -8050,7 +8051,7 @@ declare module "@ijstech/*upload/src/upload" {
         handleRemoveImagePreview: (event: Event) => void;
         resetInput(): void;
         cropImage(file: File): HTMLCanvasElement | undefined;
-        init(): void;
+        protected init(): void;
         static create(options?: UploadElement, parent?: Control): Promise<Upload>;
     }
 }
@@ -8078,7 +8079,7 @@ declare module "@ijstech/*iframe/src/iframe" {
         reload(): Promise<void>;
         get url(): string;
         set url(value: string);
-        init(): void;
+        protected init(): void;
         static create(options?: IframeElement, parent?: Control): Promise<Iframe>;
     }
 }
@@ -8182,7 +8183,7 @@ declare module "@ijstech/*layout/src/stack" {
         get mediaQueries(): IStackMediaQuery[];
         set mediaQueries(value: IStackMediaQuery[]);
         protected setAttributeToProperty<P extends keyof StackLayout>(propertyName: P): void;
-        init(): void;
+        protected init(): void;
     }
     export class HStack extends StackLayout {
         private _horizontalAlignment;
@@ -8193,7 +8194,7 @@ declare module "@ijstech/*layout/src/stack" {
         get verticalAlignment(): HStackVAlignmentType;
         set verticalAlignment(value: HStackVAlignmentType);
         protected setAttributeToProperty<P extends keyof HStack>(propertyName: P): void;
-        init(): void;
+        protected init(): void;
         static create(options?: HStackElement, parent?: Container): Promise<HStack>;
     }
     export class VStack extends StackLayout {
@@ -8222,7 +8223,7 @@ declare module "@ijstech/*layout/src/panel" {
     }
     export class Panel extends Container {
         constructor(parent?: Control, options?: any);
-        init(): void;
+        protected init(): void;
         connectedCallback(): void;
         static create(options?: PanelElement, parent?: Control): Promise<Panel>;
     }
@@ -8293,7 +8294,7 @@ declare module "@ijstech/*layout/src/grid" {
         get mediaQueries(): IGridLayoutMediaQuery[];
         set mediaQueries(value: IGridLayoutMediaQuery[]);
         protected setAttributeToProperty<P extends keyof GridLayout>(propertyName: P): void;
-        init(): void;
+        protected init(): void;
     }
     global {
         namespace JSX {
@@ -8323,7 +8324,7 @@ declare module "@ijstech/*layout/src/card" {
         set cardHeight(value: number | string);
         updateGridTemplateColumns(): void;
         protected setAttributeToProperty<P extends keyof CardLayout>(propertyName: P): void;
-        init(): void;
+        protected init(): void;
     }
     global {
         namespace JSX {
@@ -8395,7 +8396,7 @@ declare module "@ijstech/*pagination/src/pagination" {
         private updatePagers;
         private renderPageItem;
         private hideNexPrev;
-        init(): void;
+        protected init(): void;
         static create(options?: PaginationElement, parent?: Control): Promise<Pagination>;
     }
 }
@@ -8486,7 +8487,7 @@ declare module "@ijstech/*progress/src/progress" {
         renderCircle(): void;
         renderCircleInner(): void;
         updateCircleInner(): void;
-        init(): void;
+        protected init(): void;
         static create(options?: ProgressElement, parent?: Control): Promise<Progress>;
     }
 }
@@ -8666,7 +8667,7 @@ declare module "@ijstech/*table/src/table" {
         private renderRow;
         private renderBody;
         private createTable;
-        init(): void;
+        protected init(): void;
         static create(options?: TableElement, parent?: Control): Promise<Table>;
     }
 }
@@ -8714,7 +8715,7 @@ declare module "@ijstech/*carousel/src/carousel" {
         renderDotPagination(): void;
         onDotClick(index: number): void;
         setAutoplay(): void;
-        init(): void;
+        protected init(): void;
         static create(options?: CarouselSliderElement, parent?: Control): Promise<CarouselSlider>;
     }
 }

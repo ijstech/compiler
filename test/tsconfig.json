@@ -1,28 +1,28 @@
 {
-    "compilerOptions": {
-        "allowJs": true,   
-        "baseUrl": ".",              
-        "target": "ES2015",
-        "moduleResolution": "node",
-        "experimentalDecorators": true,
-        "removeComments": true,
-        "strict": true,
-        "esModuleInterop": true,
-        "skipLibCheck": true,
-        "jsx": "react",
-        "jsxFactory": "global.$render",
-        "forceConsistentCasingInFileNames": true,
-        "strictPropertyInitialization": false,
-        "paths": {
-            "@ijstech/compiler": ["../src"],
-            "@ijstech/components": ["../packages/components"]
-        }
-    },
-    "include": [
-        "static/**/.ts",
-        "static/**/*.tsx",
-        "scripts/**/*.tsx",
-        "scripts/**/*.ts",
-        "*.ts"
-    ]
+  "compilerOptions": {
+    "allowJs": true,
+    "baseUrl": ".",
+    "target": "ES2015",
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "removeComments": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "jsx": "react",
+    "jsxFactory": "global.$render",
+    "forceConsistentCasingInFileNames": true,
+    "strictPropertyInitialization": false,
+    "paths": {
+      "@ijstech/compiler": ["../src"],
+      "@ijstech/components": ["../packages/components"]
+    }
+  },
+  "include": [
+    "static/**/.ts",
+    "static/**/*.tsx",
+    "scripts/**/*.tsx",
+    "scripts/**/*.ts",
+    "*.ts"
+  ]
 }
