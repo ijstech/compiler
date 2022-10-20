@@ -38,8 +38,8 @@ async function writeFile(fileName, content) {
     catch(err){}
 }
 async function bundle(){    
-    await copyDir(Path.resolve(__dirname, '../packages/components/dist'), Path.resolve(__dirname, '../dist/lib/components'));
-    await copyFile(Path.resolve(__dirname, '../packages/components/types/index.d.ts'), Path.resolve(__dirname, '../dist/lib/components/index.d.ts'));
+    // await copyDir(Path.resolve(__dirname, '../node_modules/@ijstech/components/dist'), Path.resolve(__dirname, '../dist/lib/components'));
+    await copyFile(Path.resolve(__dirname, '../node_modules/@ijstech/components/types/index.d.ts'), Path.resolve(__dirname, '../dist/lib/components/index.d.ts'));
     content = await readFile(Path.resolve(__dirname, '../node_modules/typescript/lib/typescript.js'));
     await writeFile(Path.resolve(__dirname, '../dist/lib/typescript/index.js'), 
 `define("typescript", ["require", "exports"], function (require, exports) {

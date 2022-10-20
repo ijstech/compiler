@@ -2,18 +2,19 @@
     "compilerOptions": {        
         "baseUrl": ".",        
         "target": "ES2017",        
-        "declaration": true,
-        "emitDeclarationOnly": true,
-        "declarationDir": "src/lib",        
-        "removeComments": true,
-        "strict": false,
-        "esModuleInterop": false,
-        "noLib": true,
+        "module": "CommonJS",
+        "declaration": false,  
+        "moduleResolution": "Node",    
+        "allowSyntheticDefaultImports": true,         
+        "outDir": "lib",        
+        "removeComments": true,        
+        "resolveJsonModule": true,
+        "esModuleInterop": true,        
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
-        "strictPropertyInitialization": false,        
+        "strictPropertyInitialization": false
     },
     "include": [
-        "bundle/*.ts"
+        "src"
     ]
 }

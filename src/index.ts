@@ -1,5 +1,19 @@
+/*!-----------------------------------------------------------
+* Copyright (c) IJS Technologies. All rights reserved.
+* Released under dual AGPLv3/commercial license
+* https://ijs.network
+*-----------------------------------------------------------*/
 import Lib from './lib';
 import TS from "typescript";
+
+let isNode = false;    
+if (typeof process === 'object') {
+  if (typeof process.versions === 'object') {
+    if (typeof process.versions.node !== 'undefined') {
+      isNode = true;
+    }
+  }
+};
 
 export interface ICompilerError {
     file: string;
@@ -14,10 +28,14 @@ export interface ICompilerResult {
     script: {[file: string]: string};
     dts: {[file: string]: string};
 };
+export type IPackageFiles = {[filePath: string]: string};
 export interface IPackage{
+    files?:IPackageFiles;
     path?: string;
-    dts: {[file: string]: string},
-    version: string,
+    errors?: ICompilerError[];
+    script?: string;
+    dts?: string;
+    dependencies?: string[];
 };
 export function resolveAbsolutePath(baseFilePath: string, relativeFilePath: string): string{    
     let basePath = baseFilePath.split('/').slice(0,-1).join('/');    
@@ -29,23 +47,97 @@ export function resolveAbsolutePath(baseFilePath: string, relativeFilePath: stri
             if (value === '.'){}
             else if (value === '..') 
                 result.pop()
-            else 
+            else
                 result.push(value);
             return result;
         }, [])
         .join('/');
 }
-export type FileImporter = (fileName: string) => Promise<{fileName: string, content: string}|null>;
+export type FileImporter = (fileName: string, isPackage?: boolean) => Promise<{fileName: string, content: string}|null>;
+export type PakageFileImporter = (packName: string, fileName: string) => Promise<string>;
+export class PackageManager{
+    private fileImporter: PakageFileImporter;
+    private _packages: {[name: string]: IPackage}={};
 
+    addPackage(name: string, pack: IPackage){        
+        if (!this._packages[name])
+            this._packages[name] = pack
+    };
+    async buildAll(): Promise<boolean>{
+        for (let name in this._packages){
+            let result = await this.buildPackage(name);
+            if (result.errors && result.errors.length > 0)
+                return false;
+        };
+        return true;
+    };
+    async buildPackage(name: string): Promise<IPackage>{
+        let pack = this._packages[name];        
+        if (!pack.dts && pack.files){
+            let indexFile: string = '';
+            if (pack.files['index.ts'])
+                indexFile = 'index.ts'
+            else if (pack.files['index.tsx'])
+                indexFile = 'index.tsx';
+            if (indexFile){
+                let compiler = new Compiler();
+                await compiler.addFile(indexFile, pack.files[indexFile], async (fileName: string, isPackage?: boolean): Promise<{fileName: string, content: string}|null>=>{                    
+                    if (isPackage){         
+                        if (this._packages[fileName]){    
+                            if (!this._packages[fileName].dts){
+                                let p = await this.buildPackage(fileName);    
+                            };
+                            compiler.addPackage(fileName, this._packages[fileName]);
+                            return {
+                                fileName: 'index.d.ts',
+                                content: this._packages[fileName].dts || ''
+                            }
+                        }
+                        console.dir('Package not found: ' + fileName)
+                        return null
+                    }
+                    else{
+                        let name = '';
+                        if (pack.files){
+                            if (pack.files[fileName])
+                                name = fileName
+                            else if (pack.files[fileName + '.ts'])
+                                name = fileName + '.ts'
+                            else if (pack.files[fileName + '.tsx'])
+                                name = fileName + '.tsx'
+                            else if (pack.files[fileName + '.d.ts'])
+                                name = fileName + '.d.ts';
+                            if (name)
+                                return {
+                                    fileName: name,
+                                    content: pack.files[name]
+                                }
+                        }
+                        return null;
+                    }
+                });
+                let result = await compiler.compile(true);
+                pack.dts = result.dts['index.d.ts'];
+                pack.script = result.script['index.js'];
+                pack.dependencies = compiler.dependencies;
+                pack.errors = result.errors;
+            };
+        };
+        return pack;
+    };
+    packages(name: string): IPackage{
+        return this._packages[name];
+    };
+};
 export class Compiler {
     private scriptOptions: TS.CompilerOptions;
     private dtsOptions: TS.CompilerOptions;
     private files: { [name: string]: string };
     private packageFiles: {[name: string]: string};
-    // private fileNames: string[];
     private packages: {[index: string]: IPackage} = {};
     private libs: {[index: string]: string};
     private fileNotExists: string;
+    public dependencies: string[] = [];
     constructor() {
         this.scriptOptions = {
             allowJs: false,
@@ -96,25 +188,31 @@ export class Compiler {
                         if (this.files[filePath] == undefined && this.files[filePath + '.ts'] == undefined && this.files[filePath + '.tsx'] == undefined){                        
                             let file = await fileImporter(filePath);
                             if (file){
-                                result.push(file.fileName);
+                                result.push('./' + file.fileName);
                                 this.addFile(file.fileName, file.content);
                                 await this.importDependencies(filePath, file.content, fileImporter, result);
                             }                        
                         }
                     }
-                    else if (!this.packages[module]){
-                        let file = await fileImporter(module);
-                        if (file){
-                            result.push(module);
-                            let pack: IPackage = {
-                                dts: {
-                                    [file.fileName]: file.content
-                                },
-                                version: ''
+                    else{
+                        if (this.dependencies.indexOf(module) < 0)
+                            this.dependencies.push(module);
+                        if (!this.packages[module]){
+                            let file = await fileImporter(module, true);
+                            if (file){
+                                result.push(module);
+                                let pack: IPackage = {
+                                    dts: file.content,
+                                    // {
+                                    //     [file.fileName]: file.content
+                                    // },
+                                    // version: ''
+                                };
+                                this.addPackage(module, pack);
+    
                             };
-                            this.addPackage(module, pack);
-                        };
-                    }; 
+                        };   
+                    };
                 } 
             }            
         };
@@ -122,16 +220,17 @@ export class Compiler {
     }
     async addFile(fileName: string, content: string, dependenciesImporter?: FileImporter): Promise<string[]> {
         this.files[fileName] = content;
-        if (dependenciesImporter)
-            return await this.importDependencies(fileName, content, dependenciesImporter);
+        if (dependenciesImporter){            
+            let result = await this.importDependencies(fileName, content, dependenciesImporter);
+            return result;
+        }
         else
             return [];
     };   
     addPackage(packName: string, pack: IPackage){        
-        this.packages[packName] = pack;        
-        for (let n in pack.dts){
-            this.packageFiles[packName + '/' + n] = pack.dts[n];
-        }
+        this.packages[packName] = pack;
+        if (pack.dts)
+            this.packageFiles[packName] = pack.dts;
     };
     async compile(emitDeclaration?: boolean): Promise<ICompilerResult> {
         let result: ICompilerResult = {
@@ -192,9 +291,13 @@ export class Compiler {
         }
         return result;
     };
-    fileExists(fileName: string): boolean {                
+    fileExists(fileName: string): boolean {
         // return true;
         let result = this.files[fileName] != undefined || this.packageFiles[fileName] != undefined;
+        if (!result && fileName.endsWith('/index.d.ts')){
+            let packName = fileName.split('/').slice(0, -1).join('/');
+            result = this.packages[packName] != undefined;
+        };        
         if (!result && fileName.endsWith('.ts'))
             result = this.packages[fileName.slice(0, -3)] != undefined;
         if (!result)        
@@ -231,7 +334,7 @@ export class Compiler {
                 }
                 else if (result.indexOf(module) < 0){
                     if (fileImporter)
-                        await fileImporter(module);
+                        await fileImporter(module, true);
                     result.push(module);
                 }
             }
@@ -243,6 +346,11 @@ export class Compiler {
             return TS.createSourceFile(fileName, Lib, languageVersion);
         };
         let content = this.packageFiles[fileName] || this.files[fileName];
+        if (!content && fileName.endsWith('/index.d.ts')){
+            let packName = fileName.split('/').slice(0, -1).join('/');
+            if (this.packages[packName])
+                content = this.packages[packName].dts || '';
+        }
         if (!content){
             console.dir('File not exists: ' + fileName);        }
 

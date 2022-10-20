@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="./launcher.js"></script>
+</head>
+<html>
+
+<body>
+  <script>
+    async function init() {
+      application.LibHost = "";
+      let module = await application.newModule({{main}}, {{scconfig}});
+      document.body.append(module);
+    };
+    init();
+  </script>
+</body>
+
+</html>

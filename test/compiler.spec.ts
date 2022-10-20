@@ -29,7 +29,7 @@ async function getScript(
     if (fileName == '@ijstech/components') {
         return {
             fileName: 'index.d.ts',
-            content: await getFileContent('../packages/components/types/index.d.ts'),
+            content: await getFileContent('../node_modules/@ijstech/components/types/index.d.ts'),
         }
     }
     let filePath = Path.join(__dirname, 'scripts', fileName)
@@ -68,7 +68,7 @@ async function fileImporter(
     if (fileName == '@ijstech/components') {
         return {
             fileName: 'index.d.ts',
-            content: await getFileContent('../packages/components/types/index.d.ts'),
+            content: await getFileContent('../node_modules/@ijstech/components/types/index.d.ts'),
         }
     };
     let filePath = Path.join(__dirname, 'scripts/scbook', fileName);    
@@ -118,76 +118,63 @@ async function setScriptContent(fileName: string, content: string) {
 
 describe('Compiler', async function () {
     this.timeout(60000)
-    // it('getDependencies', async () => {
-    //     let compiler = new Compiler()
-    //     let deps = await compiler.getDependencies(
-    //         'form.tsx',
-    //         (
-    //             await getScript('form.tsx')
-    //         ).content
-    //     )
-    //     assert.deepStrictEqual(deps, ['@ijstech/components', 'hello'])
-    // })
-    // it('getDependencies with FileImporter', async () => {
-    //     let compiler = new Compiler()
-    //     let deps = await compiler.getDependencies(
-    //         'form.tsx',
-    //         (
-    //             await getScript('form.tsx')
-    //         ).content,
-    //         getScript
-    //     )
-    //     assert.deepStrictEqual(deps, [
-    //         '@ijstech/components',
-    //         'hello.ts',
-    //         'test1.ts',
-    //         'lib/test2.ts',
-    //     ])
-    // })
-    // it('hello.ts', async () => {
-    //     let compiler = new Compiler()
-    //     await compiler.addFile(
-    //         'hello.ts',
-    //         (
-    //             await getScript('hello.ts')
-    //         ).content,
-    //         getScript
-    //     )
-    //     let result = await compiler.compile(true)
-    //     assert.strictEqual(result.errors.length, 0)
-    //     if (result.errors.length) console.dir(result.errors)
-    //     let exp = (await getScript('hello.js')).content
-    //     if (exp) assert.strictEqual(result.script['index.js'], exp)
-    //     else await setScriptContent('hello.js', result.script['index.js'])
-    // })
-    // it('form.tsx', async () => {
-    //     let compiler = new Compiler()
-    //     await compiler.addFile(
-    //         'form.tsx',
-    //         (
-    //             await getScript('form.tsx')
-    //         ).content,
-    //         getScript
-    //     )
-    //     let result = await compiler.compile(true)
-    //     if (result.errors.length) console.dir(result.errors)
-    //     assert.strictEqual(result.errors.length, 0)
-    //     let exp = (await getScript('form.js')).content
-    //     if (exp) assert.strictEqual(result.script['index.js'], exp)
-    //     else await setScriptContent('form.js', result.script['index.js'])
-    // });
-    it('scbook project', async () => {
-        let compiler = new Compiler();
-        const entrypoints = ['index.tsx'];//, 'scbook/components/header.tsx', 'scbook/components/navigator.tsx', 'scbook/components/paging.tsx', 'scbook/components/search.tsx'];
-        for(let entrypoint of entrypoints) {
-            const content = fs.readFileSync(Path.join(__dirname, 'scripts/scbook', entrypoint)).toString();                        
-            await compiler.addFile(entrypoint, content, fileImporter);
-        }
-        const result = await compiler.compile();
-        if(result.errors && result.errors.length > 0)
-            console.log('Compilation error', result.errors);
-        else
-            console.log('Compilation success')
+    it('getDependencies', async () => {
+        let compiler = new Compiler()
+        let deps = await compiler.getDependencies(
+            'form.tsx',
+            (
+                await getScript('form.tsx')
+            ).content
+        )
+        assert.deepStrictEqual(deps, ['@ijstech/components', 'hello'])
     })
+    it('getDependencies with FileImporter', async () => {
+        let compiler = new Compiler()
+        let deps = await compiler.getDependencies(
+            'form.tsx',
+            (
+                await getScript('form.tsx')
+            ).content,
+            getScript
+        )
+        assert.deepStrictEqual(deps, [
+            '@ijstech/components',
+            'hello.ts',
+            'test1.ts',
+            'lib/test2.ts',
+        ])
+    })
+    it('hello.ts', async () => {
+        let compiler = new Compiler()
+        await compiler.addFile(
+            'hello.ts',
+            (
+                await getScript('hello.ts')
+            ).content,
+            getScript
+        )
+        let result = await compiler.compile(true)
+        assert.strictEqual(result.errors.length, 0)
+        if (result.errors.length) console.dir(result.errors)
+        let exp = (await getScript('hello.js')).content
+        if (exp) assert.strictEqual(result.script['index.js'], exp)
+        else await setScriptContent('hello.js', result.script['index.js'])
+    })
+    it('form.tsx', async () => {
+        let compiler = new Compiler()
+        await compiler.addFile(
+            'form.tsx',
+            (
+                await getScript('form.tsx')
+            ).content,
+            getScript
+        )
+        let result = await compiler.compile(true)
+        if (result.errors.length) console.dir(result.errors)
+        assert.strictEqual(result.errors.length, 0)
+        let exp = (await getScript('form.js')).content
+        if (exp) assert.strictEqual(result.script['index.js'], exp)
+        else await setScriptContent('form.js', result.script['index.js'])
+    });
 })
 
