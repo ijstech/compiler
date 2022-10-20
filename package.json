@@ -3,6 +3,8 @@
     "version": "0.1.0",
     "main": "lib/index.js",
     "types": "types/index.d.ts",
+    "author": "https://ijs.network",
+    "license": "AGPL-3.0",
     "devDependencies": {
         "@ijstech/components": "0.1.15",
         "@types/mocha": "9.0.0",
