@@ -5,6 +5,9 @@
     "types": "types/index.d.ts",
     "author": "https://ijs.network",
     "license": "AGPL-3.0",
+    "engines": {
+        "node": ">=18.0.0"
+    },
     "bin": {
         "compiler": "cli/bundle.js"
     },
