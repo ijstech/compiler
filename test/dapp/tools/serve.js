@@ -36,8 +36,7 @@ http.createServer(function (request, response) {
 
     fs.readFile(filePath, function(error, content) {
         if (error) {
-            console.dir('File not found!');
-            console.dir(request.url);
+            console.dir('File not found: ' + request.url);
             if(error.code == 'ENOENT'){
                 response.writeHead(404, { 'Content-Type': 'text/html' });
                 response.end('404 not found!', 'utf-8');

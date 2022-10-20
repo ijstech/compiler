@@ -3,6 +3,10 @@
     "main": "@dapp/main",
     "moduleDir": "modules",
     "modules": {
+        "@dapp/assets": {
+            "path": "assets",
+            "dependencies": []
+        },
         "@dapp/main": {
             "path": "main",
             "dependencies": [
@@ -25,136 +29,22 @@
         {
             "name": "Ethereum",
             "chainId": 1,
-            "img": "@modules/assets/img/network/ethereumNetwork.svg",
+            "img": "@dapp/assets/img/network/eth.svg",
             "rpc": "https://mainnet.infura.io/v3/{InfuraId}",
-            "explorerName": "Etherscan",
-            "explorerTxUrl": "https://etherscan.io/tx/",
-            "explorerAddressUrl": "https://etherscan.io/address/",
             "env": "mainnet"
-        },
-        {
-            "name": "Cronos Mainnet",
-            "chainId": 25,
-            "img": "@modules/assets/img/network/cronosMainnet.svg",
-            "env": "mainnet"
-        },
-        {
-            "name": "Kovan Test Network",
-            "chainId": 42,
-            "img": "@modules/assets/img/network/ethereumNetwork.svg",
-            "rpc": "https://kovan.infura.io/v3/{InfuraId}",
-            "isCrossChainSupported": true,
-            "explorerName": "Etherscan",
-            "explorerTxUrl": "https://kovan.etherscan.io/tx/",
-            "explorerAddressUrl": "https://kovan.etherscan.io/address/",
-            "env": "testnet"
         },
         {
             "name": "Binance Smart Chain",
             "chainId": 56,
-            "img": "@modules/assets/img/network/bscMainnet.svg",
+            "img": "@dapp/assets/img/network/bsc.svg",
             "rpc": "https://bsc-dataseed.binance.org/",
-            "isMainChain": true,
-            "isCrossChainSupported": true,
-            "explorerName": "BSCScan",
-            "explorerTxUrl": "https://bscscan.com/tx/",
-            "explorerAddressUrl": "https://bscscan.com/address/",
-            "env": "mainnet"
-        },
-        {
-            "name": "Polygon",
-            "chainId": 137,
-            "img": "@modules/assets/img/network/polygon.svg",
-            "explorerName": "PolygonScan",
-            "explorerTxUrl": "https://polygonscan.com/tx/",
-            "explorerAddressUrl": "https://polygonscan.com/address/",
-            "env": "mainnet"
-        },
-        {
-            "name": "Fantom Opera",
-            "chainId": 250,
-            "img": "@modules/assets/img/network/fantom-ftm-logo.svg",
-            "rpc": "https://rpc.ftm.tools/",
-            "explorerName": "FTMScan",
-            "explorerTxUrl": "https://ftmscan.com/tx/",
-            "explorerAddressUrl": "https://ftmscan.com/address/",
             "env": "mainnet"
         },
         {
             "name": "BSC Testnet",
             "chainId": 97,
-            "img": "@modules/assets/img/network/bscMainnet.svg",
+            "img": "@dapp/assets/img/network/bsc.svg",
             "rpc": "https://data-seed-prebsc-1-s1.binance.org:8545/",
-            "isCrossChainSupported": true,
-            "explorerName": "BSCScan",
-            "explorerTxUrl": "https://testnet.bscscan.com/tx/",
-            "explorerAddressUrl": "https://testnet.bscscan.com/address/",
-            "env": "testnet"
-        },
-        {
-            "name": "Cronos Mainnet",
-            "chainId": 338,
-            "img": "@modules/assets/img/network/cronosMainnet.svg",
-            "env": "mainnet"
-        },
-        {
-            "name": "Amino Testnet",
-            "chainId": 31337,
-            "img": "@modules/assets/img/network/animoTestnet.svg",
-            "env": "testnet"
-        },
-        {
-            "name": "Mumbai",
-            "chainId": 80001,
-            "img": "@modules/assets/img/network/polygon.svg",
-            "rpc": "https://matic-mumbai.chainstacklabs.com",
-            "isCrossChainSupported": true,
-            "explorerName": "PolygonScan",
-            "explorerTxUrl": "https://mumbai.polygonscan.com/tx/",
-            "explorerAddressUrl": "https://mumbai.polygonscan.com/address/",
-            "env": "testnet"
-        },
-        {
-            "name": "Avalanche FUJI C-Chain",
-            "chainId": 43113,
-            "img": "@modules/assets/img/network/avax.svg",
-            "rpc": "https://api.avax-test.network/ext/bc/C/rpc",
-            "isCrossChainSupported": true,
-            "isMainChain": true,
-            "explorerName": "SnowTrace",
-            "explorerTxUrl": "https://testnet.snowtrace.io/tx/",
-            "explorerAddressUrl": "https://testnet.snowtrace.io/address/",
-            "env": "testnet"
-        },
-        {
-            "name": "Avalanche Mainnet C-Chain",
-            "chainId": 43114,
-            "img": "@modules/assets/img/network/avax.svg",
-            "rpc": "https://api.avax.network/ext/bc/C/rpc",
-            "isCrossChainSupported": true,
-            "explorerName": "SnowTrace",
-            "explorerTxUrl": "https://snowtrace.io/tx/",
-            "explorerAddressUrl": "https://snowtrace.io/address/",
-            "env": "mainnet"
-        },
-        {
-            "name": "Fantom Testnet",
-            "chainId": 4002,
-            "img": "@modules/assets/img/network/fantom-ftm-logo.svg",
-            "rpc": "https://rpc.testnet.fantom.network/",
-            "explorerName": "FTMScan",
-            "explorerTxUrl": "https://testnet.ftmscan.com/tx/",
-            "explorerAddressUrl": "https://testnet.ftmscan.com/address/",
-            "env": "testnet"
-        },
-        {
-            "name": "AminoX Testnet",
-            "chainId": 13370,
-            "img": "@modules/assets/img/network/aminoXTestnet.svg",
-            "isDisabled": true,
-            "explorerName": "AminoX Explorer",
-            "explorerTxUrl": "https://aminoxtestnet.blockscout.alphacarbon.network/tx/",
-            "explorerAddressUrl": "https://aminoxtestnet.blockscout.alphacarbon.network/address/",
             "env": "testnet"
         }
     ]

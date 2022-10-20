@@ -1,10 +1,11 @@
-import Path from 'path';
-import { PackageManager, IPackage } from '../../../src';
-import { promises as Fs } from 'fs';
+#!/usr/bin/env node
+const Path = require('path');
+const { PackageManager } = require('@ijstech/compiler');
+const { promises:Fs } = require('fs');
 const RootPath = process.cwd();
 const SourcePath = process.argv[2];
 
-async function copyAssets(sourceDir: string, targetDir: string){
+async function copyAssets(sourceDir, targetDir){
     let files = await Fs.readdir(sourceDir, { withFileTypes: true });
     for (let file of files) {
         if (file.isDirectory()) {
@@ -18,7 +19,7 @@ async function copyAssets(sourceDir: string, targetDir: string){
         };
     };
 };
-export async function getLocalPackagePath(name: string): Promise<string> {
+async function getLocalPackagePath(name){
     if (name[0] != '/')
         name = Path.dirname(require.resolve(name))
     let path = Path.dirname(name);
@@ -37,7 +38,7 @@ export async function getLocalPackagePath(name: string): Promise<string> {
     else
         return '';
 };
-export async function getLocalPackageTypes(name: string): Promise<IPackage> {
+async function getLocalPackageTypes(name){
     if (name[0] != '/')
         name = Path.dirname(require.resolve(name));
     let path = Path.dirname(name);
@@ -56,8 +57,8 @@ export async function getLocalPackageTypes(name: string): Promise<IPackage> {
     else
         return {}
 };
-export async function getLocalScripts(path: string): Promise<{ [filePath: string]: string }> {
-    let result: { [filePath: string]: string } = {};
+async function getLocalScripts(path){
+    let result = {};
     let files = await Fs.readdir(path, { withFileTypes: true });
     for (let file of files) {
         if (file.isDirectory()) {
@@ -67,9 +68,8 @@ export async function getLocalScripts(path: string): Promise<{ [filePath: string
             }
         }
         else {
-            if (file.name.endsWith('.ts') || file.name.endsWith('.tsx')){
+            if (file.name.endsWith('.ts') || file.name.endsWith('.tsx'))
                 result[file.name] = await Fs.readFile(Path.join(path, file.name), 'utf8')
-            }
         }
     };
     return result;
@@ -89,7 +89,6 @@ async function bundle() {
     }
     let packageManager = new PackageManager();
     packageManager.addPackage('@ijstech/components', await getLocalPackageTypes('@ijstech/components'))
-    packageManager.addPackage('moment', {dts: ' ', script: ' '})
     for (let name in packages){
         let pack = { files: await getLocalScripts(packages[name]) };
         if (pack.files['index.ts']){
