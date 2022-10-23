@@ -27,6 +27,8 @@ export interface IPackage {
     dts?: string;
     dependencies?: string[];
 }
+export declare function getLocalPackageTypes(name: string): Promise<IPackage>;
+export declare function getLocalPackagePath(name: string): Promise<string>;
 export declare function resolveAbsolutePath(baseFilePath: string, relativeFilePath: string): string;
 export declare type FileImporter = (fileName: string, isPackage?: boolean) => Promise<{
     fileName: string;

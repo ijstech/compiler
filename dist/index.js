@@ -16137,7 +16137,7 @@ interface Float64ArrayConstructor {
 define("@ijstech/compiler", ["require", "exports", "@ijstech/compiler/lib", "typescript"], function (require, exports, lib_1, typescript_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Compiler = exports.PackageManager = exports.resolveAbsolutePath = void 0;
+    exports.Compiler = exports.PackageManager = exports.resolveAbsolutePath = exports.getLocalPackagePath = exports.getLocalPackageTypes = void 0;
     lib_1 = __importDefault(lib_1);
     typescript_1 = __importDefault(typescript_1);
     let isNode = false;
@@ -16151,6 +16151,63 @@ define("@ijstech/compiler", ["require", "exports", "@ijstech/compiler/lib", "typ
     ;
     ;
     ;
+    ;
+    let Path;
+    let Fs;
+    async function getLocalPackageTypes(name) {
+        let path = await getLocalPackagePath(name);
+        if (path) {
+            try {
+                let pack = JSON.parse(await Fs.readFile(Path.join(path, 'package.json'), 'utf8'));
+                let dts = await Fs.readFile(Path.join(path, pack.pluginTypes || pack.types || pack.typings || 'index.d.ts'), 'utf8');
+                return {
+                    dts: dts
+                };
+            }
+            catch (err) { }
+        }
+        return {};
+    }
+    exports.getLocalPackageTypes = getLocalPackageTypes;
+    ;
+    async function getLocalPackagePath(name) {
+        if (isNode) {
+            try {
+                if (!Path) {
+                    Path = require('path');
+                    Fs = require('fs').promises;
+                }
+                ;
+                let path = '';
+                if (name[0] != '/')
+                    path = Path.dirname(require.resolve(name + '/package.json'));
+                else
+                    path = Path.dirname(name);
+                if (path && path != '/') {
+                    try {
+                        let stat = await Fs.stat(Path.join(path, 'package.json'));
+                        if (stat.isFile())
+                            return path;
+                        else
+                            return getLocalPackagePath(path);
+                    }
+                    catch (err) {
+                        return getLocalPackagePath(path);
+                    }
+                    ;
+                }
+                ;
+            }
+            catch (err) {
+                console.dir(err);
+                return '';
+            }
+            ;
+        }
+        ;
+        return '';
+    }
+    exports.getLocalPackagePath = getLocalPackagePath;
     ;
     function resolveAbsolutePath(baseFilePath, relativeFilePath) {
         let basePath = baseFilePath.split('/').slice(0, -1).join('/');
@@ -16211,6 +16268,15 @@ define("@ijstech/compiler", ["require", "exports", "@ijstech/compiler/lib", "typ
                                     content: this._packages[fileName].dts || ''
                                 };
                             }
+                            let pack = await getLocalPackageTypes(fileName);
+                            if (pack.dts) {
+                                compiler.addPackage(fileName, pack);
+                                return {
+                                    fileName: 'index.d.ts',
+                                    content: pack.dts
+                                };
+                            }
+                            ;
                             console.dir('Package not found: ' + fileName);
                             return null;
                         }
@@ -16260,7 +16326,7 @@ define("@ijstech/compiler", ["require", "exports", "@ijstech/compiler/lib", "typ
             this.scriptOptions = {
                 allowJs: false,
                 alwaysStrict: true,
-                declaration: false,
+                declaration: true,
                 experimentalDecorators: true,
                 resolveJsonModule: false,
                 noEmitOnError: true,
@@ -16312,7 +16378,7 @@ define("@ijstech/compiler", ["require", "exports", "@ijstech/compiler/lib", "typ
                                 if (file) {
                                     result.push(module);
                                     let pack = {
-                                        dts: file.content,
+                                        dts: file.content
                                     };
                                     this.addPackage(module, pack);
                                 }
@@ -16386,11 +16452,6 @@ define("@ijstech/compiler", ["require", "exports", "@ijstech/compiler/lib", "typ
                         start: item.start ? item.start : 0
                     });
                 });
-                if (emitDeclaration) {
-                    program = typescript_1.default.createProgram(fileNames, this.dtsOptions, host);
-                    program.emit();
-                }
-                ;
             }
             catch (err) {
                 if (this.fileNotExists)

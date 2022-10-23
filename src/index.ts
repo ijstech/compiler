@@ -37,6 +37,55 @@ export interface IPackage{
     dts?: string;
     dependencies?: string[];
 };
+let Path: any;
+let Fs: any;
+export async function getLocalPackageTypes(name: string): Promise<IPackage> {
+    let path = await getLocalPackagePath(name);
+    if (path){
+        try{
+            let pack = JSON.parse(await Fs.readFile(Path.join(path, 'package.json'), 'utf8'))
+            let dts = await Fs.readFile(Path.join(path, pack.pluginTypes || pack.types || pack.typings || 'index.d.ts'), 'utf8');
+            return {
+                dts: dts
+            };
+        }
+        catch(err){}
+        
+    }
+    return {};
+};
+export async function getLocalPackagePath(name: string): Promise<string>{
+    if (isNode){
+        try{
+            if (!Path){
+                Path = require('path');
+                Fs = require('fs').promises;
+            };
+            let path = '';
+            if (name[0] != '/')
+                path = Path.dirname(require.resolve(name + '/package.json'))
+            else
+                path = Path.dirname(name);
+            if (path && path != '/') {
+                try {
+                    let stat = await Fs.stat(Path.join(path, 'package.json'))
+                    if (stat.isFile())
+                        return path
+                    else
+                        return getLocalPackagePath(path);
+                }
+                catch (err) {
+                    return getLocalPackagePath(path);
+                };
+            };
+        }
+        catch(err){
+            console.dir(err)
+            return ''
+        };
+    };
+    return '';
+};
 export function resolveAbsolutePath(baseFilePath: string, relativeFilePath: string): string{    
     let basePath = baseFilePath.split('/').slice(0,-1).join('/');    
     if (basePath)
@@ -93,6 +142,14 @@ export class PackageManager{
                                 content: this._packages[fileName].dts || ''
                             }
                         }
+                        let pack = await getLocalPackageTypes(fileName);
+                        if (pack.dts){
+                            compiler.addPackage(fileName, pack)
+                            return {
+                                fileName: 'index.d.ts',
+                                content: pack.dts
+                            }
+                        };
                         console.dir('Package not found: ' + fileName)
                         return null
                     }
@@ -142,16 +199,13 @@ export class Compiler {
         this.scriptOptions = {
             allowJs: false,
             alwaysStrict: true,
-            declaration: false,      
+            declaration: true,      
             experimentalDecorators: true,      
             resolveJsonModule: false,
             noEmitOnError: true,
-
             module: TS.ModuleKind.AMD,
             outFile: 'index.js',
-
             // module: TS.ModuleKind.CommonJS,
-
             target: TS.ScriptTarget.ES2017,
             "jsx": 2,      
             "jsxFactory": "global.$JSX"
@@ -202,11 +256,7 @@ export class Compiler {
                             if (file){
                                 result.push(module);
                                 let pack: IPackage = {
-                                    dts: file.content,
-                                    // {
-                                    //     [file.fileName]: file.content
-                                    // },
-                                    // version: ''
+                                    dts: file.content
                                 };
                                 this.addPackage(module, pack);
     
@@ -278,10 +328,10 @@ export class Compiler {
                     start: item.start?item.start:0
                 });
             });
-            if (emitDeclaration){
-                program = TS.createProgram(fileNames, this.dtsOptions, host);
-                program.emit();
-            };
+            // if (emitDeclaration){
+            //     program = TS.createProgram(fileNames, this.dtsOptions, host);
+            //     program.emit();
+            // };
         }
         catch(err){
             if (this.fileNotExists)
@@ -292,7 +342,6 @@ export class Compiler {
         return result;
     };
     fileExists(fileName: string): boolean {
-        // return true;
         let result = this.files[fileName] != undefined || this.packageFiles[fileName] != undefined;
         if (!result && fileName.endsWith('/index.d.ts')){
             let packName = fileName.split('/').slice(0, -1).join('/');
