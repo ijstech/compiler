@@ -117,8 +117,11 @@ async function bundle() {
         let module = scconfig.modules[name];
         module.dependencies = [];
         pack.dependencies?.forEach((item) => {
-            if (item != '@ijstech/components')
-                module.dependencies.push(item)
+            if (item != '@ijstech/components'){
+                module.dependencies.push(item);
+                if (!scconfig.modules[item] && !scconfig.dependencies[item])
+                    scconfig.dependencies[item] = '*';
+            };
         });
         let moduleDir = Path.join(distModuleDir, module.path);
         copyAssets(Path.join(scRootDir, scconfig.rootDir || 'modules', module.path), moduleDir);

@@ -112,14 +112,17 @@ async function bundle() {
     //copy compiled modules to dist directory
     let distDir = Path.join(scRootDir, scconfig.distDir || 'dist');
     let distModuleDir = Path.join(distDir, 'modules');
-    let mainPath = Path.join(scconfig.rootDir || 'modules', scconfig.modules[scconfig.main].path, 'index.js');
+    let mainPath = Path.join(scconfig.rootDir || 'modules', scconfig.modules[scconfig.main].path, 'index.js');    
     for (let name in scconfig.modules) {
         let pack = packageManager.packages(name);
         let module = scconfig.modules[name];
         module.dependencies = [];
         pack.dependencies?.forEach((item) => {
-            if (item != '@ijstech/components')
-                module.dependencies.push(item)
+            if (item != '@ijstech/components'){
+                module.dependencies.push(item);
+                if (!scconfig.modules[item] && !scconfig.dependencies[item])
+                    scconfig.dependencies[item] = '*';
+            };
         });
         let moduleDir = Path.join(distModuleDir, module.path);
         copyAssets(Path.join(scRootDir, scconfig.rootDir || 'modules', module.path), moduleDir);
