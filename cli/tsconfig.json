@@ -1,0 +1,16 @@
+{    
+    "compilerOptions": {
+        "target": "ES2017",        
+        "module": "CommonJS",
+        "moduleResolution": "Node",
+        "esModuleInterop": true,        
+        "forceConsistentCasingInFileNames": true,
+        "declaration": false,        
+        "baseUrl": ".",
+        "paths": {
+            "@ijstech/compiler": ["../src"],
+            "@types/node": ["../node_modules/@types/node"]
+        } 
+    },
+    "include": ["."]
+}
