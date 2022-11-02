@@ -75,79 +75,142 @@ export async function getLocalScripts(path: string): Promise<{ [filePath: string
     };
     return result;
 };
+async function readSCConfig(path: string): Promise<any>{
+    try{
+        return JSON.parse(JSON.stringify(JSON.parse(await Fs.readFile(Path.join(path, 'scconfig.json'), 'utf-8'))));
+    }
+    catch(err){}
+};
+async function readPackageConfig(path: string): Promise<any>{
+    try{
+        return JSON.parse(JSON.stringify(JSON.parse(await Fs.readFile(Path.join(path, 'package.json'), 'utf-8'))));
+    }
+    catch(err){}
+};
 async function bundle() {
     let scRootDir = RootPath;
     if (SourcePath)
         scRootDir = Path.relative(scRootDir, SourcePath);
-    let scconfig = JSON.parse(JSON.stringify(JSON.parse(await Fs.readFile(Path.join(scRootDir, 'scconfig.json'), 'utf-8'))));
-    let moduleDir = scRootDir;
-    if (scconfig.moduleDir)
-        moduleDir = Path.join(scRootDir, scconfig.moduleDir);
+    
+    let scconfig = await readSCConfig(scRootDir);
+    if (scconfig){
+        let moduleDir = scRootDir;
+        if (scconfig.moduleDir)
+            moduleDir = Path.join(scRootDir, scconfig.moduleDir);
 
-    let packages = {};
-    for (let name in scconfig.modules) {
-        packages[name] = Path.join(moduleDir, scconfig.modules[name].path);
-    }
-    let packageManager = new PackageManager();
-    packageManager.addPackage('@ijstech/components', await getLocalPackageTypes('@ijstech/components'))
-    for (let name in packages){
-        let pack = { files: await getLocalScripts(packages[name]) };
-        if (pack.files['index.ts']){
-            pack.files['index.ts'] = `///<amd-module name='${name}'/> \n` + pack.files['index.ts']
+        let packages = {};
+        for (let name in scconfig.modules) {
+            packages[name] = Path.join(moduleDir, scconfig.modules[name].path);
         }
-        else if (pack.files['index.tsx'])
-            pack.files['index.tsx'] = `///<amd-module name='${name}'/> \n` + pack.files['index.tsx']
-        packageManager.addPackage(name, pack);
-    };
+        let packageManager = new PackageManager();
+        packageManager.addPackage('@ijstech/components', await getLocalPackageTypes('@ijstech/components'))
+        for (let name in packages){
+            let pack = { files: await getLocalScripts(packages[name]) };
+            if (pack.files['index.ts']){
+                pack.files['index.ts'] = `///<amd-module name='${name}'/> \n` + pack.files['index.ts']
+            }
+            else if (pack.files['index.tsx'])
+                pack.files['index.tsx'] = `///<amd-module name='${name}'/> \n` + pack.files['index.tsx']
+            packageManager.addPackage(name, pack);
+        };
 
-    await packageManager.buildAll();
-    for (let name in packages) {
-        let pack = packageManager.packages(name);
-        if (pack.errors && pack.errors.length > 0) {
-            console.error('Package compilation error: ' + name);
-            console.error(JSON.stringify(pack.errors, null, 4));
-            return;
-        }
-    };
-    //copy compiled modules to dist directory
-    let distDir = Path.join(scRootDir, scconfig.distDir || 'dist');
-    let distModuleDir = Path.join(distDir, 'modules');
-    let mainPath = Path.join(scconfig.rootDir || 'modules', scconfig.modules[scconfig.main].path, 'index.js');
-    for (let name in scconfig.modules) {
-        let pack = packageManager.packages(name);
-        let module = scconfig.modules[name];
-        module.dependencies = [];
-        pack.dependencies?.forEach((item) => {
-            if (item != '@ijstech/components'){
-                module.dependencies.push(item);
-                if (!scconfig.modules[item] && !scconfig.dependencies[item])
-                    scconfig.dependencies[item] = '*';
+        await packageManager.buildAll();
+
+        for (let name in packages) {
+            let pack = packageManager.packages(name);
+            if (pack.errors && pack.errors.length > 0) {
+                console.error('Package compilation error: ' + name);
+                console.error(JSON.stringify(pack.errors, null, 4));
+                return;
+            }
+        };
+        //copy compiled modules to dist directory
+        let distDir = Path.join(scRootDir, scconfig.distDir || 'dist');
+        let distModuleDir = Path.join(distDir, 'modules');
+        
+        for (let name in scconfig.modules) {
+            let pack = packageManager.packages(name);
+            let module = scconfig.modules[name];
+            module.dependencies = [];
+            pack.dependencies?.forEach((item) => {
+                if (item != '@ijstech/components'){
+                    module.dependencies.push(item);
+                    if (!scconfig.modules[item] && !scconfig.dependencies[item])
+                        scconfig.dependencies[item] = '*';
+                };
+            });
+            let moduleDir = Path.join(distModuleDir, module.path);
+            copyAssets(Path.join(scRootDir, scconfig.rootDir || 'modules', module.path), moduleDir);
+            await Fs.mkdir(moduleDir, { recursive: true });
+            Fs.writeFile(Path.join(moduleDir, 'index.js'), pack.script || '');
+        };        
+        
+        //copy dependencies        
+        let deps = ['@ijstech/components'];
+        let path = await getLocalPackagePath('@ijstech/components');
+        if (path)
+            await Fs.cp(Path.join(path, 'dist'), Path.join(distDir, 'libs/@ijstech/components'), {recursive: true});
+        
+        async function copyDependencies(dependencies){
+            dependencies = dependencies || {};
+            for (let name in dependencies){
+                if (!deps[name] && (name.startsWith('@ijstech/') || name.startsWith('@scom/'))){
+                    let path = await getLocalPackagePath(name);
+                    if (path){
+                        deps.unshift(name)
+                        await Fs.cp(Path.join(path, 'dist'), Path.join(distDir, 'libs', name), {recursive: true});
+                        let pack = JSON.parse(await Fs.readFile(Path.join(path, 'package.json'), 'utf8'));
+                        await copyDependencies(pack.dependencies);                    
+                    }
+                };
             };
+        };
+        scconfig.dependencies = scconfig.dependencies || {};
+        if (scconfig.main && !scconfig.modules[scconfig.main] && !scconfig.dependencies[scconfig.main])
+            scconfig.dependencies[scconfig.main] = '*';
+        await copyDependencies(scconfig.dependencies); 
+        scconfig.dependencies = {};
+        deps.forEach((name)=>{
+            if (name != '@ijstech/components')
+                scconfig.dependencies[name] = '*'
         });
-        let moduleDir = Path.join(distModuleDir, module.path);
-        copyAssets(Path.join(scRootDir, scconfig.rootDir || 'modules', module.path), moduleDir);
-        await Fs.mkdir(moduleDir, { recursive: true });
-        Fs.writeFile(Path.join(moduleDir, 'index.js'), pack.script || '');
-    };
-    delete scconfig['distDir'];
-    scconfig.moduleDir = 'modules';
-    await Fs.writeFile(Path.join(distDir, 'scconfig.json'), JSON.stringify(scconfig, null, 4), 'utf8')
 
-    //generate index.html
-    let indexHtml = await Fs.readFile(Path.join(__dirname, 'index.template.html'), 'utf8');
-    indexHtml = indexHtml.replace('{{main}}', `"${scconfig.main}"`);
-    indexHtml = indexHtml.replace('{{scconfig}}', JSON.stringify(scconfig, null, 4));
-    await Fs.writeFile(Path.join(scRootDir, scconfig.distDir || 'dist', 'index.html'), indexHtml);
+        delete scconfig['distDir'];
+        scconfig.moduleDir = 'modules';
+        await Fs.writeFile(Path.join(distDir, 'scconfig.json'), JSON.stringify(scconfig, null, 4), 'utf8')
 
-    //copy @ijstech/components
-    let path = await getLocalPackagePath('@ijstech/components');
-    if (path)
-        await Fs.cp(Path.join(path, 'dist'), Path.join(distDir, 'libs/@ijstech/components'), {recursive: true});
-    for (let name in scconfig.dependencies){
-        if (name.startsWith('@ijstech/') || name.startsWith('@scom/')){
-            let path = await getLocalPackagePath(name);
-            if (path)
-                await Fs.cp(Path.join(path, 'dist'), Path.join(distDir, 'libs', name), {recursive: true});
+        //generate index.html
+        let indexHtml = await Fs.readFile(Path.join(__dirname, 'index.template.html'), 'utf8');
+        indexHtml = indexHtml.replace('{{main}}', `"${scconfig.main}"`);
+        indexHtml = indexHtml.replace('{{scconfig}}', JSON.stringify(scconfig, null, 4));
+        await Fs.writeFile(Path.join(scRootDir, scconfig.distDir || 'dist', 'index.html'), indexHtml);
+    }
+    else {
+        let packageConfig = await readPackageConfig(scRootDir);
+        if (packageConfig){
+            let packageManager = new PackageManager();
+            packageManager.addPackage('@ijstech/components', await getLocalPackageTypes('@ijstech/components'));
+            
+            let pack:IPackage = { files: await getLocalScripts(Path.join(scRootDir, 'src'))};
+                if (pack.files['index.ts']){
+                    pack.files['index.ts'] = `///<amd-module name='${packageConfig.name}'/> \n` + pack.files['index.ts']
+                }
+                else if (pack.files['index.tsx'])
+                    pack.files['index.tsx'] = `///<amd-module name='${packageConfig.name}'/> \n` + pack.files['index.tsx']
+                packageManager.addPackage(packageConfig.name, pack);
+            await packageManager.buildAll();
+
+            pack = packageManager.packages(packageConfig.name);
+            if (pack.errors && pack.errors.length > 0) {
+                console.error('Package compilation error: ' + name);
+                console.error(JSON.stringify(pack.errors, null, 4));
+                return;
+            };
+
+            let distDir = Path.join(scRootDir, 'dist');
+            await Fs.mkdir(distDir, { recursive: true });
+            copyAssets(Path.join(scRootDir, 'src'), distDir);            
+            Fs.writeFile(Path.join(distDir, 'index.js'), pack.script || '');
         };
     };
 };
