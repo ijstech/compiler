@@ -55,7 +55,10 @@ export declare class Compiler {
     constructor();
     private importDependencies;
     addFile(fileName: string, content: string, dependenciesImporter?: FileImporter): Promise<string[]>;
-    addPackage(packName: string, pack: IPackage): void;
+    addPackage(packName: string, pack?: IPackage): Promise<{
+        fileName: string;
+        content: string;
+    } | undefined>;
     compile(emitDeclaration?: boolean): Promise<ICompilerResult>;
     fileExists(fileName: string): boolean;
     getDependencies(fileName: string, content: string, fileImporter?: FileImporter, result?: string[]): Promise<string[]>;

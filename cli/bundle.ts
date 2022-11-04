@@ -189,8 +189,7 @@ async function bundle() {
         let packageConfig = await readPackageConfig(scRootDir);
         if (packageConfig){
             let packageManager = new PackageManager();
-            packageManager.addPackage('@ijstech/components', await getLocalPackageTypes('@ijstech/components'));
-            
+            // packageManager.addPackage('@ijstech/components', await getLocalPackageTypes('@ijstech/components'));            
             let pack:IPackage = { files: await getLocalScripts(Path.join(scRootDir, 'src'))};
                 if (pack.files['index.ts']){
                     pack.files['index.ts'] = `///<amd-module name='${packageConfig.name}'/> \n` + pack.files['index.ts']
@@ -208,9 +207,11 @@ async function bundle() {
             };
 
             let distDir = Path.join(scRootDir, 'dist');
+            let typesDir = Path.join(scRootDir, 'types');
             await Fs.mkdir(distDir, { recursive: true });
             copyAssets(Path.join(scRootDir, 'src'), distDir);            
             Fs.writeFile(Path.join(distDir, 'index.js'), pack.script || '');
+            Fs.writeFile(Path.join(typesDir, 'index.d.ts'), pack.dts || '');
         };
     };
 };

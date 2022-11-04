@@ -1,6 +1,6 @@
 {
     "name": "@ijstech/compiler",
-    "version": "0.1.11",
+    "version": "0.1.12",
     "main": "lib/index.js",
     "types": "types/index.d.ts",
     "author": "https://ijs.network",
@@ -11,10 +11,11 @@
     "bin": {
         "compiler": "cli/bundle.js"
     },
-    "dependencies": {
+    "dependencies": {        
         "typescript": "4.3.5"
     },
     "devDependencies": {
+        "@ijstech/components": "0.1.22",
         "@types/mocha": "9.0.0",
         "@types/node": "18.11",
         "mocha": "10.0.0",

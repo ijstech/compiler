@@ -39,14 +39,21 @@ export interface IPackage{
 };
 let Path: any;
 let Fs: any;
+const PackageWhiteList = ['bignumber.js'];
 export async function getLocalPackageTypes(name: string): Promise<IPackage> {
     let path = await getLocalPackagePath(name);
     if (path){
         try{
             let pack = JSON.parse(await Fs.readFile(Path.join(path, 'package.json'), 'utf8'))
             let dts = await Fs.readFile(Path.join(path, pack.pluginTypes || pack.types || pack.typings || 'index.d.ts'), 'utf8');
+            let dependencies: string[] = [];
+            for (let n in pack.dependencies){
+                if (PackageWhiteList.indexOf(n) > -1 || n.startsWith('@scom/') || n.startsWith('@ijstech/'))
+                    dependencies.push(n)
+            }
             return {
-                dts: dts
+                dts: dts,
+                dependencies: dependencies
             };
         }
         catch(err){}
@@ -142,14 +149,17 @@ export class PackageManager{
                                 content: this._packages[fileName].dts || ''
                             }
                         }
-                        let pack = await getLocalPackageTypes(fileName);
-                        if (pack.dts){
-                            compiler.addPackage(fileName, pack)
-                            return {
-                                fileName: 'index.d.ts',
-                                content: pack.dts
-                            }
-                        };
+                        let result = await compiler.addPackage(fileName);
+                        if (result)
+                            return result;
+                        // let pack = await getLocalPackageTypes(fileName);
+                        // if (pack.dts){
+                        //     compiler.addPackage(fileName, pack)
+                        //     return {
+                        //         fileName: 'index.d.ts',
+                        //         content: pack.dts
+                        //     }
+                        // };
                         console.dir('Package not found: ' + fileName)
                         return null
                     }
@@ -277,10 +287,28 @@ export class Compiler {
         else
             return [];
     };   
-    addPackage(packName: string, pack: IPackage){        
-        this.packages[packName] = pack;
-        if (pack.dts)
-            this.packageFiles[packName] = pack.dts;
+    async addPackage(packName: string, pack?: IPackage){       
+        if (!pack){
+            if (!this.packages[packName]){
+                let pack = await getLocalPackageTypes(packName);
+                if (pack.dts){                    
+                    if (pack.dependencies){
+                        for (let i = 0; i < pack.dependencies.length; i ++)
+                            await this.addPackage(pack.dependencies[i]);
+                    };
+                    this.addPackage(packName, pack);
+                    return {
+                        fileName: 'index.d.ts',
+                        content: pack.dts
+                    };
+                };
+            };
+        } 
+        else{
+            this.packages[packName] = pack;
+            if (pack.dts)
+                this.packageFiles[packName] = pack.dts;
+        };
     };
     async compile(emitDeclaration?: boolean): Promise<ICompilerResult> {
         let result: ICompilerResult = {

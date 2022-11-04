@@ -8,9 +8,9 @@
         "declaration": false,        
         "baseUrl": ".",
         "paths": {
-            "@ijstech/compiler": ["../src"],
+            "@ijstech/compiler": [".."],
             "@types/node": ["../node_modules/@types/node"]
         } 
     },
-    "include": ["."]
+    "include": ["bundle.ts"]
 }
