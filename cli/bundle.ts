@@ -106,11 +106,17 @@ async function bundle() {
         packageManager.addPackage('@ijstech/components', await getLocalPackageTypes('@ijstech/components'))
         for (let name in packages){
             let pack = { files: await getLocalScripts(packages[name]) };
-            if (pack.files['index.ts']){
-                pack.files['index.ts'] = `///<amd-module name='${name}'/> \n` + pack.files['index.ts']
-            }
-            else if (pack.files['index.tsx'])
-                pack.files['index.tsx'] = `///<amd-module name='${name}'/> \n` + pack.files['index.tsx']
+            for (let n in pack.files){
+                if (n == 'index.ts' || n == 'index.tsx')
+                    pack.files[n] = `///<amd-module name='${name}'/> \n` + pack.files[n];
+                else
+                    pack.files[n] = `///<amd-module name='${name}/${n}'/> \n` + pack.files[n];
+            };
+            // if (pack.files['index.ts']){
+            //     pack.files['index.ts'] = `///<amd-module name='${name}'/> \n` + pack.files['index.ts']
+            // }
+            // else if (pack.files['index.tsx'])
+            //     pack.files['index.tsx'] = `///<amd-module name='${name}'/> \n` + pack.files['index.tsx']
             packageManager.addPackage(name, pack);
         };
 
@@ -191,12 +197,18 @@ async function bundle() {
             let packageManager = new PackageManager();
             // packageManager.addPackage('@ijstech/components', await getLocalPackageTypes('@ijstech/components'));            
             let pack:IPackage = { files: await getLocalScripts(Path.join(scRootDir, 'src'))};
-                if (pack.files['index.ts']){
-                    pack.files['index.ts'] = `///<amd-module name='${packageConfig.name}'/> \n` + pack.files['index.ts']
-                }
-                else if (pack.files['index.tsx'])
-                    pack.files['index.tsx'] = `///<amd-module name='${packageConfig.name}'/> \n` + pack.files['index.tsx']
-                packageManager.addPackage(packageConfig.name, pack);
+            for (let n in pack.files){
+                if (n == 'index.ts' || n == 'index.tsx')
+                    pack.files[n] = `///<amd-module name='${packageConfig.name}'/> \n` + pack.files[n];
+                else
+                    pack.files[n] = `///<amd-module name='${packageConfig.name}/${n}'/> \n` + pack.files[n];
+            };
+                // if (pack.files['index.ts']){
+                //     pack.files['index.ts'] = `///<amd-module name='${packageConfig.name}'/> \n` + pack.files['index.ts']
+                // }
+                // else if (pack.files['index.tsx'])
+                //     pack.files['index.tsx'] = `///<amd-module name='${packageConfig.name}'/> \n` + pack.files['index.tsx']
+            packageManager.addPackage(packageConfig.name, pack);
             await packageManager.buildAll();
 
             pack = packageManager.packages(packageConfig.name);
