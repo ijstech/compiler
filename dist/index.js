@@ -16330,6 +16330,7 @@ define("@ijstech/compiler", ["require", "exports", "@ijstech/compiler/lib", "typ
                 declaration: true,
                 experimentalDecorators: true,
                 resolveJsonModule: false,
+                skipLibCheck: true,
                 noEmitOnError: true,
                 module: typescript_1.default.ModuleKind.AMD,
                 outFile: 'index.js',
@@ -16344,6 +16345,7 @@ define("@ijstech/compiler", ["require", "exports", "@ijstech/compiler/lib", "typ
                 emitDeclarationOnly: true,
                 experimentalDecorators: true,
                 resolveJsonModule: false,
+                skipLibCheck: true,
                 module: typescript_1.default.ModuleKind.CommonJS,
                 noEmitOnError: true,
                 target: typescript_1.default.ScriptTarget.ES2017

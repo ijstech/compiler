@@ -212,6 +212,7 @@ export class Compiler {
             declaration: true,      
             experimentalDecorators: true,      
             resolveJsonModule: false,
+            skipLibCheck: true,
             noEmitOnError: true,
             module: TS.ModuleKind.AMD,
             outFile: 'index.js',
@@ -226,7 +227,8 @@ export class Compiler {
             declaration: true,       
             emitDeclarationOnly: true,
             experimentalDecorators: true,     
-            resolveJsonModule: false,            
+            resolveJsonModule: false,     
+            skipLibCheck: true,       
             module: TS.ModuleKind.CommonJS,
             noEmitOnError: true,
             target: TS.ScriptTarget.ES2017
