@@ -226,6 +226,7 @@ async function bundle() {
             let distDir = path_1.default.join(scRootDir, 'dist');
             let typesDir = path_1.default.join(scRootDir, 'types');
             await fs_1.promises.mkdir(distDir, { recursive: true });
+            await fs_1.promises.mkdir(typesDir, { recursive: true });
             copyAssets(path_1.default.join(scRootDir, 'src'), distDir);
             fs_1.promises.writeFile(path_1.default.join(distDir, 'index.js'), pack.script || '');
             fs_1.promises.writeFile(path_1.default.join(typesDir, 'index.d.ts'), pack.dts || '');
