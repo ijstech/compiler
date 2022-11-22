@@ -16262,6 +16262,11 @@ define("@ijstech/compiler", ["require", "exports", "@ijstech/compiler/lib", "typ
                     indexFile = 'index.tsx';
                 if (indexFile) {
                     let compiler = new Compiler();
+                    for (let n in this._packages) {
+                        if (this._packages[n].dts)
+                            compiler.addPackage(n, this._packages[n]);
+                    }
+                    ;
                     await compiler.addFile(indexFile, pack.files[indexFile], async (fileName, isPackage) => {
                         if (isPackage) {
                             if (this._packages[fileName]) {
@@ -16542,9 +16547,22 @@ define("@ijstech/compiler", ["require", "exports", "@ijstech/compiler/lib", "typ
             let content = this.packageFiles[fileName] || this.files[fileName];
             if (!content && fileName.endsWith('/index.d.ts')) {
                 let packName = fileName.split('/').slice(0, -1).join('/');
-                if (this.packages[packName])
+                if (this.packages[packName]) {
                     content = this.packages[packName].dts || '';
+                }
+                else {
+                    for (let n in this.packages) {
+                        if (packName.endsWith('/' + n)) {
+                            content = this.packages[n].dts || '';
+                            break;
+                        }
+                        ;
+                    }
+                    ;
+                }
+                ;
             }
+            ;
             if (!content) {
                 console.dir('File not exists: ' + fileName);
             }

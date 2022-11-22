@@ -101,9 +101,17 @@ async function bundle() {
         let packages = {};
         for (let name in scconfig.modules) {
             packages[name] = Path.join(moduleDir, scconfig.modules[name].path);
-        }
+        };
         let packageManager = new PackageManager();
-        packageManager.addPackage('@ijstech/components', await getLocalPackageTypes('@ijstech/components'))
+        packageManager.addPackage('@ijstech/components', await getLocalPackageTypes('@ijstech/components'));
+        if (scconfig.networks){
+            packageManager.addPackage('@ijstech/eth-wallet', await getLocalPackageTypes('@ijstech/eth-wallet'));
+            packageManager.addPackage('@ijstech/eth-contract', await getLocalPackageTypes('@ijstech/eth-contract'));
+        };
+        for (let n in scconfig.dependencies){
+            if (!packageManager.packages[n])
+                packageManager.addPackage(n, await getLocalPackageTypes(n));  
+        };
         for (let name in packages){
             let pack = { files: await getLocalScripts(packages[name]) };
             for (let n in pack.files){
@@ -133,7 +141,7 @@ async function bundle() {
         //copy compiled modules to dist directory
         let distDir = Path.join(scRootDir, scconfig.distDir || 'dist');
         let distModuleDir = Path.join(distDir, 'modules');
-        
+                
         for (let name in scconfig.modules) {
             let pack = packageManager.packages(name);
             let module = scconfig.modules[name];
@@ -146,11 +154,28 @@ async function bundle() {
                 };
             });
             let moduleDir = Path.join(distModuleDir, module.path);
-            copyAssets(Path.join(scRootDir, scconfig.rootDir || 'modules', module.path), moduleDir);
+            copyAssets(Path.join(scRootDir, scconfig.rootDir || scconfig.moduleDir || 'modules', module.path), moduleDir);
             await Fs.mkdir(moduleDir, { recursive: true });
             Fs.writeFile(Path.join(moduleDir, 'index.js'), pack.script || '');
         };        
-        
+        let checkDeps = true;
+        while (checkDeps) {
+            checkDeps = false;
+            for (let name in scconfig.modules) {
+                let module = scconfig.modules[name];
+                for (let i = 0; i < module.dependencies.length; i++){
+                    let depModule = scconfig.modules[module.dependencies[i]];
+                    if (depModule){
+                        for (let k = 0; k < depModule.dependencies.length; k++){
+                            if (module.dependencies.indexOf(depModule.dependencies[k]) < 0){
+                                module.dependencies.splice(i, 0, depModule.dependencies[k]);
+                                checkDeps = true;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         //copy dependencies        
         let deps = ['@ijstech/components'];
         let path = await getLocalPackagePath('@ijstech/components');
@@ -187,7 +212,7 @@ async function bundle() {
 
         //generate index.html
         let indexHtml = await Fs.readFile(Path.join(__dirname, 'index.template.html'), 'utf8');
-        indexHtml = indexHtml.replace('{{main}}', `"${scconfig.main}"`);
+        indexHtml = indexHtml.replace('{{main}}', `${scconfig.main || '@scom/dapp'}`);
         indexHtml = indexHtml.replace('{{scconfig}}', JSON.stringify(scconfig, null, 4));
         await Fs.writeFile(Path.join(scRootDir, scconfig.distDir || 'dist', 'index.html'), indexHtml);
     }

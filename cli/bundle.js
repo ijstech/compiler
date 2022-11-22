@@ -120,8 +120,19 @@ async function bundle() {
         for (let name in scconfig.modules) {
             packages[name] = path_1.default.join(moduleDir, scconfig.modules[name].path);
         }
+        ;
         let packageManager = new compiler_1.PackageManager();
         packageManager.addPackage('@ijstech/components', await getLocalPackageTypes('@ijstech/components'));
+        if (scconfig.networks) {
+            packageManager.addPackage('@ijstech/eth-wallet', await getLocalPackageTypes('@ijstech/eth-wallet'));
+            packageManager.addPackage('@ijstech/eth-contract', await getLocalPackageTypes('@ijstech/eth-contract'));
+        }
+        ;
+        for (let n in scconfig.dependencies) {
+            if (!packageManager.packages[n])
+                packageManager.addPackage(n, await getLocalPackageTypes(n));
+        }
+        ;
         for (let name in packages) {
             let pack = { files: await getLocalScripts(packages[name]) };
             for (let n in pack.files) {
@@ -165,9 +176,33 @@ async function bundle() {
                 ;
             });
             let moduleDir = path_1.default.join(distModuleDir, module.path);
-            copyAssets(path_1.default.join(scRootDir, scconfig.rootDir || 'modules', module.path), moduleDir);
+            copyAssets(path_1.default.join(scRootDir, scconfig.rootDir || scconfig.moduleDir || 'modules', module.path), moduleDir);
             await fs_1.promises.mkdir(moduleDir, { recursive: true });
             fs_1.promises.writeFile(path_1.default.join(moduleDir, 'index.js'), pack.script || '');
+        }
+        ;
+        let checkDeps = true;
+        while (checkDeps) {
+            checkDeps = false;
+            for (let name in scconfig.modules) {
+                let module = scconfig.modules[name];
+                for (let i = 0; i < module.dependencies.length; i++) {
+                    let depModule = scconfig.modules[module.dependencies[i]];
+                    if (depModule) {
+                        for (let k = 0; k < depModule.dependencies.length; k++) {
+                            if (module.dependencies.indexOf(depModule.dependencies[k]) < 0) {
+                                module.dependencies.splice(i, 0, depModule.dependencies[k]);
+                                checkDeps = true;
+                            }
+                            ;
+                        }
+                        ;
+                    }
+                    ;
+                }
+                ;
+            }
+            ;
         }
         ;
         //copy dependencies        
@@ -206,7 +241,7 @@ async function bundle() {
         await fs_1.promises.writeFile(path_1.default.join(distDir, 'scconfig.json'), JSON.stringify(scconfig, null, 4), 'utf8');
         //generate index.html
         let indexHtml = await fs_1.promises.readFile(path_1.default.join(__dirname, 'index.template.html'), 'utf8');
-        indexHtml = indexHtml.replace('{{main}}', `"${scconfig.main}"`);
+        indexHtml = indexHtml.replace('{{main}}', `${scconfig.main || '@scom/dapp'}`);
         indexHtml = indexHtml.replace('{{scconfig}}', JSON.stringify(scconfig, null, 4));
         await fs_1.promises.writeFile(path_1.default.join(scRootDir, scconfig.distDir || 'dist', 'index.html'), indexHtml);
     }

@@ -1,6 +1,6 @@
 {
     "name": "@ijstech/compiler",
-    "version": "0.1.16",
+    "version": "0.1.17",
     "main": "lib/index.js",
     "types": "types/index.d.ts",
     "author": "https://ijs.network",
