@@ -276,7 +276,7 @@ async function bundle() {
             }
             ;
             let distDir = path_1.default.join(scRootDir, 'dist');
-            let typesDir = path_1.default.join(scRootDir, 'types');
+            let typesDir = path_1.default.join(scRootDir, 'pluginTypes');
             await fs_1.promises.mkdir(distDir, { recursive: true });
             await fs_1.promises.mkdir(typesDir, { recursive: true });
             copyAssets(path_1.default.join(scRootDir, 'src'), distDir);
