@@ -16255,6 +16255,7 @@ define("@ijstech/compiler", ["require", "exports", "@ijstech/compiler/lib", "typ
         async buildPackage(name) {
             let pack = this._packages[name];
             if (!pack.dts && pack.files) {
+                console.dir('#Build package: ' + name);
                 let indexFile = '';
                 if (pack.files['index.ts'])
                     indexFile = 'index.ts';
@@ -16271,7 +16272,13 @@ define("@ijstech/compiler", ["require", "exports", "@ijstech/compiler/lib", "typ
                         if (isPackage) {
                             if (this._packages[fileName]) {
                                 if (!this._packages[fileName].dts) {
+                                    console.dir('Add dependence: ' + fileName);
                                     let p = await this.buildPackage(fileName);
+                                    if (p.errors && p.errors.length > 0) {
+                                        console.dir(p.errors);
+                                        throw new Error('Failed to build package: ' + fileName);
+                                    }
+                                    ;
                                 }
                                 ;
                                 compiler.addPackage(fileName, this._packages[fileName]);

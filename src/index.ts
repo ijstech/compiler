@@ -127,9 +127,10 @@ export class PackageManager{
         };
         return true;
     };
-    async buildPackage(name: string): Promise<IPackage>{
+    async buildPackage(name: string): Promise<IPackage>{        
         let pack = this._packages[name];        
         if (!pack.dts && pack.files){
+            console.dir('#Build package: ' + name);
             let indexFile: string = '';
             if (pack.files['index.ts'])
                 indexFile = 'index.ts'
@@ -145,7 +146,12 @@ export class PackageManager{
                     if (isPackage){         
                         if (this._packages[fileName]){    
                             if (!this._packages[fileName].dts){
+                                console.dir('Add dependence: ' + fileName)
                                 let p = await this.buildPackage(fileName);    
+                                if (p.errors && p.errors.length > 0){
+                                    console.dir(p.errors)
+                                    throw new Error('Failed to build package: ' + fileName); 
+                                };
                             };
                             compiler.addPackage(fileName, this._packages[fileName]);
                             return {

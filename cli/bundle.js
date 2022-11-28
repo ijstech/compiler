@@ -50,24 +50,26 @@ async function getLocalPackagePath(name) {
 }
 exports.getLocalPackagePath = getLocalPackagePath;
 ;
-async function getLocalPackageTypes(name) {
+async function getLocalPackageTypes(name, packName) {
+    packName = packName || name;
     if (name[0] != '/')
         name = path_1.default.dirname(require.resolve(name));
     let path = path_1.default.dirname(name);
-    if (path) {
+    if (path != '/') {
         try {
             let pack = JSON.parse(await fs_1.promises.readFile(path_1.default.join(path, 'package.json'), 'utf8'));
-            let dts = await fs_1.promises.readFile(path_1.default.join(path, pack.pluginTypes || pack.types || 'index.d.ts'), 'utf8');
+            let dts = await fs_1.promises.readFile(path_1.default.join(path, pack.pluginTypes || pack.types || pack.typings || 'index.d.ts'), 'utf8');
             return {
                 dts: dts
             };
         }
         catch (err) {
-            return getLocalPackageTypes(path);
+            return getLocalPackageTypes(path, packName);
         }
     }
-    else
-        return {};
+    else {
+        throw new Error('Failed to get package: ' + packName);
+    }
 }
 exports.getLocalPackageTypes = getLocalPackageTypes;
 ;
@@ -210,15 +212,16 @@ async function bundle() {
         let path = await getLocalPackagePath('@ijstech/components');
         if (path)
             await fs_1.promises.cp(path_1.default.join(path, 'dist'), path_1.default.join(distDir, 'libs/@ijstech/components'), { recursive: true });
-        async function copyDependencies(dependencies) {
+        async function copyDependencies(dependencies, all) {
             dependencies = dependencies || {};
             for (let name in dependencies) {
-                if (!deps[name] && (name.startsWith('@ijstech/') || name.startsWith('@scom/'))) {
+                if (!deps[name] && (all || name.startsWith('@ijstech/') || name.startsWith('@scom/'))) {
+                    console.dir('#Copy dependence: ' + name);
                     let path = await getLocalPackagePath(name);
                     if (path) {
                         deps.unshift(name);
-                        await fs_1.promises.cp(path_1.default.join(path, 'dist'), path_1.default.join(distDir, 'libs', name), { recursive: true });
                         let pack = JSON.parse(await fs_1.promises.readFile(path_1.default.join(path, 'package.json'), 'utf8'));
+                        await fs_1.promises.cp(path_1.default.join(path, path_1.default.dirname(pack.plugin || 'dist/index.js')), path_1.default.join(distDir, 'libs', name), { recursive: true });
                         await copyDependencies(pack.dependencies);
                     }
                 }
@@ -230,7 +233,7 @@ async function bundle() {
         scconfig.dependencies = scconfig.dependencies || {};
         if (scconfig.main && !scconfig.modules[scconfig.main] && !scconfig.dependencies[scconfig.main])
             scconfig.dependencies[scconfig.main] = '*';
-        await copyDependencies(scconfig.dependencies);
+        await copyDependencies(scconfig.dependencies, true);
         scconfig.dependencies = {};
         deps.forEach((name) => {
             if (name != '@ijstech/components')
@@ -267,7 +270,7 @@ async function bundle() {
             await packageManager.buildAll();
             pack = packageManager.packages(packageConfig.name);
             if (pack.errors && pack.errors.length > 0) {
-                console.error('Package compilation error: ' + name);
+                console.error('Package compilation error: ' + packageConfig.name);
                 console.error(JSON.stringify(pack.errors, null, 4));
                 return;
             }
