@@ -159,6 +159,9 @@ export class PackageManager{
                                 content: this._packages[fileName].dts || ''
                             }
                         }
+                        console.dir('Add dependence: ' + fileName)
+                        if (fileName == '@ijstech/eth-contract' || fileName == '@ijstech/eth-wallet')
+                            await compiler.addPackage('bignumber.js');
                         let result = await compiler.addPackage(fileName);
                         if (result)
                             return result;
