@@ -32,11 +32,11 @@ async function getLocalPackagePath(name) {
     if (name[0] != '/')
         name = path_1.default.dirname(require.resolve(name));
     let path = path_1.default.dirname(name);
-    if (path) {
+    if (path && path != '/') {
         try {
-            let stat = await fs_1.promises.stat(path_1.default.join(path, 'package.json'));
+            let stat = await fs_1.promises.stat(path_1.default.join(name, 'package.json'));
             if (stat.isFile())
-                return path;
+                return name;
             else
                 return getLocalPackagePath(path);
         }
@@ -55,10 +55,10 @@ async function getLocalPackageTypes(name, packName) {
     if (name[0] != '/')
         name = path_1.default.dirname(require.resolve(name));
     let path = path_1.default.dirname(name);
-    if (path != '/') {
+    if (path && path != '/') {
         try {
-            let pack = JSON.parse(await fs_1.promises.readFile(path_1.default.join(path, 'package.json'), 'utf8'));
-            let dts = await fs_1.promises.readFile(path_1.default.join(path, pack.pluginTypes || pack.types || pack.typings || 'index.d.ts'), 'utf8');
+            let pack = JSON.parse(await fs_1.promises.readFile(path_1.default.join(name, 'package.json'), 'utf8'));
+            let dts = await fs_1.promises.readFile(path_1.default.join(name, pack.pluginTypes || pack.types || pack.typings || 'index.d.ts'), 'utf8');
             return {
                 dts: dts
             };
@@ -221,7 +221,13 @@ async function bundle() {
                     if (path) {
                         deps.unshift(name);
                         let pack = JSON.parse(await fs_1.promises.readFile(path_1.default.join(path, 'package.json'), 'utf8'));
-                        await fs_1.promises.cp(path_1.default.join(path, path_1.default.dirname(pack.plugin || 'dist/index.js')), path_1.default.join(distDir, 'libs', name), { recursive: true });
+                        let distFile = pack.plugin || pack.browser;
+                        if (distFile && distFile.endsWith('.js')) {
+                            await fs_1.promises.mkdir(path_1.default.join(distDir, 'libs', name), { recursive: true });
+                            await fs_1.promises.copyFile(path_1.default.join(path, distFile), path_1.default.join(distDir, 'libs', name, 'index.js'));
+                        }
+                        else
+                            await fs_1.promises.cp(path_1.default.join(path, 'dist'), path_1.default.join(distDir, 'libs', name), { recursive: true });
                         await copyDependencies(pack.dependencies);
                     }
                 }
