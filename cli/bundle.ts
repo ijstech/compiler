@@ -107,6 +107,7 @@ async function bundle() {
         let packageManager = new PackageManager();
         packageManager.addPackage('@ijstech/components', await getLocalPackageTypes('@ijstech/components'));
         if (scconfig.networks){
+            packageManager.addPackage('bignumber.js', await getLocalPackageTypes('bignumber.js'));
             packageManager.addPackage('@ijstech/eth-wallet', await getLocalPackageTypes('@ijstech/eth-wallet'));
             packageManager.addPackage('@ijstech/eth-contract', await getLocalPackageTypes('@ijstech/eth-contract'));
         };
