@@ -16591,7 +16591,7 @@ define("@ijstech/compiler", ["require", "exports", "@ijstech/compiler/lib", "typ
                     readFile: this.readFile.bind(this)
                 });
                 if (result.resolvedModule) {
-                    if (!moduleName.startsWith('./')) {
+                    if (!moduleName.startsWith('./') && !moduleName.startsWith('../')) {
                         resolvedModules.push({
                             resolvedFileName: moduleName + '/index.d.ts',
                             extension: '.ts',
