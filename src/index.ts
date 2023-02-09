@@ -468,7 +468,7 @@ export class Compiler {
                 readFile: this.readFile.bind(this)
             });
             if (result.resolvedModule) {
-                if (!moduleName.startsWith('./')){
+                if (!moduleName.startsWith('./') && !moduleName.startsWith('../')){
                     resolvedModules.push(<any>{
                         resolvedFileName: moduleName + '/index.d.ts',
                         extension: '.ts',
