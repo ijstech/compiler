@@ -1,10 +1,95 @@
 #!/usr/bin/env node
 import Path from 'path';
 import { PackageManager, IPackage } from '@ijstech/compiler';
-import { promises as Fs } from 'fs';
+import { promises as Fs, createReadStream} from 'fs';
+import IPFS from './ipfs.js';
+
 const RootPath = process.cwd();
 const SourcePath = process.argv[2];
 
+export interface ICidInfo {
+    cid: string;
+    links?: ICidInfo[];
+    name?: string;
+    size: number;
+    type?: 'dir' | 'file'
+}
+export async function hashItems(items?: ICidInfo[], version?: number): Promise<ICidInfo> {
+    return await IPFS.hashItems(items || [], version);
+};
+export async function hashFile(filePath: string, version?: number, options?: {
+    rawLeaves?: boolean,
+    minChunkSize?: number,
+    maxChunkSize?: number,
+    avgChunkSize?: number,
+    maxChildrenPerNode?: number
+}): Promise<{cid: string, size: number}> {
+    if (version == undefined)
+        version = 1;
+    let size: number;
+    let stat = await Fs.stat(filePath);
+    size = stat.size;    
+    let file = createReadStream(filePath);
+    let cid: string;
+    let result;
+    if (size == 0){
+        cid = await IPFS.hashContent('', version);    
+        return {
+            cid,
+            size
+        };
+    }
+    else if (version == 1){
+        result = await IPFS.hashFile(file, version, IPFS.mergeOptions({ //match web3.storage default parameters, https://github.com/web3-storage/web3.storage/blob/3f6b6d38de796e4758f1dffffe8cde948d2bb4ac/packages/client/src/lib.js#L113
+            rawLeaves: true,
+            maxChunkSize: 1048576,
+            maxChildrenPerNode: 1024
+        }, options || {}))
+    }
+    else
+        result = await IPFS.hashFile(file, version);
+    return result;
+}
+export async function hashDir(dirPath: string, version?: number, excludes?: string[]): Promise<ICidInfo> {
+    if (version == undefined)
+        version = 1;
+    let files = await Fs.readdir(dirPath);
+    let items = [];
+    for (let i = 0; i < files.length; i++) {
+        let file = files[i];
+        let path = Path.join(dirPath, file);
+        if (!excludes || excludes.indexOf(path) < 0){
+            let stat = await Fs.stat(path)
+            if (stat.isDirectory()) {
+                let result = await hashDir(path, version, excludes);
+                result.name = file;
+                items.push(result);
+            }
+            else {
+                try{
+                    let result = await hashFile(path, version);
+                    items.push({
+                        cid: result.cid,
+                        name: file,
+                        size: result.size,
+                        type: 'file'
+                    })
+                }
+                catch(err){
+                    console.dir(path)
+                }
+            }
+        }
+    };
+    let result = await hashItems(items, version);
+    return {
+        cid: result.cid,
+        name: '',
+        size: result.size,
+        type: 'dir',
+        links: items
+    };
+};
 async function copyAssets(sourceDir: string, targetDir: string){
     let files = await Fs.readdir(sourceDir, { withFileTypes: true });
     for (let file of files) {
@@ -88,6 +173,28 @@ async function readPackageConfig(path: string): Promise<any>{
         return JSON.parse(JSON.stringify(JSON.parse(await Fs.readFile(Path.join(path, 'package.json'), 'utf-8'))));
     }
     catch(err){}
+};
+async function writeIpfs(distDir: string, cid: ICidInfo){
+    let links = [];
+    for (let i = 0; i < cid.links.length; i ++){
+        let item = cid.links[i]
+        links.push({
+            cid: item.cid,
+            name: item.name,
+            size: item.size,
+            type: item.type
+        });
+        if (item.type == 'dir')
+            await writeIpfs(distDir, item)
+    };
+    let item = {
+        cid: cid.cid,
+        name: cid.name,
+        size: cid.size,
+        type: cid.type,
+        links: links
+    };
+    await Fs.writeFile(Path.join(distDir, `${cid.cid}`), JSON.stringify(item), 'utf8');
 };
 async function bundle() {
     let scRootDir = RootPath;
@@ -225,6 +332,13 @@ async function bundle() {
         indexHtml = indexHtml.replace('{{main}}', `${scconfig.main || '@scom/dapp'}`);
         indexHtml = indexHtml.replace('{{scconfig}}', JSON.stringify(scconfig, null, 4));
         await Fs.writeFile(Path.join(scRootDir, scconfig.distDir || 'dist', 'index.html'), indexHtml);
+        if (scconfig.ipfs == true){
+            let cid = await hashDir(distDir);
+            scconfig.ipfs = cid.cid;
+            await Fs.writeFile(Path.join(distDir, 'scconfig.json'), JSON.stringify(scconfig, null, 4), 'utf8');
+            await Fs.mkdir(Path.join(distDir, 'ipfs'), { recursive: true });
+            await writeIpfs(Path.join(distDir, 'ipfs'), cid);
+        };
     }
     else {
         let packageConfig = await readPackageConfig(scRootDir);

@@ -217,6 +217,7 @@ export class Compiler {
     private packages: {[index: string]: IPackage} = {};
     private libs: {[index: string]: string};
     private fileNotExists: string;
+    private resolvedFileName: string;
     public dependencies: string[] = [];
     constructor() {
         this.scriptOptions = {
@@ -380,8 +381,8 @@ export class Compiler {
             if (this.fileNotExists)
                 console.dir('File not exists: ' + this.fileNotExists)
             else
-                console.trace(err)
-        }
+                console.trace(err);
+        };
         return result;
     };
     fileExists(fileName: string): boolean {
@@ -392,11 +393,15 @@ export class Compiler {
         };        
         if (!result && fileName.endsWith('.ts'))
             result = this.packages[fileName.slice(0, -3)] != undefined;
+        if (!result && this.files[fileName.slice(0, -3) + '/index.ts'] != undefined){
+            result = true;
+            this.resolvedFileName = fileName.slice(0, -3) + '/index.ts';
+        };
         if (!result)        
             this.fileNotExists = fileName
         else
             this.fileNotExists = '';
-        return result
+        return result;
     };
     async getDependencies(fileName: string, content: string, fileImporter?: FileImporter, result?: string[]): Promise<string[]>{
         let ast = TS.createSourceFile(
@@ -473,6 +478,13 @@ export class Compiler {
                         resolvedFileName: moduleName + '/index.d.ts',
                         extension: '.ts',
                         isExternalLibraryImport: true
+                    });
+                }
+                else if (this.resolvedFileName){
+                    resolvedModules.push(<any>{
+                        resolvedFileName: this.resolvedFileName,
+                        extension: '.ts',
+                        isExternalLibraryImport: false
                     });
                 }
                 else

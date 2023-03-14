@@ -4,12 +4,89 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getLocalScripts = exports.getLocalPackageTypes = exports.getLocalPackagePath = void 0;
+exports.getLocalScripts = exports.getLocalPackageTypes = exports.getLocalPackagePath = exports.hashDir = exports.hashFile = exports.hashItems = void 0;
 const path_1 = __importDefault(require("path"));
 const compiler_1 = require("@ijstech/compiler");
 const fs_1 = require("fs");
+const ipfs_js_1 = __importDefault(require("./ipfs.js"));
 const RootPath = process.cwd();
 const SourcePath = process.argv[2];
+async function hashItems(items, version) {
+    return await ipfs_js_1.default.hashItems(items || [], version);
+}
+exports.hashItems = hashItems;
+;
+async function hashFile(filePath, version, options) {
+    if (version == undefined)
+        version = 1;
+    let size;
+    let stat = await fs_1.promises.stat(filePath);
+    size = stat.size;
+    let file = fs_1.createReadStream(filePath);
+    let cid;
+    let result;
+    if (size == 0) {
+        cid = await ipfs_js_1.default.hashContent('', version);
+        return {
+            cid,
+            size
+        };
+    }
+    else if (version == 1) {
+        result = await ipfs_js_1.default.hashFile(file, version, ipfs_js_1.default.mergeOptions({
+            rawLeaves: true,
+            maxChunkSize: 1048576,
+            maxChildrenPerNode: 1024
+        }, options || {}));
+    }
+    else
+        result = await ipfs_js_1.default.hashFile(file, version);
+    return result;
+}
+exports.hashFile = hashFile;
+async function hashDir(dirPath, version, excludes) {
+    if (version == undefined)
+        version = 1;
+    let files = await fs_1.promises.readdir(dirPath);
+    let items = [];
+    for (let i = 0; i < files.length; i++) {
+        let file = files[i];
+        let path = path_1.default.join(dirPath, file);
+        if (!excludes || excludes.indexOf(path) < 0) {
+            let stat = await fs_1.promises.stat(path);
+            if (stat.isDirectory()) {
+                let result = await hashDir(path, version, excludes);
+                result.name = file;
+                items.push(result);
+            }
+            else {
+                try {
+                    let result = await hashFile(path, version);
+                    items.push({
+                        cid: result.cid,
+                        name: file,
+                        size: result.size,
+                        type: 'file'
+                    });
+                }
+                catch (err) {
+                    console.dir(path);
+                }
+            }
+        }
+    }
+    ;
+    let result = await hashItems(items, version);
+    return {
+        cid: result.cid,
+        name: '',
+        size: result.size,
+        type: 'dir',
+        links: items
+    };
+}
+exports.hashDir = hashDir;
+;
 async function copyAssets(sourceDir, targetDir) {
     let files = await fs_1.promises.readdir(sourceDir, { withFileTypes: true });
     for (let file of files) {
@@ -106,6 +183,30 @@ async function readPackageConfig(path) {
         return JSON.parse(JSON.stringify(JSON.parse(await fs_1.promises.readFile(path_1.default.join(path, 'package.json'), 'utf-8'))));
     }
     catch (err) { }
+}
+;
+async function writeIpfs(distDir, cid) {
+    let links = [];
+    for (let i = 0; i < cid.links.length; i++) {
+        let item = cid.links[i];
+        links.push({
+            cid: item.cid,
+            name: item.name,
+            size: item.size,
+            type: item.type
+        });
+        if (item.type == 'dir')
+            await writeIpfs(distDir, item);
+    }
+    ;
+    let item = {
+        cid: cid.cid,
+        name: cid.name,
+        size: cid.size,
+        type: cid.type,
+        links: links
+    };
+    await fs_1.promises.writeFile(path_1.default.join(distDir, `${cid.cid}`), JSON.stringify(item), 'utf8');
 }
 ;
 async function bundle() {
@@ -254,6 +355,14 @@ async function bundle() {
         indexHtml = indexHtml.replace('{{main}}', `${scconfig.main || '@scom/dapp'}`);
         indexHtml = indexHtml.replace('{{scconfig}}', JSON.stringify(scconfig, null, 4));
         await fs_1.promises.writeFile(path_1.default.join(scRootDir, scconfig.distDir || 'dist', 'index.html'), indexHtml);
+        if (scconfig.ipfs == true) {
+            let cid = await hashDir(distDir);
+            scconfig.ipfs = cid.cid;
+            await fs_1.promises.writeFile(path_1.default.join(distDir, 'scconfig.json'), JSON.stringify(scconfig, null, 4), 'utf8');
+            await fs_1.promises.mkdir(path_1.default.join(distDir, 'ipfs'), { recursive: true });
+            await writeIpfs(path_1.default.join(distDir, 'ipfs'), cid);
+        }
+        ;
     }
     else {
         let packageConfig = await readPackageConfig(scRootDir);
