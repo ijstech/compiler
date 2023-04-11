@@ -4,10 +4,14 @@ import { hello } from './hello';
 class DemoForm extends Module{
     hello(){
         hello();
-    }
+    };
     render(){
         return <i-panel>
-            <i-button caption="Hello"></i-button>
+            <i-button 
+                caption="Hello" 
+                onClick={this.hello} 
+                top={10}
+            ></i-button>
         </i-panel>
-    }
-}
+    };
+};

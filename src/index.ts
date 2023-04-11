@@ -4,7 +4,8 @@
 * https://ijs.network
 *-----------------------------------------------------------*/
 import Lib from './lib';
-import TS from "typescript";
+import * as Parser from './parser';
+import TS from "./lib/typescript";
 
 let isNode = false;    
 if (typeof process === 'object') {
@@ -360,7 +361,7 @@ export class Compiler {
             fileNames.push(f);
         
         try{
-            let program = TS.createProgram(fileNames, this.scriptOptions, host);
+            let program:TS.Program = TS.createProgram(fileNames, this.scriptOptions, host);
             const emitResult = program.emit();
             emitResult.diagnostics.forEach(item => {
                 result.errors.push({
@@ -384,6 +385,69 @@ export class Compiler {
                 console.trace(err);
         };
         return result;
+    };
+    parseUI(fileName: string, funcName?: string): Parser.IComponent | undefined{
+        funcName = funcName || 'render';
+        const host = {
+            getSourceFile: this.getSourceFile.bind(this),
+            getDefaultLibFileName: () => "lib.d.ts",
+            writeFile: (fileName: string, content: string) => {},
+            getCurrentDirectory: () => "",
+            getDirectories: (path: string) => {
+                return TS.sys.getDirectories(path)
+            },
+            getCanonicalFileName: (fileName: string) =>
+                TS.sys && TS.sys.useCaseSensitiveFileNames ? fileName : fileName.toLowerCase(),
+            getNewLine: () => TS.sys && TS.sys.newLine?TS.sys.newLine:'\n',
+            useCaseSensitiveFileNames: () => TS.sys && TS.sys.useCaseSensitiveFileNames?TS.sys.useCaseSensitiveFileNames:false,
+            fileExists: () => true,
+            readFile: this.readFile.bind(this),
+            resolveModuleNames: this.resolveModuleNames.bind(this)
+        };
+        let fileNames = [];
+        
+        for (let f in this.files)
+            fileNames.push(f);
+        
+        let program = TS.createProgram(fileNames, this.scriptOptions, host);
+        program.getTypeChecker();
+        const source = program.getSourceFile(fileName);
+        // https://ts-ast-viewer.com/
+        if (source){
+            let component = Parser.parseUI(source, funcName);
+            return component;
+        };
+        return;
+    };
+    renderUI(fileName: string, funcName?: string, component?: Parser.IComponent): string | undefined{
+        funcName = funcName || 'render';
+        const host = {
+            getSourceFile: this.getSourceFile.bind(this),
+            getDefaultLibFileName: () => "lib.d.ts",
+            writeFile: (fileName: string, content: string) => {},
+            getCurrentDirectory: () => "",
+            getDirectories: (path: string) => {
+                return TS.sys.getDirectories(path)
+            },
+            getCanonicalFileName: (fileName: string) =>
+                TS.sys && TS.sys.useCaseSensitiveFileNames ? fileName : fileName.toLowerCase(),
+            getNewLine: () => TS.sys && TS.sys.newLine?TS.sys.newLine:'\n',
+            useCaseSensitiveFileNames: () => TS.sys && TS.sys.useCaseSensitiveFileNames?TS.sys.useCaseSensitiveFileNames:false,
+            fileExists: () => true,
+            readFile: this.readFile.bind(this),
+            resolveModuleNames: this.resolveModuleNames.bind(this)
+        };
+        let fileNames = [];
+        
+        for (let f in this.files)
+            fileNames.push(f);
+        
+        let program = TS.createProgram(fileNames, this.scriptOptions, host);
+        program.getTypeChecker();
+        const source = program.getSourceFile(fileName);
+        if (source){
+            return Parser.renderUI(source, funcName, component);
+        };
     };
     fileExists(fileName: string): boolean {
         let result = this.files[fileName] != undefined || this.packageFiles[fileName] != undefined;

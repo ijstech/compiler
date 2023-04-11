@@ -32,9 +32,12 @@ define("form", ["require", "exports", "@ijstech/components", "hello"], function 
         hello() {
             hello_1.hello();
         }
+        ;
         render() {
             return this.$render("i-panel", null,
-                this.$render("i-button", { caption: "Hello" }));
+                this.$render("i-button", { caption: "Hello", onClick: this.hello, top: 10 }));
         }
+        ;
     }
+    ;
 });

@@ -37,15 +37,31 @@ async function writeFile(fileName, content) {
     }
     catch(err){}
 }
+function replaceAll(value, search, replace) {
+    return value.split(search).join(replace);
+}
 async function bundle(){    
     // await copyDir(Path.resolve(__dirname, '../node_modules/@ijstech/components/dist'), Path.resolve(__dirname, '../dist/lib/components'));
+    await copyFile(Path.resolve(__dirname, '../src/lib/typescript.js'), Path.resolve(__dirname, '../lib/lib/typescript.js'));
+    await copyFile(Path.resolve(__dirname, '../src/lib/typescript.d.ts'), Path.resolve(__dirname, '../types/lib/typescript.d.ts'));
     await copyFile(Path.resolve(__dirname, '../node_modules/@ijstech/components/types/index.d.ts'), Path.resolve(__dirname, '../dist/lib/components/index.d.ts'));
-    content = await readFile(Path.resolve(__dirname, '../node_modules/typescript/lib/typescript.js'));
-    await writeFile(Path.resolve(__dirname, '../dist/lib/typescript/index.js'), 
+    let typescript = await readFile(Path.resolve(__dirname, '../node_modules/typescript/lib/typescript.js'));
+    
+    let content = await readFile(Path.resolve(__dirname, '../dist/index.js'));
+    content = replaceAll(content, '"./lib/typescript"', '"typescript"');
+    await writeFile(Path.resolve(__dirname, '../dist/index.js'), 
 `define("typescript", ["require", "exports"], function (require, exports) {
     Object.defineProperty(exports, "__esModule", { value: true }); 
-${content} 
+${typescript} 
     exports.default = ts;
-})`);    
+});
+${content}`);    
+    content = await readFile(Path.resolve(__dirname, '../dist/index.d.ts'));
+    let typescriptDts = await readFile(Path.resolve(__dirname, '../node_modules/typescript/lib/typescript.d.ts'));
+    await writeFile(Path.resolve(__dirname, '../dist/index.d.ts'), 
+`declare module "typescript" {
+    ${typescriptDts}
+};
+${content}`);    
 };
 bundle();

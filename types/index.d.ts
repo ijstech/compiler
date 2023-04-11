@@ -1,4 +1,5 @@
-import TS from "typescript";
+import * as Parser from './parser';
+import TS from "./lib/typescript";
 export interface ICompilerError {
     file: string;
     start: number;
@@ -51,6 +52,7 @@ export declare class Compiler {
     private packages;
     private libs;
     private fileNotExists;
+    private resolvedFileName;
     dependencies: string[];
     constructor();
     private importDependencies;
@@ -60,6 +62,8 @@ export declare class Compiler {
         content: string;
     } | undefined>;
     compile(emitDeclaration?: boolean): Promise<ICompilerResult>;
+    parseUI(fileName: string, funcName?: string): Parser.IComponent | undefined;
+    renderUI(fileName: string, funcName?: string, component?: Parser.IComponent): string | undefined;
     fileExists(fileName: string): boolean;
     getDependencies(fileName: string, content: string, fileImporter?: FileImporter, result?: string[]): Promise<string[]>;
     getSourceFile(fileName: string, languageVersion: TS.ScriptTarget, onError?: (message: string) => void): TS.SourceFile;

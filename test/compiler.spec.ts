@@ -61,7 +61,17 @@ async function getScript(
         }
     }
 }
-
+async function writeScript(
+    fileName: string, content: string
+): Promise<boolean> {    
+    let filePath = Path.join(__dirname, 'scripts', fileName)
+    try {
+        await Fs.writeFile(filePath, content, 'utf8')
+        return true;
+    } catch (err) {
+        return false
+    }
+}
 async function fileImporter(
     fileName: string
 ): Promise<{ fileName: string; content: string }> {    
@@ -118,6 +128,53 @@ async function setScriptContent(fileName: string, content: string) {
 
 describe('Compiler', async function () {
     this.timeout(60000)
+    it('renderUI', async()=>{
+        let compiler = new Compiler()
+        await compiler.addFile(
+            'form.tsx',
+            (
+                await getScript('form.tsx')
+            ).content,
+            getScript
+        );
+        let result = compiler.renderUI('form.tsx', 'renderDesktop', {
+            name: 'i-panel',
+            items: [
+                {
+                  name: 'i-button',
+                  props: { id: '"button1"',caption: '"Hello"', onClick: '{this.hello}', top: '{10}' },
+                  items: undefined
+                }
+            ]
+        });
+        // if (result)
+        //     await writeScript('form2.tsx', result);
+        let script = await getScript('form2.tsx');
+        assert.strictEqual(result, script.content);
+    });
+    it('parseUI', async () => {
+        let compiler = new Compiler()
+        await compiler.addFile(
+            'form.tsx',
+            (
+                await getScript('form.tsx')
+            ).content,
+            getScript
+        );
+        let result = compiler.parseUI('form.tsx', 'render');
+        assert.deepStrictEqual(result, {
+            name: 'i-panel',
+            props: {},
+            items: [
+              {
+                name: 'i-button',
+                props: { caption: '"Hello"', onClick: '{this.hello}', top: '{10}' },
+                items: undefined
+              }
+            ]
+          }
+        )
+    });
     it('getDependencies', async () => {
         let compiler = new Compiler()
         let deps = await compiler.getDependencies(
@@ -127,7 +184,7 @@ describe('Compiler', async function () {
             ).content
         )
         assert.deepStrictEqual(deps, ['@ijstech/components', 'hello'])
-    })
+    });    
     it('getDependencies with FileImporter', async () => {
         let compiler = new Compiler()
         let deps = await compiler.getDependencies(
@@ -170,7 +227,9 @@ describe('Compiler', async function () {
             getScript
         )
         let result = await compiler.compile(true)
-        if (result.errors.length) console.dir(result.errors)
+        // writeScript('form.js', result.script['index.js'])
+        if (result.errors.length) 
+            console.dir(result.errors)
         assert.strictEqual(result.errors.length, 0)
         let exp = (await getScript('form.js')).content
         if (exp) assert.strictEqual(result.script['index.js'], exp)
