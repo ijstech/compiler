@@ -1,6 +1,6 @@
 {
     "name": "@ijstech/compiler",
-    "version": "0.1.25",
+    "version": "0.1.26",
     "main": "lib/index.js",
     "types": "types/index.d.ts",
     "pluginTypes": "dist/index.d.ts",
@@ -27,7 +27,7 @@
         "build:lib": "tsc --P tsconfig.lib.json ",
         "build:types": "rm -rf bundle && node tools/buildLib.js && tsc --P tsconfig.types.json && rm -rf bundle && rm -rf src/lib.ts && node tools/bundleLib.js",
         "build:test": "rm -rf bundle && tsc --P tsconfig.test.json && node tools/bundleTest.js && rm -rf bundle",
-        "postinstall": "cp -f node_modules/typescript/lib/typescript.js src/lib/typescript.js && cp -f node_modules/typescript/lib/typescript.d.ts src/lib/typescript.d.ts",
+        "cp:typescript": "cp -f node_modules/typescript/lib/typescript.js src/lib/typescript.js && cp -f node_modules/typescript/lib/typescript.d.ts src/lib/typescript.d.ts",
         "test": "mocha --exit --require ts-node/register test/*.spec.ts"
     }
 }
