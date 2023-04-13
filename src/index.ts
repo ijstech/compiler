@@ -6,6 +6,7 @@
 import Lib from './lib';
 import * as Parser from './parser';
 import TS from "./lib/typescript";
+export {Parser};
 
 let isNode = false;    
 if (typeof process === 'object') {
@@ -303,7 +304,10 @@ export class Compiler {
         }
         else
             return [];
-    };   
+    };
+    updateFile(fileName: string, content: string){
+        this.files[fileName] = content;
+    };
     async addPackage(packName: string, pack?: IPackage){       
         if (!pack){
             if (!this.packages[packName]){

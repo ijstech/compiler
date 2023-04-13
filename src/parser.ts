@@ -68,7 +68,15 @@ export function parseUI(source: TS.SourceFile, funcName: string): IComponent | u
             renderNode?.body?.statements?.forEach((node) => {
                 if (node.kind == TS.SyntaxKind.ReturnStatement){
                     node.forEachChild((node) => {
-                        if (node.kind == TS.SyntaxKind.JsxElement){
+                        if (node.kind == TS.SyntaxKind.ParenthesizedExpression){
+                            node.forEachChild((node) => {
+                                if (node.kind == TS.SyntaxKind.JsxElement){
+                                    result = getJsxElement(node as TS.JsxElement);
+                                    return;
+                                };
+                            })
+                        }
+                        else if (node.kind == TS.SyntaxKind.JsxElement){
                             result = getJsxElement(node as TS.JsxElement);
                             return;
                         };

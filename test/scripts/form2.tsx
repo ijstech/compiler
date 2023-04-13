@@ -14,6 +14,26 @@ class DemoForm extends Module{
             ></i-button>
         </i-panel>
     };
+    render1(){
+        return 
+        <i-panel>
+            <i-button 
+                caption="Hello" 
+                onClick={this.hello} 
+                top={10}
+            ></i-button>
+        </i-panel>
+    };
+    render2(){
+        return (
+        <i-panel>
+            <i-button 
+                caption="Hello" 
+                onClick={this.hello} 
+                top={10}
+            ></i-button>
+        </i-panel>)
+    };
     renderDesktop(){
         return <i-panel>
             <i-button

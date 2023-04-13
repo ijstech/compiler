@@ -173,7 +173,40 @@ describe('Compiler', async function () {
               }
             ]
           }
-        )
+        );
+
+        compiler = new Compiler()
+        await compiler.addFile(
+            'form.tsx',
+            (
+                await getScript('form.tsx')
+            ).content,
+            getScript
+        );
+        result = compiler.parseUI('form.tsx', 'render1');
+        assert.strictEqual(result, undefined);
+
+        compiler = new Compiler()
+        await compiler.addFile(
+            'form.tsx',
+            (
+                await getScript('form.tsx')
+            ).content,
+            getScript
+        );
+        result = compiler.parseUI('form.tsx', 'render2');
+        assert.deepStrictEqual(result, {
+            name: 'i-panel',
+            props: {},
+            items: [
+              {
+                name: 'i-button',
+                props: { caption: '"Hello"', onClick: '{this.hello}', top: '{10}' },
+                items: undefined
+              }
+            ]
+          }
+        );
     });
     it('getDependencies', async () => {
         let compiler = new Compiler()

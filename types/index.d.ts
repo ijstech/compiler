@@ -1,5 +1,6 @@
 import * as Parser from './parser';
 import TS from "./lib/typescript";
+export { Parser };
 export interface ICompilerError {
     file: string;
     start: number;
@@ -57,6 +58,7 @@ export declare class Compiler {
     constructor();
     private importDependencies;
     addFile(fileName: string, content: string, dependenciesImporter?: FileImporter): Promise<string[]>;
+    updateFile(fileName: string, content: string): void;
     addPackage(packName: string, pack?: IPackage): Promise<{
         fileName: string;
         content: string;
