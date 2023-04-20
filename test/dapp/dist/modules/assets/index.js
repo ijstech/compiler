@@ -1,4 +1,4 @@
-define("@dapp/assets", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
+define("@scom/dapp-sample/assets", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const moduleDir = components_1.application.currentModuleDir;

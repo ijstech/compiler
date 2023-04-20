@@ -1,15 +1,15 @@
 {    
     "env": "testnet",
-    "main": "@dapp/main",
+    "main": "@scom/dapp-sample/main",
     "moduleDir": "modules",
     "modules": {
-        "@dapp/assets": {
+        "@scom/dapp-sample/assets": {
             "path": "assets"
         },
-        "@dapp/main": {
+        "@scom/dapp-sample/main": {
             "path": "main"
         },        
-        "@dapp/module1": {
+        "@scom/dapp-sample/module1": {
             "path": "module1"
         }
     },
@@ -19,7 +19,7 @@
     "menus": [
         {
             "caption": "Module 1",
-            "module": "@dapp/module1"
+            "module": "@scom/dapp-sample/module1"
         }
     ],
     "networks": [

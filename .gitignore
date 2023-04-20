@@ -1,4 +1,5 @@
 node_modules
 bundle
 package-lock.json
+test/dapp/dist
 *.sh

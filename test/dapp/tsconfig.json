@@ -11,7 +11,7 @@
         "declaration": false,        
         "baseUrl": ".",
         "paths": {
-            "@dapp/*":["modules/*"]
+            "@scom/dapp-sample/*":["modules/*"]
         }
     },
     "include": ["modules/**/*.ts","modules/**/*.tsx"],

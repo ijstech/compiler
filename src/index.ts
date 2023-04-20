@@ -42,59 +42,7 @@ export interface IPackage{
 let Path: any;
 let Fs: any;
 const PackageWhiteList = ['bignumber.js'];
-export async function getLocalPackageTypes(name: string): Promise<IPackage> {
-    let path = await getLocalPackagePath(name);
-    if (path){
-        try{
-            let pack = JSON.parse(await Fs.readFile(Path.join(path, 'package.json'), 'utf8'))
-            let dts = await Fs.readFile(Path.join(path, pack.pluginTypes || pack.types || pack.typings || 'index.d.ts'), 'utf8');
-            let dependencies: string[] = [];
-            for (let n in pack.dependencies){
-                if (PackageWhiteList.indexOf(n) > -1 || n.startsWith('@scom/') || n.startsWith('@ijstech/'))
-                    dependencies.push(n)
-            }
-            return {
-                dts: dts,
-                dependencies: dependencies
-            };
-        }
-        catch(err){}
-        
-    }
-    return {};
-};
-export async function getLocalPackagePath(name: string): Promise<string>{
-    if (isNode){
-        try{
-            if (!Path){
-                Path = require('path');
-                Fs = require('fs').promises;
-            };
-            let path = '';
-            if (name[0] != '/')
-                path = Path.dirname(require.resolve(name + '/package.json'))
-            else
-                path = Path.dirname(name);
-            if (path && path != '/') {
-                try {
-                    let stat = await Fs.stat(Path.join(path, 'package.json'))
-                    if (stat.isFile())
-                        return path
-                    else
-                        return getLocalPackagePath(path);
-                }
-                catch (err) {
-                    return getLocalPackagePath(path);
-                };
-            };
-        }
-        catch(err){
-            console.dir(err)
-            return ''
-        };
-    };
-    return '';
-};
+
 export function resolveAbsolutePath(baseFilePath: string, relativeFilePath: string): string{    
     let basePath = baseFilePath.split('/').slice(0,-1).join('/');    
     if (basePath)
@@ -112,11 +60,14 @@ export function resolveAbsolutePath(baseFilePath: string, relativeFilePath: stri
         .join('/');
 }
 export type FileImporter = (fileName: string, isPackage?: boolean) => Promise<{fileName: string, content: string}|null>;
-export type PakageFileImporter = (packName: string, fileName: string) => Promise<string>;
+export type PackageImporter = (packName: string) => Promise<IPackage>;
 export class PackageManager{
-    private fileImporter: PakageFileImporter;
+    private packageImporter: PackageImporter | undefined;
     private _packages: {[name: string]: IPackage}={};
 
+    constructor(options?: {packageImporter?: PackageImporter}){
+        this.packageImporter = options?.packageImporter
+    };
     addPackage(name: string, pack: IPackage){        
         if (!this._packages[name])
             this._packages[name] = pack
@@ -139,13 +90,15 @@ export class PackageManager{
             else if (pack.files['index.tsx'])
                 indexFile = 'index.tsx';
             if (indexFile){
-                let compiler = new Compiler();
+                let compiler = new Compiler({packageImporter: this.packageImporter});
                 for (let n in this._packages){
                     if (this._packages[n].dts)
                         compiler.addPackage(n, this._packages[n])
                 };
                 await compiler.addFile(indexFile, pack.files[indexFile], async (fileName: string, isPackage?: boolean): Promise<{fileName: string, content: string}|null>=>{                    
-                    if (isPackage){         
+                    if (isPackage){        
+                        if (fileName && fileName.startsWith('@ijstech/components/'))
+                            fileName = '@ijstech/components'; 
                         if (this._packages[fileName]){    
                             if (!this._packages[fileName].dts){
                                 console.dir('Add dependence: ' + fileName)
@@ -167,14 +120,7 @@ export class PackageManager{
                         let result = await compiler.addPackage(fileName);
                         if (result)
                             return result;
-                        // let pack = await getLocalPackageTypes(fileName);
-                        // if (pack.dts){
-                        //     compiler.addPackage(fileName, pack)
-                        //     return {
-                        //         fileName: 'index.d.ts',
-                        //         content: pack.dts
-                        //     }
-                        // };
+
                         console.dir('Package not found: ' + fileName)
                         return null
                     }
@@ -193,8 +139,8 @@ export class PackageManager{
                                 return {
                                     fileName: name,
                                     content: pack.files[name]
-                                }
-                        }
+                                };
+                        };
                         return null;
                     }
                 });
@@ -221,7 +167,9 @@ export class Compiler {
     private fileNotExists: string;
     private resolvedFileName: string;
     public dependencies: string[] = [];
-    constructor() {
+    private packageImporter: PackageImporter | undefined;
+    constructor(options?: {packageImporter?: PackageImporter}) {
+        this.packageImporter = options?.packageImporter;
         this.scriptOptions = {
             allowJs: false,
             alwaysStrict: true,
@@ -265,6 +213,7 @@ export class Compiler {
             if (node.kind == TS.SyntaxKind.ImportDeclaration || node.kind == TS.SyntaxKind.ExportDeclaration){
                 if ((node as any).moduleSpecifier){
                     let module = (<TS.LiteralLikeNode>(node as any).moduleSpecifier).text;
+                    
                     if (module.startsWith('.')){                    
                         let filePath = resolveAbsolutePath(fileName, module)                    
                         if (this.files[filePath] == undefined && this.files[filePath + '.ts'] == undefined && this.files[filePath + '.tsx'] == undefined){                        
@@ -311,16 +260,22 @@ export class Compiler {
     async addPackage(packName: string, pack?: IPackage){       
         if (!pack){
             if (!this.packages[packName]){
-                let pack = await getLocalPackageTypes(packName);
-                if (pack.dts){                    
-                    if (pack.dependencies){
-                        for (let i = 0; i < pack.dependencies.length; i ++)
-                            await this.addPackage(pack.dependencies[i]);
-                    };
-                    this.addPackage(packName, pack);
-                    return {
-                        fileName: 'index.d.ts',
-                        content: pack.dts
+                if (this.packageImporter){
+                    // let pack = await getLocalPackageTypes(packName);
+                    let pack = await this.packageImporter(packName);
+                    if (pack?.dts){     
+                        this.addPackage(packName, pack);               
+                        if (pack.dependencies){
+                            for (let i = 0; i < pack.dependencies.length; i ++){
+                                let n = pack.dependencies[i];
+                                if (PackageWhiteList.indexOf(n) > -1 || n.startsWith('@scom/') || n.startsWith('@ijstech/'))
+                                    await this.addPackage(n);
+                            };
+                        };
+                        return {
+                            fileName: 'index.d.ts',
+                            content: pack.dts
+                        };
                     };
                 };
             };
@@ -482,7 +437,9 @@ export class Compiler {
         for (let i = 0; i < ast.statements.length; i ++){
             let node = ast.statements[i];                        
             if (node.kind == TS.SyntaxKind.ImportDeclaration){                
-                let module = (<TS.LiteralLikeNode>(node as any).moduleSpecifier).text;                
+                let module = (<TS.LiteralLikeNode>(node as any).moduleSpecifier).text;   
+                if (module.startsWith('@ijstech/components/'))        
+                    module = '@ijstech/components';     
                 if (module.startsWith('.')){
                     let filePath = resolveAbsolutePath(fileName, module)
                     if (result.indexOf(filePath) < 0 && result.indexOf(filePath + '.ts') < 0 && result.indexOf(filePath + '.tsx') < 0){

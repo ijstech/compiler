@@ -2,7 +2,7 @@
 
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="./launcher.js"></script>
+  <script src="libs/@ijstech/components/index.js"></script>
 </head>
 <html>
 
@@ -10,7 +10,8 @@
   <script>
     async function init() {
       application.LibHost = "";
-      let module = await application.newModule({{main}}, {{scconfig}});
+      let config = await application.getContent('scconfig.json');
+      let module = await application.newModule("{{main}}", JSON.parse(config));
       document.body.append(module);
     };
     init();

@@ -1,12 +1,17 @@
 {
-    "name": "dapp",
+    "name": "@scom/dapp-sample",
     "version": "0.1.0",
     "devDependencies": {
         "@ijstech/components": "^0.1.16",
+        "@ijstech/eth-contract": "^0.1.8",
+        "@ijstech/eth-wallet": "^0.1.29",
         "typescript": "4.3.5"
     },
     "scripts": {
         "build": "rm -rf dist && ts-node tools/bundle.ts",
-        "test": "node tools/serve"
+        "serve": "node tools/serve"
+    },
+    "dependencies": {
+        "@types/node": "^18.15.12"
     }
 }

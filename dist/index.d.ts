@@ -7433,17 +7433,18 @@ declare module "@ijstech/compiler" {
         dts?: string;
         dependencies?: string[];
     }
-    export function getLocalPackageTypes(name: string): Promise<IPackage>;
-    export function getLocalPackagePath(name: string): Promise<string>;
     export function resolveAbsolutePath(baseFilePath: string, relativeFilePath: string): string;
     export type FileImporter = (fileName: string, isPackage?: boolean) => Promise<{
         fileName: string;
         content: string;
     } | null>;
-    export type PakageFileImporter = (packName: string, fileName: string) => Promise<string>;
+    export type PackageImporter = (packName: string) => Promise<IPackage>;
     export class PackageManager {
-        private fileImporter;
+        private packageImporter;
         private _packages;
+        constructor(options?: {
+            packageImporter?: PackageImporter;
+        });
         addPackage(name: string, pack: IPackage): void;
         buildAll(): Promise<boolean>;
         buildPackage(name: string): Promise<IPackage>;
@@ -7459,7 +7460,10 @@ declare module "@ijstech/compiler" {
         private fileNotExists;
         private resolvedFileName;
         dependencies: string[];
-        constructor();
+        private packageImporter;
+        constructor(options?: {
+            packageImporter?: PackageImporter;
+        });
         private importDependencies;
         addFile(fileName: string, content: string, dependenciesImporter?: FileImporter): Promise<string[]>;
         updateFile(fileName: string, content: string): void;
