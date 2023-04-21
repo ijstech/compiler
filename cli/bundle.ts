@@ -351,7 +351,12 @@ async function bundle() {
     }
     else {        
         if (packageConfig){
-            let packageManager = new PackageManager();
+            let packageManager = new PackageManager({
+                packageImporter: async (packName: string) => {
+                    let pack = await getLocalPackageTypes(packName);
+                    return pack;
+                }
+            });
             // packageManager.addPackage('@ijstech/components', await getLocalPackageTypes('@ijstech/components'));            
             let pack:IPackage = { files: await getLocalScripts(Path.join(scRootDir, 'src'))};
             for (let n in pack.files){
