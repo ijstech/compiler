@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getLocalScripts = exports.getLocalPackageTypes = exports.getLocalPackagePath = exports.hashDir = exports.hashFile = exports.hashItems = void 0;
+exports.getLocalScripts = exports.getLocalPackageTypes = exports.getLocalPackage = exports.getLocalPackagePath = exports.hashDir = exports.hashFile = exports.hashItems = void 0;
 const path_1 = __importDefault(require("path"));
 const compiler_1 = require("@ijstech/compiler");
 const fs_1 = require("fs");
@@ -126,6 +126,21 @@ async function getLocalPackagePath(name) {
         return '';
 }
 exports.getLocalPackagePath = getLocalPackagePath;
+;
+let packages = {};
+async function getLocalPackage(name) {
+    if (packages[name])
+        return packages[name];
+    let path = await getLocalPackagePath(name);
+    if (path) {
+        let pack = JSON.parse(await fs_1.promises.readFile(path_1.default.join(path, 'package.json'), 'utf8'));
+        pack.path = path;
+        packages[name] = pack;
+        return pack;
+    }
+    ;
+}
+exports.getLocalPackage = getLocalPackage;
 ;
 async function getLocalPackageTypes(name, packName) {
     packName = packName || name;
@@ -323,20 +338,26 @@ async function bundle() {
             for (let name in dependencies) {
                 if (name.startsWith('@ijstech/components/'))
                     name = '@ijstech/components';
-                if (!deps[name] && (all || name.startsWith('@ijstech/') || name.startsWith('@scom/'))) {
-                    console.dir('#Copy dependence: ' + name);
-                    let path = await getLocalPackagePath(name);
-                    if (path) {
-                        deps.unshift(name);
-                        let pack = JSON.parse(await fs_1.promises.readFile(path_1.default.join(path, 'package.json'), 'utf8'));
-                        let distFile = pack.plugin || pack.browser;
-                        if (distFile && distFile.endsWith('.js')) {
-                            await fs_1.promises.mkdir(path_1.default.join(distDir, 'libs', name), { recursive: true });
-                            await fs_1.promises.copyFile(path_1.default.join(path, distFile), path_1.default.join(distDir, 'libs', name, 'index.js'));
+                if ((all || name.startsWith('@ijstech/') || name.startsWith('@scom/'))) {
+                    let pack = await getLocalPackage(name);
+                    if (pack) {
+                        path = pack.path;
+                        if (deps.indexOf(name) < 0) {
+                            console.dir('#Copy dependence: ' + name);
+                            let distFile = pack.plugin || pack.browser;
+                            if (distFile && distFile.endsWith('.js')) {
+                                await fs_1.promises.mkdir(path_1.default.join(distDir, 'libs', name), { recursive: true });
+                                await fs_1.promises.copyFile(path_1.default.join(path, distFile), path_1.default.join(distDir, 'libs', name, 'index.js'));
+                            }
+                            else
+                                await fs_1.promises.cp(path_1.default.join(path, 'dist'), path_1.default.join(distDir, 'libs', name), { recursive: true });
                         }
-                        else
-                            await fs_1.promises.cp(path_1.default.join(path, 'dist'), path_1.default.join(distDir, 'libs', name), { recursive: true });
-                        await copyDependencies(pack.dependencies);
+                        ;
+                        deps.unshift(name);
+                        let dependencies = pack.dependencies || {};
+                        if (name == '@ijstech/eth-contract')
+                            dependencies['@ijstech/eth-wallet'] = '*';
+                        await copyDependencies(dependencies);
                     }
                 }
                 ;

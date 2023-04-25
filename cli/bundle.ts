@@ -123,6 +123,18 @@ export async function getLocalPackagePath(name: string): Promise<string> {
     else
         return '';
 };
+let packages: { [name: string]: any } = {};
+export async function getLocalPackage(name: string): Promise<any>{
+    if (packages[name])
+        return packages[name];
+    let path = await getLocalPackagePath(name);
+    if (path){
+        let pack = JSON.parse(await Fs.readFile(Path.join(path, 'package.json'), 'utf8'));
+        pack.path = path;
+        packages[name] = pack;
+        return pack;
+    };
+};
 export async function getLocalPackageTypes(name: string, packName?: string): Promise<IPackage> {
     packName = packName || name;
     if (name[0] != '/')
@@ -302,20 +314,25 @@ async function bundle() {
             for (let name in dependencies){
                 if (name.startsWith('@ijstech/components/'))
                     name = '@ijstech/components';
-                if (!deps[name] && (all || name.startsWith('@ijstech/') || name.startsWith('@scom/'))){
-                    console.dir('#Copy dependence: ' + name);
-                    let path = await getLocalPackagePath(name);
-                    if (path){
-                        deps.unshift(name)
-                        let pack = JSON.parse(await Fs.readFile(Path.join(path, 'package.json'), 'utf8'));
-                        let distFile: string = pack.plugin || pack.browser;
-                        if (distFile && distFile.endsWith('.js')){
-                            await Fs.mkdir(Path.join(distDir, 'libs', name), {recursive: true});
-                            await Fs.copyFile(Path.join(path, distFile), Path.join(distDir, 'libs', name, 'index.js'))
-                        }
-                        else
-                            await Fs.cp(Path.join(path, 'dist'), Path.join(distDir, 'libs', name), {recursive: true});
-                        await copyDependencies(pack.dependencies);                    
+                if ((all || name.startsWith('@ijstech/') || name.startsWith('@scom/'))){                    
+                    let pack = await getLocalPackage(name);
+                    if (pack){
+                        path = pack.path;
+                        if (deps.indexOf(name) < 0){
+                            console.dir('#Copy dependence: ' + name);
+                            let distFile: string = pack.plugin || pack.browser;
+                            if (distFile && distFile.endsWith('.js')){
+                                await Fs.mkdir(Path.join(distDir, 'libs', name), {recursive: true});
+                                await Fs.copyFile(Path.join(path, distFile), Path.join(distDir, 'libs', name, 'index.js'))
+                            }
+                            else
+                                await Fs.cp(Path.join(path, 'dist'), Path.join(distDir, 'libs', name), {recursive: true});
+                        };                       
+                        deps.unshift(name);
+                        let dependencies = pack.dependencies || {};
+                        if (name == '@ijstech/eth-contract')
+                            dependencies['@ijstech/eth-wallet'] = '*';
+                        await copyDependencies(dependencies);                    
                     }
                 };
             };
