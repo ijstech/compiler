@@ -7397,6 +7397,32 @@ declare module "@ijstech/compiler/parser" {
         };
         items?: IComponent[];
     }
+    export interface IMethodNode {
+        node?: TS.MethodDeclaration;
+        newPos?: number;
+    }
+    export function findMethodNode(source: TS.ClassDeclaration | TS.SourceFile, funcName: string): IMethodNode | undefined;
+    export function findPropertyNode(node: TS.ClassDeclaration, name: string): TS.MethodDeclaration | undefined;
+    export function findModuleClassNode(source: TS.SourceFile): TS.ClassDeclaration | undefined;
+    export function findComponentImportNodeIfNotExists(source: TS.SourceFile, className: string): number | undefined;
+    export function findComponentImports(source: TS.SourceFile, classNames: string[]): {
+        classNames: string[];
+        newPos: number;
+    };
+    export function findComponentPropertyNodeIfNotExists(classNode: TS.ClassDeclaration, id: string): number | undefined;
+    export function renameMethod(source: TS.SourceFile, oldFunc: string, newFunc: string): string;
+    export function renameProperty(source: TS.SourceFile, className: string, oldName: string, newName: string): string | undefined;
+    export function addComponentImports(source: TS.SourceFile, classNames: string[]): string | undefined;
+    export function addComponentProp(source: TS.SourceFile, className: string, id: string): string | undefined;
+    export function addEventHandler(source: TS.SourceFile, classNames: string[], funcName: string, params?: string): {
+        lineNumber?: number;
+        columnNumber?: number;
+        code?: string;
+    };
+    export function locateMethod(source: TS.SourceFile, funcName: string): {
+        lineNumber?: number;
+        columnNumber?: number;
+    };
     export function parseUI(source: TS.SourceFile, funcName: string): IComponent | undefined;
     export function renderUI(source: TS.SourceFile, funcName: string, component?: IComponent): string;
 }
@@ -7460,6 +7486,7 @@ declare module "@ijstech/compiler" {
         private fileNotExists;
         private resolvedFileName;
         dependencies: string[];
+        private host;
         private packageImporter;
         constructor(options?: {
             packageImporter?: PackageImporter;
@@ -7467,11 +7494,25 @@ declare module "@ijstech/compiler" {
         private importDependencies;
         addFile(fileName: string, content: string, dependenciesImporter?: FileImporter): Promise<string[]>;
         updateFile(fileName: string, content: string): void;
+        private getProgram;
         addPackage(packName: string, pack?: IPackage): Promise<{
             fileName: string;
             content: string;
         } | undefined>;
         compile(emitDeclaration?: boolean): Promise<ICompilerResult>;
+        getSource(fileName: string): TS.SourceFile | undefined;
+        addComponentProp(fileName: string, className: string, id: string): string | undefined;
+        addEventHandler(fileName: string, classNames: string[], func: string, params?: string): {
+            code?: string;
+            lineNumber?: number;
+            columnNumber?: number;
+        };
+        locateMethod(fileName: string, funcName: string): {
+            lineNumber?: number;
+            columnNumber?: number;
+        };
+        renameMethod(fileName: string, fromFuncName: string, toFuncName: string): string | undefined;
+        renameComponent(fileName: string, className: string, fromId: string, toId: string): string | undefined;
         parseUI(fileName: string, funcName?: string): Parser.IComponent | undefined;
         renderUI(fileName: string, funcName?: string, component?: Parser.IComponent): string | undefined;
         fileExists(fileName: string): boolean;

@@ -1,7 +1,8 @@
-import {Module} from '@ijstech/components';
+import {Module, Panel} from '@ijstech/components';
 import { hello } from './hello';
 
 class DemoForm extends Module{
+    panel1: Panel;
     hello(){
         hello();
     };

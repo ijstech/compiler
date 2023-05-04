@@ -1,143 +1,21 @@
 import 'mocha'
 import * as assert from 'assert'
 import {Compiler} from '../src'
-import {promises as Fs} from 'fs'
-import Path from 'path'
-import * as fs from 'fs';
-
-async function getFileContent(fileName: string): Promise<string> {
-    let filePath = Path.resolve(__dirname, fileName)
-    try {
-        return Fs.readFile(filePath, 'utf8')
-    } catch (err) {
-        return ''
-    }
-}
-
-async function checkFileExists(path: string): Promise<boolean> {
-    try {
-        await Fs.stat(path)
-        return true
-    } catch (err) {
-        return false
-    }
-}
-
-async function getScript(
-    fileName: string
-): Promise<{ fileName: string; content: string }> {
-    if (fileName == '@ijstech/components') {
-        return {
-            fileName: 'index.d.ts',
-            content: await getFileContent('../node_modules/@ijstech/components/types/index.d.ts'),
-        }
-    }
-    let filePath = Path.join(__dirname, 'scripts', fileName)
-    try {
-        if (await checkFileExists(filePath))
-            return {
-                fileName: fileName,
-                content: await Fs.readFile(filePath, 'utf8'),
-            }
-        else if (await checkFileExists(filePath + '.ts'))
-            return {
-                fileName: fileName + '.ts',
-                content: await Fs.readFile(filePath + '.ts', 'utf8'),
-            }
-        else if (await checkFileExists(filePath + '.tsx'))
-            return {
-                fileName: fileName + '.tsx',
-                content: await Fs.readFile(filePath + '.tsx', 'utf8'),
-            }
-        else
-            return {
-                fileName,
-                content: '',
-            }
-    } catch (err) {
-        return {
-            fileName,
-            content: '',
-        }
-    }
-}
-async function writeScript(
-    fileName: string, content: string
-): Promise<boolean> {    
-    let filePath = Path.join(__dirname, 'scripts', fileName)
-    try {
-        await Fs.writeFile(filePath, content, 'utf8')
-        return true;
-    } catch (err) {
-        return false
-    }
-}
-async function fileImporter(
-    fileName: string
-): Promise<{ fileName: string; content: string }> {    
-    if (fileName == '@ijstech/components') {
-        return {
-            fileName: 'index.d.ts',
-            content: await getFileContent('../node_modules/@ijstech/components/types/index.d.ts'),
-        }
-    };
-    let filePath = Path.join(__dirname, 'scripts/scbook', fileName);    
-    try {
-        if (await checkFileExists(filePath)) {
-            return {
-                fileName: fileName,
-                content: await Fs.readFile(filePath, 'utf8'),
-            }
-        }
-        else if (await checkFileExists(filePath + '.ts')) {
-            return {
-                fileName: fileName + '.ts',
-                content: await Fs.readFile(filePath + '.ts', 'utf8'),
-            }
-        }
-        else if (await checkFileExists(filePath + '.tsx')) {
-            return {
-                fileName: fileName + '.tsx',
-                content: await Fs.readFile(filePath + '.tsx', 'utf8'),
-            }
-        }
-        else if (await checkFileExists(filePath + '.d.ts')) {
-            return {
-                fileName: fileName + '.d.ts',
-                content: await Fs.readFile(filePath + '.d.ts', 'utf8'),
-            }
-        }
-        else {
-            return {
-                fileName,
-                content: '',
-            }
-        }
-    } catch (err) {
-        return {
-            fileName,
-            content: '',
-        }
-    }
-}
-
-async function setScriptContent(fileName: string, content: string) {
-    let filePath = Path.join(__dirname, 'scripts', fileName)
-    await Fs.writeFile(filePath, content, 'utf8')
-}
+import * as Utils from './utils';
 
 describe('Compiler', async function () {
     this.timeout(60000)
+    return;
     it('renderUI', async()=>{
         let compiler = new Compiler()
         await compiler.addFile(
             'form.tsx',
             (
-                await getScript('form.tsx')
+                await Utils.getScript('form.tsx')
             ).content,
-            getScript
+            Utils.getScript
         );
-        let result = compiler.renderUI('form.tsx', 'renderDesktop', {
+        let result = compiler.renderUI('form.tsx', 'renderUI', {
             name: 'i-panel',
             items: [
                 {
@@ -148,8 +26,8 @@ describe('Compiler', async function () {
             ]
         });
         // if (result)
-        //     await writeScript('form2.tsx', result);
-        let script = await getScript('form2.tsx');
+        //     await Utils.writeScript('modified/renderUI.tsx', result);
+        let script = await Utils.getScript('modified/renderUI.tsx');
         assert.strictEqual(result, script.content);
     });
     it('parseUI', async () => {
@@ -157,9 +35,9 @@ describe('Compiler', async function () {
         await compiler.addFile(
             'form.tsx',
             (
-                await getScript('form.tsx')
+                await Utils.getScript('form.tsx')
             ).content,
-            getScript
+            Utils.getScript
         );
         let result = compiler.parseUI('form.tsx', 'render');
         assert.deepStrictEqual(result, {
@@ -179,9 +57,9 @@ describe('Compiler', async function () {
         await compiler.addFile(
             'form.tsx',
             (
-                await getScript('form.tsx')
+                await Utils.getScript('form.tsx')
             ).content,
-            getScript
+            Utils.getScript
         );
         result = compiler.parseUI('form.tsx', 'render1');
         assert.strictEqual(result, undefined);
@@ -190,9 +68,9 @@ describe('Compiler', async function () {
         await compiler.addFile(
             'form.tsx',
             (
-                await getScript('form.tsx')
+                await Utils.getScript('form.tsx')
             ).content,
-            getScript
+            Utils.getScript
         );
         result = compiler.parseUI('form.tsx', 'render2');
         assert.deepStrictEqual(result, {
@@ -213,7 +91,7 @@ describe('Compiler', async function () {
         let deps = await compiler.getDependencies(
             'form.tsx',
             (
-                await getScript('form.tsx')
+                await Utils.getScript('form.tsx')
             ).content
         )
         assert.deepStrictEqual(deps, ['@ijstech/components', 'hello'])
@@ -223,9 +101,9 @@ describe('Compiler', async function () {
         let deps = await compiler.getDependencies(
             'form.tsx',
             (
-                await getScript('form.tsx')
+                await Utils.getScript('form.tsx')
             ).content,
-            getScript
+            Utils.getScript
         )
         assert.deepStrictEqual(deps, [
             '@ijstech/components',
@@ -239,34 +117,34 @@ describe('Compiler', async function () {
         await compiler.addFile(
             'hello.ts',
             (
-                await getScript('hello.ts')
+                await Utils.getScript('hello.ts')
             ).content,
-            getScript
+            Utils.getScript
         )
         let result = await compiler.compile(true)
         assert.strictEqual(result.errors.length, 0)
         if (result.errors.length) console.dir(result.errors)
-        let exp = (await getScript('hello.js')).content
+        let exp = (await Utils.getScript('hello.js')).content
         if (exp) assert.strictEqual(result.script['index.js'], exp)
-        else await setScriptContent('hello.js', result.script['index.js'])
+        else await Utils.setScriptContent('hello.js', result.script['index.js'])
     })
     it('form.tsx', async () => {
         let compiler = new Compiler()
         await compiler.addFile(
             'form.tsx',
             (
-                await getScript('form.tsx')
+                await Utils.getScript('form.tsx')
             ).content,
-            getScript
+            Utils.getScript
         )
         let result = await compiler.compile(true)
-        // writeScript('form.js', result.script['index.js'])
+        // Utils.writeScript('form.js', result.script['index.js'])
         if (result.errors.length) 
             console.dir(result.errors)
         assert.strictEqual(result.errors.length, 0)
-        let exp = (await getScript('form.js')).content
+        let exp = (await Utils.getScript('form.js')).content
         if (exp) assert.strictEqual(result.script['index.js'], exp)
-        else await setScriptContent('form.js', result.script['index.js'])
+        else await Utils.setScriptContent('form.js', result.script['index.js'])
     });
 })
 

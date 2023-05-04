@@ -56,6 +56,7 @@ export declare class Compiler {
     private fileNotExists;
     private resolvedFileName;
     dependencies: string[];
+    private host;
     private packageImporter;
     constructor(options?: {
         packageImporter?: PackageImporter;
@@ -63,11 +64,25 @@ export declare class Compiler {
     private importDependencies;
     addFile(fileName: string, content: string, dependenciesImporter?: FileImporter): Promise<string[]>;
     updateFile(fileName: string, content: string): void;
+    private getProgram;
     addPackage(packName: string, pack?: IPackage): Promise<{
         fileName: string;
         content: string;
     } | undefined>;
     compile(emitDeclaration?: boolean): Promise<ICompilerResult>;
+    getSource(fileName: string): TS.SourceFile | undefined;
+    addComponentProp(fileName: string, className: string, id: string): string | undefined;
+    addEventHandler(fileName: string, classNames: string[], func: string, params?: string): {
+        code?: string;
+        lineNumber?: number;
+        columnNumber?: number;
+    };
+    locateMethod(fileName: string, funcName: string): {
+        lineNumber?: number;
+        columnNumber?: number;
+    };
+    renameMethod(fileName: string, fromFuncName: string, toFuncName: string): string | undefined;
+    renameComponent(fileName: string, className: string, fromId: string, toId: string): string | undefined;
     parseUI(fileName: string, funcName?: string): Parser.IComponent | undefined;
     renderUI(fileName: string, funcName?: string, component?: Parser.IComponent): string | undefined;
     fileExists(fileName: string): boolean;
