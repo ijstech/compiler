@@ -214,17 +214,17 @@ async function bundle() {
     let scRootDir = RootPath;
     if (SourcePath)
         scRootDir = Path.relative(scRootDir, SourcePath);
-    
+    let bundleLibs = {};
     let scconfig = await readSCConfig(scRootDir);
     let packageConfig = await readPackageConfig(scRootDir);
     if (scconfig){
-        let moduleDir = scRootDir;
+        let moduleSourceDir = scRootDir;
         if (scconfig.moduleDir)
-            moduleDir = Path.join(scRootDir, scconfig.moduleDir);
+            moduleSourceDir = Path.join(scRootDir, scconfig.moduleDir);
 
         let packages = {};
         for (let name in scconfig.modules) {
-            packages[name] = Path.join(moduleDir, scconfig.modules[name].path);
+            packages[name] = Path.join(moduleSourceDir, scconfig.modules[name].path);
         };
         let packageManager = new PackageManager({
             packageImporter: async (packName: string) => {
@@ -266,7 +266,8 @@ async function bundle() {
         };
         //copy compiled modules to dist directory
         let distDir = Path.join(scRootDir, scconfig.distDir || 'dist');
-        let distModuleDir = Path.join(distDir, 'modules');
+        let distLibDir = Path.join(distDir, scconfig.rootDir || '', scconfig.libDir || 'libs');
+        let distModuleDir = Path.join(distDir, scconfig.rootDir || '', 'modules');
         // let distModuleDir = Path.join(distDir, 'libs/' + packageConfig.name);//'modules');
                 
         for (let name in scconfig.modules) {
@@ -280,10 +281,10 @@ async function bundle() {
                         scconfig.dependencies[item] = '*';
                 };
             });
-            let moduleDir = Path.join(distModuleDir, module.path);
-            copyAssets(Path.join(scRootDir, scconfig.rootDir || scconfig.moduleDir || 'modules', module.path), moduleDir);
-            await Fs.mkdir(moduleDir, { recursive: true });
-            Fs.writeFile(Path.join(moduleDir, 'index.js'), pack.script || '');
+            let distModulePath = Path.join(distModuleDir, module.path);
+            copyAssets(Path.join(scRootDir, scconfig.moduleDir || 'modules', module.path), distModulePath);
+            await Fs.mkdir(distModulePath, { recursive: true });
+            Fs.writeFile(Path.join(distModulePath, 'index.js'), pack.script || '');
         };        
         let checkDeps = true;
         while (checkDeps) {
@@ -307,7 +308,7 @@ async function bundle() {
         let deps = ['@ijstech/components'];
         let path = await getLocalPackagePath('@ijstech/components');
         if (path)
-            await Fs.cp(Path.join(path, 'dist'), Path.join(distDir, 'libs/@ijstech/components'), {recursive: true});
+            await Fs.cp(Path.join(path, 'dist'), Path.join(distLibDir, '@ijstech/components'), {recursive: true});
         
         async function copyDependencies(dependencies: any, all?: boolean){
             dependencies = dependencies || {};
@@ -322,11 +323,11 @@ async function bundle() {
                             console.dir('#Copy dependence: ' + name);
                             let distFile: string = pack.plugin || pack.browser;
                             if (distFile && distFile.endsWith('.js')){
-                                await Fs.mkdir(Path.join(distDir, 'libs', name), {recursive: true});
-                                await Fs.copyFile(Path.join(path, distFile), Path.join(distDir, 'libs', name, 'index.js'))
+                                await Fs.mkdir(Path.join(distLibDir, name), {recursive: true});
+                                await Fs.copyFile(Path.join(path, distFile), Path.join(distLibDir, name, 'index.js'));                                
                             }
                             else
-                                await Fs.cp(Path.join(path, 'dist'), Path.join(distDir, 'libs', name), {recursive: true});
+                                await Fs.cp(Path.join(path, 'dist'), Path.join(distLibDir, name), {recursive: true});
                         };                       
                         deps.unshift(name);
                         let dependencies = pack.dependencies || {};
@@ -335,12 +336,37 @@ async function bundle() {
                         await copyDependencies(dependencies);                    
                     }
                 };
+            };            
+        };
+        async function bundleDependencies(dependencies: any){
+            dependencies = dependencies || {};
+            for (let name in dependencies){
+                let content = '';
+                if (scconfig.modules[name]){
+                    content = await Fs.readFile(Path.join(distModuleDir, `${scconfig.modules[name].path}/index.js`),'utf-8')}
+                else
+                    content = await Fs.readFile(Path.join(distLibDir, name, 'index.js'),'utf-8')
+                if (content)
+                    bundleLibs[name] = content;
             };
         };
         scconfig.dependencies = scconfig.dependencies || {};
         if (scconfig.main && !scconfig.modules[scconfig.main] && !scconfig.dependencies[scconfig.main])
             scconfig.dependencies[scconfig.main] = '*';
-        await copyDependencies(scconfig.dependencies, true); 
+        if (scconfig.bundle){
+            await copyDependencies(scconfig.dependencies, true);
+            await bundleDependencies(scconfig.dependencies);
+            if (scconfig.main && scconfig.modules[scconfig.main] && scconfig.modules[scconfig.main].dependencies){
+                let deps = {};
+                for (let i = 0; i < scconfig.modules[scconfig.main].dependencies.length; i++)
+                    deps[scconfig.modules[scconfig.main].dependencies[i]] = '*';
+                deps[scconfig.main] = '*';
+                await bundleDependencies(deps);
+            };
+            await Fs.writeFile(Path.join(distDir, scconfig.rootDir || '', 'bundle.json'), JSON.stringify(bundleLibs));
+        }
+        else
+            await copyDependencies(scconfig.dependencies, true);
         scconfig.dependencies = {};
         deps.forEach((name)=>{
             if (name != '@ijstech/components' && !name.startsWith('@ijstech/components/'))
@@ -355,8 +381,19 @@ async function bundle() {
 
         //generate index.html
         let indexHtml = await Fs.readFile(Path.join(__dirname, 'index.template.html'), 'utf8');
+        let meta = '';
+        if (scconfig.meta){
+            for (let n in scconfig.meta){
+                if (n.indexOf(':') < 0)
+                    meta += `  <meta name="${n}" content="${scconfig.meta[n]}">\n`
+                else
+                    meta += `  <meta property="${n}" content="${scconfig.meta[n]}">\n`
+            };
+        };
+        indexHtml = indexHtml.replace('{{meta}}', meta);
+        indexHtml = indexHtml.replaceAll('{{rootDir}}', scconfig.rootDir?scconfig.rootDir+'/':'');
         indexHtml = indexHtml.replace('{{main}}', `${scconfig.main || '@scom/dapp'}`);
-        indexHtml = indexHtml.replace('{{scconfig}}', JSON.stringify(scconfig, null, 4));
+        // indexHtml = indexHtml.replace('{{scconfig}}', JSON.stringify(scconfig, null, 4));
         await Fs.writeFile(Path.join(scRootDir, scconfig.distDir || 'dist', 'index.html'), indexHtml);
         if (scconfig.ipfs == true){
             let cid = await hashDir(distDir);
