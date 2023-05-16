@@ -390,6 +390,10 @@ async function bundle() {
                         value = `${scconfig.rootDir}/${value}`;
                     meta += `  <link rel="icon" href="${value}">\n`
                 }
+                else if (n == 'title')
+                    meta += `  <title>${scconfig.meta[n]}</title>\n`
+                else if (n == 'chartset')
+                    meta += `  <meta charset="${scconfig.meta[n]}">\n`
                 else if (n.indexOf(':') < 0)
                     meta += `  <meta name="${n}" content="${scconfig.meta[n]}">\n`
                 else
