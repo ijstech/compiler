@@ -413,7 +413,13 @@ async function bundle() {
         let meta = '';
         if (scconfig.meta) {
             for (let n in scconfig.meta) {
-                if (n.indexOf(':') < 0)
+                if (n == 'favicon') {
+                    let value = scconfig.meta[n];
+                    if (scconfig.rootDir && value.startsWith('modules/'))
+                        value = `${scconfig.rootDir}/${value}`;
+                    meta += `  <link rel="icon" href="${value}">\n`;
+                }
+                else if (n.indexOf(':') < 0)
                     meta += `  <meta name="${n}" content="${scconfig.meta[n]}">\n`;
                 else
                     meta += `  <meta property="${n}" content="${scconfig.meta[n]}">\n`;
