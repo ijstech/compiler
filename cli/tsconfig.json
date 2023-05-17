@@ -5,6 +5,7 @@
         "moduleResolution": "Node",
         "esModuleInterop": true,        
         "forceConsistentCasingInFileNames": true,
+        "removeComments": true,
         "declaration": false,        
         "baseUrl": ".",
         "paths": {

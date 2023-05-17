@@ -1,6 +1,22 @@
 import * as Parser from './parser';
 import TS from "./lib/typescript";
-export { Parser };
+import Path from './path';
+export { Parser, Path };
+export interface IStorage {
+    copyAssets(sourceDir: string, targetDir: string): Promise<void>;
+    copyPackage(packName: string, targetDir: string): Promise<any>;
+    getSCConfig(): Promise<any>;
+    getPackage(packName: string): Promise<any>;
+    getPackageConfig(): Promise<any>;
+    getPackageTypes(packName: string): Promise<IPackage>;
+    getFiles(dir: string): Promise<{
+        [filePath: string]: string;
+    }>;
+    mkdir(dir: string): Promise<void>;
+    readFile(fileName: string): Promise<string>;
+    writeFile(fileName: string, content: string): Promise<void>;
+}
+export declare function bundle(storage: IStorage, RootPath: string, SourcePath: string): Promise<void>;
 export interface ICompilerError {
     file: string;
     start: number;

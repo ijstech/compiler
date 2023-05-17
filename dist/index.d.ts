@@ -7426,11 +7426,43 @@ declare module "@ijstech/compiler/parser" {
     export function parseUI(source: TS.SourceFile, funcName: string): IComponent | undefined;
     export function renderUI(source: TS.SourceFile, funcName: string, component?: IComponent): string;
 }
+/// <amd-module name="@ijstech/compiler/path" />
+declare module "@ijstech/compiler/path" {
+    function basename(path: string, ext?: string): string;
+    function dirname(path: string): string;
+    function join(...paths: string[]): any;
+    function relative(from: string, to: string): string;
+    function resolve(...paths: string[]): string;
+    const _default: {
+        basename: typeof basename;
+        dirname: typeof dirname;
+        join: typeof join;
+        relative: typeof relative;
+        resolve: typeof resolve;
+    };
+    export default _default;
+}
 /// <amd-module name="@ijstech/compiler" />
 declare module "@ijstech/compiler" {
     import * as Parser from "@ijstech/compiler/parser";
     import TS from "./lib/typescript";
-    export { Parser };
+    import Path from "@ijstech/compiler/path";
+    export { Parser, Path };
+    export interface IStorage {
+        copyAssets(sourceDir: string, targetDir: string): Promise<void>;
+        copyPackage(packName: string, targetDir: string): Promise<any>;
+        getSCConfig(): Promise<any>;
+        getPackage(packName: string): Promise<any>;
+        getPackageConfig(): Promise<any>;
+        getPackageTypes(packName: string): Promise<IPackage>;
+        getFiles(dir: string): Promise<{
+            [filePath: string]: string;
+        }>;
+        mkdir(dir: string): Promise<void>;
+        readFile(fileName: string): Promise<string>;
+        writeFile(fileName: string, content: string): Promise<void>;
+    }
+    export function bundle(storage: IStorage, RootPath: string, SourcePath: string): Promise<void>;
     export interface ICompilerError {
         file: string;
         start: number;

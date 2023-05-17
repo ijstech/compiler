@@ -28,6 +28,10 @@
         "build:types": "rm -rf bundle && node tools/buildLib.js && tsc --P tsconfig.types.json && rm -rf bundle && rm -rf src/lib.ts && node tools/bundleLib.js",
         "build:test": "rm -rf bundle && tsc --P tsconfig.test.json && node tools/bundleTest.js && rm -rf bundle",
         "cp:typescript": "cp -f node_modules/typescript/lib/typescript.js src/lib/typescript.js && cp -f node_modules/typescript/lib/typescript.d.ts src/lib/typescript.d.ts",
-        "test": "mocha --exit --require ts-node/register test/*.spec.ts"
+        "test": "mocha --exit --require ts-node/register test/*.spec.ts",
+        "test:path": "mocha --exit --require ts-node/register test/path.spec.ts"
+    },
+    "dependencies": {
+        "solc": "^0.8.19"
     }
 }

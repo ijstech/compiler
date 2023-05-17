@@ -3,7 +3,7 @@
         "allowJs": true,   
         "baseUrl": ".",
         "experimentalDecorators": true,
-        "target": "ES2017",
+        "target": "ES2021",
         "moduleResolution": "node",        
         "module": "amd",        
         "outFile": "bundle/editor.js",

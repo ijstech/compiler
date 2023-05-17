@@ -6,7 +6,8 @@
 import Lib from './lib';
 import * as Parser from './parser';
 import TS from "./lib/typescript";
-export {Parser};
+import Path from './path';
+export {Parser, Path};
 
 let isNode = false;    
 if (typeof process === 'object') {
@@ -16,7 +17,273 @@ if (typeof process === 'object') {
     }
   }
 };
+const indexHtmlTemplate = `
+<!DOCTYPE html>
 
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+{{meta}}
+  <script src="{{rootDir}}libs/@ijstech/components/index.js"></script>
+</head>
+<html>
+
+<body>
+  <script>
+    async function init() {
+      application.LibHost = "";
+      let config = await application.getContent('scconfig.json');
+      let module = await application.newModule("{{main}}", JSON.parse(config));
+      document.body.append(module);
+    };
+    init();
+  </script>
+</body>
+
+</html>`;
+
+export interface IStorage{
+    copyAssets(sourceDir: string, targetDir: string): Promise<void>;
+    copyPackage(packName: string, targetDir: string): Promise<any>;
+    getSCConfig(): Promise<any>;
+    getPackage(packName: string): Promise<any>;
+    getPackageConfig(): Promise<any>;
+    getPackageTypes(packName: string): Promise<IPackage>;
+    getFiles(dir: string): Promise<{ [filePath: string]: string }>;
+    mkdir(dir: string): Promise<void>;
+    readFile(fileName: string): Promise<string>;
+    writeFile(fileName: string, content: string): Promise<void>;
+};
+export async function bundle(storage: IStorage, RootPath: string, SourcePath: string){
+    let scRootDir = RootPath;
+    if (SourcePath)
+        scRootDir = Path.relative(scRootDir, SourcePath);
+    let bundleLibs: {[fileName: string]: string} = {};
+    let scconfig = await storage.getSCConfig();
+    let packageConfig = await storage.getPackageConfig();
+    if (scconfig){
+        let moduleSourceDir = scRootDir;
+        if (scconfig.moduleDir)
+            moduleSourceDir = Path.join(scRootDir, scconfig.moduleDir);
+
+        let packages: {[name: string]: string} = {};
+        for (let name in scconfig.modules) {
+            packages[name] = Path.join(moduleSourceDir, scconfig.modules[name].path);
+        };
+        let packageManager = new PackageManager({
+            packageImporter: async (packName: string) => {
+                let pack = await storage.getPackageTypes(packName);
+                return pack;
+            }
+        });
+        packageManager.addPackage('@ijstech/components', await storage.getPackageTypes('@ijstech/components'));
+        if (scconfig.networks){
+            packageManager.addPackage('bignumber.js', await storage.getPackageTypes('bignumber.js'));
+            packageManager.addPackage('@ijstech/eth-wallet', await storage.getPackageTypes('@ijstech/eth-wallet'));
+            packageManager.addPackage('@ijstech/eth-contract', await storage.getPackageTypes('@ijstech/eth-contract'));
+        };
+        for (let n in scconfig.dependencies){
+            if (!packageManager.packages(n))
+                packageManager.addPackage(n, await storage.getPackageTypes(n));  
+        };
+        
+        for (let name in packages){
+            let pack = { files: await storage.getFiles(packages[name]) };
+            for (let n in pack.files){
+                if (n == 'index.ts' || n == 'index.tsx')
+                    pack.files[n] = `///<amd-module name='${name}'/> \n` + pack.files[n];
+                else
+                    pack.files[n] = `///<amd-module name='${name}/${n}'/> \n` + pack.files[n];
+            };
+            packageManager.addPackage(name, pack);
+        };
+
+        await packageManager.buildAll();
+
+        for (let name in packages) {
+            let pack = packageManager.packages(name);
+            if (pack.errors && pack.errors.length > 0) {
+                console.error('Package compilation error: ' + name);
+                console.error(JSON.stringify(pack.errors, null, 4));
+                return;
+            }
+        };
+        //copy compiled modules to dist directory
+        let distDir = Path.join(scRootDir, scconfig.distDir || 'dist');
+        let distLibDir = Path.join(distDir, scconfig.rootDir || '', scconfig.libDir || 'libs');
+        let distModuleDir = Path.join(distDir, scconfig.rootDir || '', 'modules');
+        // let distModuleDir = Path.join(distDir, 'libs/' + packageConfig.name);//'modules');
+                
+        for (let name in scconfig.modules) {
+            let pack = packageManager.packages(name);
+            let module = scconfig.modules[name];
+            module.dependencies = [];
+            pack.dependencies?.forEach((item) => {
+                if (item != '@ijstech/components' && !item.startsWith('@ijstech/components/')){
+                    module.dependencies.push(item);
+                    if (!scconfig.modules[item] && !scconfig.dependencies[item])
+                        scconfig.dependencies[item] = '*';
+                };
+            });
+            let distModulePath = Path.join(distModuleDir, module.path);
+            storage.copyAssets(Path.join(scRootDir, scconfig.moduleDir || 'modules', module.path), distModulePath);
+            await storage.mkdir(distModulePath);
+            storage.writeFile(Path.join(distModulePath, 'index.js'), pack.script || '');
+        };        
+        let checkDeps = true;
+        while (checkDeps) {
+            checkDeps = false;
+            for (let name in scconfig.modules) {
+                let module = scconfig.modules[name];
+                for (let i = 0; i < module.dependencies.length; i++){
+                    let depModule = scconfig.modules[module.dependencies[i]];
+                    if (depModule){
+                        for (let k = 0; k < depModule.dependencies.length; k++){
+                            if (module.dependencies.indexOf(depModule.dependencies[k]) < 0){
+                                module.dependencies.splice(i, 0, depModule.dependencies[k]);
+                                checkDeps = true;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        //copy dependencies        
+        let deps = ['@ijstech/components'];
+        await storage.copyPackage('@ijstech/components', Path.join(distLibDir, '@ijstech/components'));
+        
+        async function copyDependencies(dependencies: any, all?: boolean){
+            dependencies = dependencies || {};
+            for (let name in dependencies){
+                if (name.startsWith('@ijstech/components/'))
+                    name = '@ijstech/components';
+                if ((all || name.startsWith('@ijstech/') || name.startsWith('@scom/'))){                    
+                    let pack = await storage.copyPackage(name, Path.join(distLibDir, name));
+                    if (pack){                     
+                        deps.unshift(name);
+                        let dependencies = pack.dependencies || {};
+                        if (name == '@ijstech/eth-contract')
+                            dependencies['@ijstech/eth-wallet'] = '*';
+                        await copyDependencies(dependencies);                    
+                    }
+                };
+            };            
+        };
+        async function bundleDependencies(dependencies: any){
+            dependencies = dependencies || {};
+            for (let name in dependencies){
+                let content = '';
+                if (scconfig.modules[name]){
+                    content = await storage.readFile(Path.join(distModuleDir, `${scconfig.modules[name].path}/index.js`))}
+                else
+                    content = await storage.readFile(Path.join(distLibDir, name, 'index.js'))
+                if (content)
+                    bundleLibs[name] = content;
+            };
+        };
+        scconfig.dependencies = scconfig.dependencies || {};
+        if (scconfig.main && !scconfig.modules[scconfig.main] && !scconfig.dependencies[scconfig.main])
+            scconfig.dependencies[scconfig.main] = '*';
+        if (scconfig.bundle){
+            await copyDependencies(scconfig.dependencies, true);
+            await bundleDependencies(scconfig.dependencies);
+            if (scconfig.main && scconfig.modules[scconfig.main] && scconfig.modules[scconfig.main].dependencies){
+                let deps: {[name: string]: string} = {};
+                for (let i = 0; i < scconfig.modules[scconfig.main].dependencies.length; i++)
+                    deps[scconfig.modules[scconfig.main].dependencies[i]] = '*';
+                deps[scconfig.main] = '*';
+                await bundleDependencies(deps);
+            };
+            await storage.writeFile(Path.join(distDir, scconfig.rootDir || '', 'bundle.json'), JSON.stringify(bundleLibs));
+        }
+        else
+            await copyDependencies(scconfig.dependencies, true);
+        scconfig.dependencies = {};
+        deps.forEach((name)=>{
+            if (name != '@ijstech/components' && !name.startsWith('@ijstech/components/'))
+                scconfig.dependencies[name] = '*'
+        });
+
+        delete scconfig['distDir'];
+        scconfig.moduleDir = 'modules';
+        // scconfig.moduleDir = 'libs/' + packageConfig.name;//'modules';
+
+        await storage.writeFile(Path.join(distDir, 'scconfig.json'), JSON.stringify(scconfig, null, 4))
+
+        //generate index.html
+        let indexHtml = indexHtmlTemplate;
+        let meta = '';
+        if (scconfig.meta){
+            for (let n in scconfig.meta){
+                if (n == 'favicon'){
+                    let value = scconfig.meta[n];
+                    if (scconfig.rootDir && value.startsWith('modules/'))
+                        value = `${scconfig.rootDir}/${value}`;
+                    meta += `  <link rel="icon" href="${value}">\n`
+                }
+                else if (n == 'title')
+                    meta += `  <title>${scconfig.meta[n]}</title>\n`
+                else if (n == 'chartset')
+                    meta += `  <meta charset="${scconfig.meta[n]}">\n`
+                else if (n.indexOf(':') < 0)
+                    meta += `  <meta name="${n}" content="${scconfig.meta[n]}">\n`
+                else
+                    meta += `  <meta property="${n}" content="${scconfig.meta[n]}">\n`
+            };
+        };
+        indexHtml = indexHtml.replace('{{meta}}', meta);
+        indexHtml = indexHtml.replaceAll('{{rootDir}}', scconfig.rootDir?scconfig.rootDir+'/':'');
+        indexHtml = indexHtml.replace('{{main}}', `${scconfig.main || '@scom/dapp'}`);
+        // indexHtml = indexHtml.replace('{{scconfig}}', JSON.stringify(scconfig, null, 4));
+        await storage.writeFile(Path.join(scRootDir, scconfig.distDir || 'dist', 'index.html'), indexHtml);
+        if (scconfig.ipfs == true){
+            // let cid = await hashDir(distDir);
+            // scconfig.ipfs = cid.cid;
+            // await Fs.writeFile(Path.join(distDir, 'scconfig.json'), JSON.stringify(scconfig, null, 4), 'utf8');
+            // await Fs.mkdir(Path.join(distDir, 'ipfs'), { recursive: true });
+            // await writeIpfs(Path.join(distDir, 'ipfs'), cid);
+        };
+    }
+    else {        
+        if (packageConfig){
+            let packageManager = new PackageManager({
+                packageImporter: async (packName: string) => {
+                    let pack = await storage.getPackageTypes(packName);
+                    return pack;
+                }
+            });
+            // packageManager.addPackage('@ijstech/components', await storage.getPackageTypes('@ijstech/components'));            
+            let pack:IPackage = { files: await storage.getFiles(Path.join(scRootDir, 'src'))};
+            for (let n in pack.files){
+                if (n == 'index.ts' || n == 'index.tsx')
+                    pack.files[n] = `///<amd-module name='${packageConfig.name}'/> \n` + pack.files[n];
+                else
+                    pack.files[n] = `///<amd-module name='${packageConfig.name}/${n}'/> \n` + pack.files[n];
+            };
+                // if (pack.files['index.ts']){
+                //     pack.files['index.ts'] = `///<amd-module name='${packageConfig.name}'/> \n` + pack.files['index.ts']
+                // }
+                // else if (pack.files['index.tsx'])
+                //     pack.files['index.tsx'] = `///<amd-module name='${packageConfig.name}'/> \n` + pack.files['index.tsx']
+            packageManager.addPackage(packageConfig.name, pack);
+            await packageManager.buildAll();
+
+            pack = packageManager.packages(packageConfig.name);
+            if (pack.errors && pack.errors.length > 0) {
+                console.error('Package compilation error: ' + packageConfig.name);
+                console.error(JSON.stringify(pack.errors, null, 4));
+                return;
+            };
+
+            let distDir = Path.join(scRootDir, 'dist');
+            let typesDir = Path.join(scRootDir, 'pluginTypes');
+            await storage.mkdir(distDir);
+            await storage.mkdir(typesDir);
+            storage.copyAssets(Path.join(scRootDir, 'src'), distDir);            
+            storage.writeFile(Path.join(distDir, 'index.js'), pack.script || '');
+            storage.writeFile(Path.join(typesDir, 'index.d.ts'), pack.dts || '');
+        };
+    };
+};
 export interface ICompilerError {
     file: string;
     start: number;
@@ -39,8 +306,8 @@ export interface IPackage{
     dts?: string;
     dependencies?: string[];
 };
-let Path: any;
-let Fs: any;
+// let Path: any;
+// let Fs: any;
 const PackageWhiteList = ['bignumber.js'];
 
 export function resolveAbsolutePath(baseFilePath: string, relativeFilePath: string): string{    
@@ -58,7 +325,7 @@ export function resolveAbsolutePath(baseFilePath: string, relativeFilePath: stri
             return result;
         }, [])
         .join('/');
-}
+};
 export type FileImporter = (fileName: string, isPackage?: boolean) => Promise<{fileName: string, content: string}|null>;
 export type PackageImporter = (packName: string) => Promise<IPackage>;
 export class PackageManager{
@@ -297,7 +564,7 @@ export class Compiler {
         if (!pack){
             if (!this.packages[packName]){
                 if (this.packageImporter){
-                    // let pack = await getLocalPackageTypes(packName);
+                    // let pack = await storage.getPackageTypes(packName);
                     let pack = await this.packageImporter(packName);
                     if (pack?.dts){     
                         this.addPackage(packName, pack);               

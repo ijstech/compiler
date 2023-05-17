@@ -46,11 +46,19 @@ async function bundle(){
 ///<amd-module name='@ijstech/compiler'/>
 ${content}
 `);
+
 content = await readFile(Path.resolve(__dirname, '../src/parser.ts'));
     await writeFile(Path.resolve(__dirname, '../bundle/parser.ts'), `
 ///<amd-module name='@ijstech/compiler/parser'/>
 ${content}
     `);
+
+content = await readFile(Path.resolve(__dirname, '../src/path.ts'));
+    await writeFile(Path.resolve(__dirname, '../bundle/path.ts'), `
+///<amd-module name='@ijstech/compiler/path'/>
+${content}
+    `);
+
 content = await readFile(Path.resolve(__dirname, '../src/lib.ts'));
     await writeFile(Path.resolve(__dirname, '../bundle/lib.ts'), `
 ///<amd-module name='@ijstech/compiler/lib'/>

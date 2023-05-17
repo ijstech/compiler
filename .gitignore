@@ -3,3 +3,4 @@ bundle
 package-lock.json
 test/dapp/dist
 *.sh
+tmp
