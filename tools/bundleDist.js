@@ -48,21 +48,46 @@ ${content}
 `);
 
 content = await readFile(Path.resolve(__dirname, '../src/parser.ts'));
-    await writeFile(Path.resolve(__dirname, '../bundle/parser.ts'), `
+await writeFile(Path.resolve(__dirname, '../bundle/parser.ts'), `
 ///<amd-module name='@ijstech/compiler/parser'/>
 ${content}
-    `);
+`);
 
 content = await readFile(Path.resolve(__dirname, '../src/path.ts'));
-    await writeFile(Path.resolve(__dirname, '../bundle/path.ts'), `
+await writeFile(Path.resolve(__dirname, '../bundle/path.ts'), `
 ///<amd-module name='@ijstech/compiler/path'/>
 ${content}
-    `);
+`);
+
+content = await readFile(Path.resolve(__dirname, '../src/solCodeGen.ts'));
+await writeFile(Path.resolve(__dirname, '../bundle/solCodeGen.ts'), `
+///<amd-module name='@ijstech/compiler/solCodeGen'/>
+${content}
+`);
+
+content = await readFile(Path.resolve(__dirname, '../src/solFlatten.ts'));
+await writeFile(Path.resolve(__dirname, '../bundle/solFlatten.ts'), `
+///<amd-module name='@ijstech/compiler/solFlatten'/>
+${content}
+`);
+
+content = await readFile(Path.resolve(__dirname, '../src/solCompile.ts'));
+await writeFile(Path.resolve(__dirname, '../bundle/solCompile.ts'), `
+///<amd-module name='@ijstech/compiler/solCompile'/>
+${content}
+`);
 
 content = await readFile(Path.resolve(__dirname, '../src/lib.ts'));
     await writeFile(Path.resolve(__dirname, '../bundle/lib.ts'), `
 ///<amd-module name='@ijstech/compiler/lib'/>
 ${content}
-    `);
+`);
+
+content = await readFile(Path.resolve(__dirname, '../src/types.ts'));
+    await writeFile(Path.resolve(__dirname, '../bundle/types.ts'), `
+///<amd-module name='@ijstech/compiler/types'/>
+${content}
+`);
+
 };
 bundle();

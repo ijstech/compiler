@@ -70,7 +70,7 @@ async function bundle(){
     let content = '';
     for (let i = 0; i < libs.length; i ++){
         content += await readFile(Path.resolve(__dirname, `../node_modules/typescript/lib/lib.${libs[i]}.d.ts`));
-    }
+    };
     await writeFile(Path.resolve(__dirname, '../bundle/lib.ts'), `
 declare var global:any;
 ${content}

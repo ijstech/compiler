@@ -1,4 +1,3 @@
-import { existsSync } from "fs";
 import TS from "./lib/typescript";
 
 export interface IComponent{

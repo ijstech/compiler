@@ -5,7 +5,6 @@ import * as Utils from './utils';
 
 describe('Compiler', async function () {
     this.timeout(60000)
-    return;
     it('renderUI', async()=>{
         let compiler = new Compiler()
         await compiler.addFile(

@@ -182,6 +182,7 @@ function join(...paths: string[]) {
     }
     if (joined === undefined)
         return '.';
+    joined = joined.replaceAll('//', '/');
     return joined;
 };
 function relative(from: string, to: string) {

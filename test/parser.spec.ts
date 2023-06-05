@@ -3,7 +3,7 @@ import * as assert from 'assert'
 import {Compiler, Parser} from '../src'
 import * as Utils from './utils';
 
-describe('Compiler', async function () {
+describe('Parser', async function () {
     it('addEventHandler', async()=>{
         let compiler = new Compiler()
         await compiler.addFile(

@@ -8,6 +8,9 @@ import * as Parser from './parser';
 import TS from "./lib/typescript";
 import Path from './path';
 export {Parser, Path};
+import * as Sol from './solCompile';
+import * as Types from './types';
+export {Types};
 
 let isNode = false;    
 if (typeof process === 'object') {
@@ -41,26 +44,142 @@ const indexHtmlTemplate = `
 
 </html>`;
 
-export interface IStorage{
-    copyAssets(sourceDir: string, targetDir: string): Promise<void>;
-    copyPackage(packName: string, targetDir: string): Promise<any>;
-    getSCConfig(): Promise<any>;
-    getPackage(packName: string): Promise<any>;
-    getPackageConfig(): Promise<any>;
-    getPackageTypes(packName: string): Promise<IPackage>;
-    getFiles(dir: string): Promise<{ [filePath: string]: string }>;
-    mkdir(dir: string): Promise<void>;
-    readFile(fileName: string): Promise<string>;
-    writeFile(fileName: string, content: string): Promise<void>;
-};
-export async function bundle(storage: IStorage, RootPath: string, SourcePath: string){
-    let scRootDir = RootPath;
-    if (SourcePath)
-        scRootDir = Path.relative(scRootDir, SourcePath);
-    let bundleLibs: {[fileName: string]: string} = {};
+export enum EPackageType{
+    contract = 'contract',
+    dapp = 'dapp',  
+    plugin = 'plugin',
+    worker = 'worker'
+}
+// export async function bundle(storage: IStorage, RootPath: string, packageType?: EPackageType){
+//     let scconfig = await storage.getSCConfig();
+//     if (packageType || scconfig?.type){
+//         switch(packageType || scconfig?.type){
+//             case 'dapp':
+//                 await bundleDapp(storage, RootPath);
+//                 break;
+//             case 'contract':
+//                 await bundleContract(storage, RootPath);
+//                 break;
+//             default:
+//                 await bundleDapp(storage, RootPath);
+//                 break;
+//         }
+//     }
+//     else
+//         await bundleContractDist(storage, RootPath);
+// };
+export async function bundleContract(solc: Types.ISolc, storage: Types.IStorage, RootPath?: string){
+    RootPath = RootPath || storage.rootPath;
     let scconfig = await storage.getSCConfig();
+    let options = scconfig?.solidity;
+    if (!options){
+        let solconfig = await storage.readFile('solconfig.json');
+        if (solconfig)
+            options = JSON.parse(solconfig);
+    };
+    await Sol.bundle(solc, storage, options || {
+        "version": "0.8.19",
+        "optimizerRuns": 999999,
+        "sourceDir": "contracts",
+        "outputDir": "src/contracts",
+        "outputObjects": "bytecode"
+    }, RootPath);
+    await bundleContractDist(storage, RootPath);
+    await bundleContractLib(storage, RootPath);
+};
+export async function bundleContractLib(storage: Types.IStorage, RootPath?: string){
+    RootPath = RootPath || storage.rootPath;
     let packageConfig = await storage.getPackageConfig();
-    if (scconfig){
+    if (packageConfig){
+        let packageManager = new PackageManager({
+            packageImporter: async (packName: string) => {
+                let pack = await storage.getPackageTypes(packName);
+                return pack;
+            },
+            tsconfig: {
+                allowJs: false,
+                alwaysStrict: true,
+                declaration: true,   
+                esModuleInterop: true,
+                removeComments: true,
+                moduleResolution: TS.ModuleResolutionKind.Classic,
+                resolveJsonModule: false,
+                skipLibCheck: true,
+                noEmitOnError: true,
+                module: TS.ModuleKind.CommonJS,
+                target: TS.ScriptTarget.ES2017
+            }
+        });
+        packageManager.addPackage('@ijstech/eth-contract', await storage.getPackageTypes('@ijstech/eth-contract'));            
+        let pack:Types.IPackage = { files: await storage.getFiles(Path.join(RootPath, 'src'))};
+        packageManager.addPackage(packageConfig.name, pack);
+        await packageManager.buildAll();
+
+        pack = packageManager.packages(packageConfig.name);
+
+        if (pack.errors && pack.errors.length > 0) {
+            console.error('Package compilation error: ' + packageConfig.name);
+            console.error(JSON.stringify(pack.errors, null, 4));
+            return;
+        };
+
+        let libDir = Path.join(RootPath, 'lib');
+        let typesDir = Path.join(RootPath, 'types');
+        for (let fileName in pack.script){
+            let content = pack.script[fileName];
+            await storage.writeFile(Path.join(libDir, fileName), content);
+        }
+        for (let fileName in pack.dts){
+            let content = pack.dts[fileName];
+            await storage.writeFile(Path.join(typesDir, fileName), content);
+        };
+    };
+};
+export async function bundleContractDist(storage: Types.IStorage, RootPath?: string){
+    RootPath = RootPath || storage.rootPath;
+    let packageConfig = await storage.getPackageConfig();
+    if (packageConfig){
+        let packageManager = new PackageManager({
+            packageImporter: async (packName: string) => {
+                let pack = await storage.getPackageTypes(packName);
+                return pack;
+            }
+        });       
+        let pack:Types.IPackage = { files: await storage.getFiles(Path.join(RootPath, 'src'))};
+        for (let n in pack.files){
+            if (n == 'index.ts' || n == 'index.tsx')
+                pack.files[n] = `///<amd-module name='${packageConfig.name}'/> \n` + pack.files[n];
+            else
+                pack.files[n] = `///<amd-module name='${packageConfig.name}/${n}'/> \n` + pack.files[n];
+        };
+        packageManager.addPackage(packageConfig.name, pack);
+        await packageManager.buildAll();
+
+        pack = packageManager.packages(packageConfig.name);
+        if (pack.errors && pack.errors.length > 0) {
+            console.error('Package compilation error: ' + packageConfig.name);
+            console.error(JSON.stringify(pack.errors, null, 4));
+            return;
+        };
+
+        let distDir = Path.join(RootPath, 'dist');
+        let typesDir = Path.join(RootPath, 'pluginTypes');
+        let script = '';
+        let dts = '';
+        if (pack.script && pack.script['index.js'])
+            script = pack.script['index.js'];
+        if (pack.dts && pack.dts['index.d.ts'])
+            dts = pack.dts['index.d.ts'];    
+        await storage.writeFile(Path.join(distDir, 'index.js'), script);
+        await storage.writeFile(Path.join(typesDir, 'index.d.ts'), dts);
+    };
+};
+export async function bundleDapp(storage: Types.IStorage, RootPath?: string){
+    RootPath = RootPath || storage.rootPath;
+    let scRootDir = RootPath;
+    let bundleLibs: {[fileName: string]: string} = {};
+    let scconfig = await storage.getSCConfig();    
+    if (scconfig) {        
         let moduleSourceDir = scRootDir;
         if (scconfig.moduleDir)
             moduleSourceDir = Path.join(scRootDir, scconfig.moduleDir);
@@ -117,7 +236,7 @@ export async function bundle(storage: IStorage, RootPath: string, SourcePath: st
             let pack = packageManager.packages(name);
             let module = scconfig.modules[name];
             module.dependencies = [];
-            pack.dependencies?.forEach((item) => {
+            pack.dependencies?.forEach((item: string) => {
                 if (item != '@ijstech/components' && !item.startsWith('@ijstech/components/')){
                     module.dependencies.push(item);
                     if (!scconfig.modules[item] && !scconfig.dependencies[item])
@@ -125,9 +244,12 @@ export async function bundle(storage: IStorage, RootPath: string, SourcePath: st
                 };
             });
             let distModulePath = Path.join(distModuleDir, module.path);
-            storage.copyAssets(Path.join(scRootDir, scconfig.moduleDir || 'modules', module.path), distModulePath);
-            await storage.mkdir(distModulePath);
-            storage.writeFile(Path.join(distModulePath, 'index.js'), pack.script || '');
+            let script = '';
+            if (pack.script && pack.script['index.js'])
+                script = pack.script['index.js'];
+            await storage.copyAssets(Path.join(scRootDir, scconfig.moduleDir || 'modules', module.path), distModulePath);
+            // await storage.mkdir(distModulePath);
+            await storage.writeFile(Path.join(distModulePath, 'index.js'), script);
         };        
         let checkDeps = true;
         while (checkDeps) {
@@ -242,69 +364,7 @@ export async function bundle(storage: IStorage, RootPath: string, SourcePath: st
             // await Fs.mkdir(Path.join(distDir, 'ipfs'), { recursive: true });
             // await writeIpfs(Path.join(distDir, 'ipfs'), cid);
         };
-    }
-    else {        
-        if (packageConfig){
-            let packageManager = new PackageManager({
-                packageImporter: async (packName: string) => {
-                    let pack = await storage.getPackageTypes(packName);
-                    return pack;
-                }
-            });
-            // packageManager.addPackage('@ijstech/components', await storage.getPackageTypes('@ijstech/components'));            
-            let pack:IPackage = { files: await storage.getFiles(Path.join(scRootDir, 'src'))};
-            for (let n in pack.files){
-                if (n == 'index.ts' || n == 'index.tsx')
-                    pack.files[n] = `///<amd-module name='${packageConfig.name}'/> \n` + pack.files[n];
-                else
-                    pack.files[n] = `///<amd-module name='${packageConfig.name}/${n}'/> \n` + pack.files[n];
-            };
-                // if (pack.files['index.ts']){
-                //     pack.files['index.ts'] = `///<amd-module name='${packageConfig.name}'/> \n` + pack.files['index.ts']
-                // }
-                // else if (pack.files['index.tsx'])
-                //     pack.files['index.tsx'] = `///<amd-module name='${packageConfig.name}'/> \n` + pack.files['index.tsx']
-            packageManager.addPackage(packageConfig.name, pack);
-            await packageManager.buildAll();
-
-            pack = packageManager.packages(packageConfig.name);
-            if (pack.errors && pack.errors.length > 0) {
-                console.error('Package compilation error: ' + packageConfig.name);
-                console.error(JSON.stringify(pack.errors, null, 4));
-                return;
-            };
-
-            let distDir = Path.join(scRootDir, 'dist');
-            let typesDir = Path.join(scRootDir, 'pluginTypes');
-            await storage.mkdir(distDir);
-            await storage.mkdir(typesDir);
-            storage.copyAssets(Path.join(scRootDir, 'src'), distDir);            
-            storage.writeFile(Path.join(distDir, 'index.js'), pack.script || '');
-            storage.writeFile(Path.join(typesDir, 'index.d.ts'), pack.dts || '');
-        };
     };
-};
-export interface ICompilerError {
-    file: string;
-    start: number;
-    length: number;
-    message: string | TS.DiagnosticMessageChain;
-    category: number;
-    code: number;
-};
-export interface ICompilerResult {
-    errors: ICompilerError[];
-    script: {[file: string]: string};
-    dts: {[file: string]: string};
-};
-export type IPackageFiles = {[filePath: string]: string};
-export interface IPackage{
-    files?:IPackageFiles;
-    path?: string;
-    errors?: ICompilerError[];
-    script?: string;
-    dts?: string;
-    dependencies?: string[];
 };
 // let Path: any;
 // let Fs: any;
@@ -327,15 +387,17 @@ export function resolveAbsolutePath(baseFilePath: string, relativeFilePath: stri
         .join('/');
 };
 export type FileImporter = (fileName: string, isPackage?: boolean) => Promise<{fileName: string, content: string}|null>;
-export type PackageImporter = (packName: string) => Promise<IPackage>;
+export type PackageImporter = (packName: string) => Promise<Types.IPackage>;
 export class PackageManager{
     private packageImporter: PackageImporter | undefined;
-    private _packages: {[name: string]: IPackage}={};
+    private tsconfig: any;
+    private _packages: {[name: string]: Types.IPackage}={};
 
-    constructor(options?: {packageImporter?: PackageImporter}){
-        this.packageImporter = options?.packageImporter
+    constructor(options?: {packageImporter?: PackageImporter, tsconfig?: any}){
+        this.packageImporter = options?.packageImporter;
+        this.tsconfig = options?.tsconfig;
     };
-    addPackage(name: string, pack: IPackage){        
+    addPackage(name: string, pack: Types.IPackage){        
         if (!this._packages[name])
             this._packages[name] = pack
     };
@@ -343,21 +405,21 @@ export class PackageManager{
         for (let name in this._packages){
             let result = await this.buildPackage(name);
             if (result.errors && result.errors.length > 0)
-                return false;
+                throw new Error('Failed to build package: ' + name);
         };
         return true;
     };
-    async buildPackage(name: string): Promise<IPackage>{        
+    async buildPackage(name: string): Promise<Types.IPackage>{        
         let pack = this._packages[name];        
         if (!pack.dts && pack.files){
-            console.dir('#Build package: ' + name);
+            // console.dir('#Build package: ' + name);
             let indexFile: string = '';
             if (pack.files['index.ts'])
                 indexFile = 'index.ts'
             else if (pack.files['index.tsx'])
                 indexFile = 'index.tsx';
             if (indexFile){
-                let compiler = new Compiler({packageImporter: this.packageImporter});
+                let compiler = new Compiler({packageImporter: this.packageImporter, tsconfig: this.tsconfig});
                 for (let n in this._packages){
                     if (this._packages[n].dts)
                         compiler.addPackage(n, this._packages[n])
@@ -368,7 +430,7 @@ export class PackageManager{
                             fileName = '@ijstech/components'; 
                         if (this._packages[fileName]){    
                             if (!this._packages[fileName].dts){
-                                console.dir('Add dependence: ' + fileName)
+                                // console.dir('Add dependence: ' + fileName)
                                 let p = await this.buildPackage(fileName);    
                                 if (p.errors && p.errors.length > 0){
                                     console.dir(p.errors)
@@ -376,20 +438,22 @@ export class PackageManager{
                                 };
                             };
                             compiler.addPackage(fileName, this._packages[fileName]);
+                            let dts = '';
+                            let pack = this._packages[fileName];
+                            if (pack.dts && pack.dts['index.d.ts'])
+                                dts = pack.dts['index.d.ts'];
                             return {
                                 fileName: 'index.d.ts',
-                                content: this._packages[fileName].dts || ''
+                                content: dts
                             }
                         }
-                        console.dir('Add dependence: ' + fileName)
+                        // console.dir('Add dependence: ' + fileName)
                         if (fileName == '@ijstech/eth-contract' || fileName == '@ijstech/eth-wallet')
                             await compiler.addPackage('bignumber.js');
                         let result = await compiler.addPackage(fileName);
                         if (result)
                             return result;
-
-                        console.dir('Package not found: ' + fileName)
-                        return null
+                        throw new Error('Package not found: ' + fileName)
                     }
                     else{
                         let name = '';
@@ -412,15 +476,15 @@ export class PackageManager{
                     }
                 });
                 let result = await compiler.compile(true);
-                pack.dts = result.dts['index.d.ts'];
-                pack.script = result.script['index.js'];
+                pack.dts = result.dts;
+                pack.script = result.script;
                 pack.dependencies = compiler.dependencies;
                 pack.errors = result.errors;
             };
         };
         return pack;
     };
-    packages(name: string): IPackage{
+    packages(name: string): Types.IPackage{
         return this._packages[name];
     };
 };
@@ -429,7 +493,7 @@ export class Compiler {
     private dtsOptions: TS.CompilerOptions;
     private files: { [name: string]: string };
     private packageFiles: {[name: string]: string};
-    private packages: {[index: string]: IPackage} = {};
+    private packages: {[index: string]: Types.IPackage} = {};
     private libs: {[index: string]: string};
     private fileNotExists: string;
     private resolvedFileName: string;
@@ -437,9 +501,9 @@ export class Compiler {
     private host: TS.CompilerHost;
 
     private packageImporter: PackageImporter | undefined;
-    constructor(options?: {packageImporter?: PackageImporter}) {
+    constructor(options?: {packageImporter?: PackageImporter, tsconfig?: any}) {
         this.packageImporter = options?.packageImporter;
-        this.scriptOptions = {
+        this.scriptOptions = options?.tsconfig || {
             allowJs: false,
             alwaysStrict: true,
             declaration: true,      
@@ -501,8 +565,8 @@ export class Compiler {
                             let file = await fileImporter(module, true);
                             if (file){
                                 result.push(module);
-                                let pack: IPackage = {
-                                    dts: file.content
+                                let pack: Types.IPackage = {
+                                    dts: {'index.d.ts': file.content}
                                 };
                                 this.addPackage(module, pack);
     
@@ -526,7 +590,7 @@ export class Compiler {
     updateFile(fileName: string, content: string){
         this.files[fileName] = content;
     };
-    private getProgram(result?: ICompilerResult): TS.Program{
+    private getProgram(result?: Types.ICompilerResult): TS.Program{
         const host = {
             getSourceFile: this.getSourceFile.bind(this),
             getDefaultLibFileName: () => "lib.d.ts",
@@ -560,7 +624,7 @@ export class Compiler {
         let program:TS.Program = TS.createProgram(fileNames, this.scriptOptions, host);
         return program;
     };
-    async addPackage(packName: string, pack?: IPackage){       
+    async addPackage(packName: string, pack?: Types.IPackage): Promise<{fileName: string, content: string} | undefined>{       
         if (!pack){
             if (!this.packages[packName]){
                 if (this.packageImporter){
@@ -575,9 +639,12 @@ export class Compiler {
                                     await this.addPackage(n);
                             };
                         };
+                        let dts = '';
+                        if (pack.dts && pack.dts['index.d.ts'])
+                            dts = pack.dts['index.d.ts'];
                         return {
                             fileName: 'index.d.ts',
-                            content: pack.dts
+                            content: dts
                         };
                     };
                 };
@@ -585,12 +652,12 @@ export class Compiler {
         } 
         else{
             this.packages[packName] = pack;
-            if (pack.dts)
-                this.packageFiles[packName] = pack.dts;
+            if (pack.dts && pack.dts['index.d.ts'])
+                this.packageFiles[packName] = pack.dts['index.d.ts'];
         };
     };
-    async compile(emitDeclaration?: boolean): Promise<ICompilerResult> {
-        let result: ICompilerResult = {
+    async compile(emitDeclaration?: boolean): Promise<Types.ICompilerResult> {
+        let result: Types.ICompilerResult = {
             errors: [],
             script: {},
             dts: {},
@@ -750,20 +817,28 @@ export class Compiler {
         let content = this.packageFiles[fileName] || this.files[fileName];
         if (!content && fileName.endsWith('/index.d.ts')){
             let packName = fileName.split('/').slice(0, -1).join('/');
+            let dts = '';
+            let pack = this.packages[packName];
+            if (pack && pack.dts && pack.dts['index.d.ts'])
+                dts = pack.dts['index.d.ts'];
             if (this.packages[packName]){
-                content = this.packages[packName].dts || ''
+                content = dts
             }
             else {
                 for (let n in this.packages){
                     if (packName.endsWith('/' + n)){
-                        content = this.packages[n].dts || '';
+                        let pack = this.packages[n];
+                        let dts = '';
+                        if (pack && pack.dts && pack.dts['index.d.ts'])
+                            dts = pack.dts['index.d.ts'];
+                        content = dts;
                         break;
                     };
                 };
             };
         };
         if (!content){
-            console.dir('File not exists: ' + fileName);        }
+            throw new Error('File not exists: ' + fileName);        }
 
         return TS.createSourceFile(fileName, content, languageVersion);
     };

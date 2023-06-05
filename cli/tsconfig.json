@@ -8,10 +8,13 @@
         "removeComments": true,
         "declaration": false,        
         "baseUrl": ".",
+        "outDir": "bin",
         "paths": {
-            "@ijstech/compiler": [".."],
+            "@ijstech/compiler": ["../"],
             "@types/node": ["../node_modules/@types/node"]
         } 
     },
-    "include": ["bundle.ts"]
+    "include": [
+        "src/*.ts"
+    ]
 }

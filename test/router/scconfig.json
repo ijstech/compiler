@@ -1,0 +1,46 @@
+{
+    "workers": {
+        "hello": {
+            "module": "index.ts",
+            "plugins": {
+                "cache": true,
+                "db": true,
+                "fetch": true
+            }
+        }
+    },
+    "router": {
+        "routes": [
+            {
+                "methods": ["GET"],
+                "url": "/hello/:name",
+                "worker": "hello",
+                "params": {
+                    "param1": "default session params"
+                },
+                "plugins": {
+                    "cache": false,
+                    "db": false
+                },
+                "dependencies": {
+                    
+                }
+            },
+            {
+                "methods": ["POST"],
+                "url": "/hello/:name",
+                "worker": "hello",
+                "params": {
+                    "param1": "default session params"
+                },
+                "plugins": {
+                    "cache": false,
+                    "db": false
+                },
+                "dependencies": {
+                    
+                }
+            }
+        ]
+    }
+}
