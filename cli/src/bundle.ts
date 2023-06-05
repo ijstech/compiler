@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import Path from 'path';
-import { Types, bundleContract, bundleContractDist, bundleContractLib, bundleDapp} from '@ijstech/compiler';
+import { Types, bundleContract, bundleContractDist, bundleContractLib, bundleDapp, bundlePlugin} from '@ijstech/compiler';
 import { promises as Fs, createReadStream} from 'fs';
 import {Storage} from './storage';
 import {Solc} from './solc';
@@ -91,7 +91,6 @@ export async function hashDir(dirPath: string, version?: number, excludes?: stri
         links: items
     };
 };
-
 async function main() {
     let storage = new Storage(RootPath);
     let scconfig = await storage.getSCConfig();
@@ -103,14 +102,16 @@ async function main() {
             case 'contract':
                 await bundleContract(new Solc(), storage);
                 break;
+            case 'plugin':
+                await bundlePlugin(storage);
+                break;
             default:
                 await bundleDapp(storage);
                 break;
         }
     }
     else{
-        await bundleContractDist(storage);
-        await bundleContractLib(storage);
+        await bundlePlugin(storage);
     };
     // let scRootDir = RootPath;
     // if (SourcePath)

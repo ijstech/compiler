@@ -99,14 +99,16 @@ async function main() {
             case 'contract':
                 await (0, compiler_1.bundleContract)(new solc_1.Solc(), storage);
                 break;
+            case 'plugin':
+                await (0, compiler_1.bundlePlugin)(storage);
+                break;
             default:
                 await (0, compiler_1.bundleDapp)(storage);
                 break;
         }
     }
     else {
-        await (0, compiler_1.bundleContractDist)(storage);
-        await (0, compiler_1.bundleContractLib)(storage);
+        await (0, compiler_1.bundlePlugin)(storage);
     }
     ;
 }

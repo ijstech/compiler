@@ -8316,6 +8316,7 @@ declare module "@ijstech/compiler" {
     export function bundleContract(solc: Types.ISolc, storage: Types.IStorage, RootPath?: string): Promise<void>;
     export function bundleContractLib(storage: Types.IStorage, RootPath?: string): Promise<void>;
     export function bundleContractDist(storage: Types.IStorage, RootPath?: string): Promise<void>;
+    export function bundlePlugin(storage: Types.IStorage, RootPath?: string): Promise<void>;
     export function bundleDapp(storage: Types.IStorage, RootPath?: string): Promise<void>;
     export function resolveAbsolutePath(baseFilePath: string, relativeFilePath: string): string;
     export type FileImporter = (fileName: string, isPackage?: boolean) => Promise<{
