@@ -30,7 +30,7 @@ define("form", ["require", "exports", "@ijstech/components", "hello"], function 
     Object.defineProperty(exports, "__esModule", { value: true });
     class DemoForm extends components_1.Module {
         hello() {
-            hello_1.hello();
+            (0, hello_1.hello)();
         }
         ;
         render() {
