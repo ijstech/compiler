@@ -94,13 +94,13 @@ export async function hashDir(dirPath: string, version?: number, excludes?: stri
 async function main() {
     let storage = new Storage(RootPath);
     let scconfig = await storage.getSCConfig();
-    if (scconfig?.type){
+    if (scconfig){
         switch(scconfig?.type){
             case 'dapp':
                 await bundleDapp(storage);
                 break;
             case 'contract':
-                await bundleContract(new Solc(), storage);
+                await bundleContract(storage, new Solc());
                 break;
             case 'widget':
                 await bundleWidget(storage);
@@ -111,7 +111,10 @@ async function main() {
         }
     }
     else{
-        await bundleWidget(storage);
+        if (await storage.isFileExists('solconfig.json'))
+            await bundleContract(storage, new Solc());
+        else
+            await bundleWidget(storage);
     };
     // let scRootDir = RootPath;
     // if (SourcePath)

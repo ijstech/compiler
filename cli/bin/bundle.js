@@ -91,13 +91,13 @@ exports.hashDir = hashDir;
 async function main() {
     let storage = new storage_1.Storage(RootPath);
     let scconfig = await storage.getSCConfig();
-    if (scconfig?.type) {
+    if (scconfig) {
         switch (scconfig?.type) {
             case 'dapp':
                 await (0, compiler_1.bundleDapp)(storage);
                 break;
             case 'contract':
-                await (0, compiler_1.bundleContract)(new solc_1.Solc(), storage);
+                await (0, compiler_1.bundleContract)(storage, new solc_1.Solc());
                 break;
             case 'widget':
                 await (0, compiler_1.bundleWidget)(storage);
@@ -108,7 +108,10 @@ async function main() {
         }
     }
     else {
-        await (0, compiler_1.bundleWidget)(storage);
+        if (await storage.isFileExists('solconfig.json'))
+            await (0, compiler_1.bundleContract)(storage, new solc_1.Solc());
+        else
+            await (0, compiler_1.bundleWidget)(storage);
     }
     ;
 }

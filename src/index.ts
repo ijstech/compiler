@@ -68,7 +68,7 @@ export enum EPackageType{
 //     else
 //         await bundleContractDist(storage, RootPath);
 // };
-export async function bundleContract(solc: Types.ISolc, storage: Types.IStorage, RootPath?: string){
+export async function bundleContract(storage: Types.IStorage, solc: Types.ISolc, RootPath?: string){
     RootPath = RootPath || storage.rootPath;
     let scconfig = await storage.getSCConfig();
     let options = scconfig?.solidity;
