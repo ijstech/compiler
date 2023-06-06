@@ -40,6 +40,7 @@ async function writeFile(fileName, content) {
 async function bundle(){
     let content = await readFile(Path.resolve(__dirname, '../src/lib/lib.d.ts'));
     content = content.replace('"$`": string;', '"$\\`": string;');
+    content = content.replace('randomUUID(): `${string}-${string}-${string}-${string}-${string}`', 'randomUUID(): string')
     await writeFile(Path.resolve(__dirname, '../src/lib.ts'), //`///<amd-module name='@ijstech/compiler/lib'/>
 `const Lib:string=\`
 ${content}\`;

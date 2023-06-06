@@ -143,5 +143,5 @@ class Demo extends eth_contract_1.Contract {
         });
     }
 }
-exports.Demo = Demo;
 Demo._abi = Demo_json_1.default.abi;
+exports.Demo = Demo;

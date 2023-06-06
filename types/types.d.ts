@@ -34,7 +34,7 @@ export interface ICompilerResult {
         [file: string]: string;
     };
 }
-export declare type IPackageFiles = {
+export type IPackageFiles = {
     [filePath: string]: string;
 };
 export interface IPackage {

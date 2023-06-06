@@ -16,11 +16,11 @@ export declare function bundleContractDist(storage: Types.IStorage, RootPath?: s
 export declare function bundlePlugin(storage: Types.IStorage, RootPath?: string): Promise<void>;
 export declare function bundleDapp(storage: Types.IStorage, RootPath?: string): Promise<void>;
 export declare function resolveAbsolutePath(baseFilePath: string, relativeFilePath: string): string;
-export declare type FileImporter = (fileName: string, isPackage?: boolean) => Promise<{
+export type FileImporter = (fileName: string, isPackage?: boolean) => Promise<{
     fileName: string;
     content: string;
 } | null>;
-export declare type PackageImporter = (packName: string) => Promise<Types.IPackage>;
+export type PackageImporter = (packName: string) => Promise<Types.IPackage>;
 export declare class PackageManager {
     private packageImporter;
     private tsconfig;

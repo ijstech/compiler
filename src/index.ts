@@ -185,7 +185,7 @@ export async function bundlePlugin(storage: Types.IStorage, RootPath?: string){
                 return pack;
             }
         });
-        // packageManager.addPackage('@ijstech/components', await getLocalPackageTypes('@ijstech/components'));            
+        // packageManager.addPackage('@ijstech/components', await storage.getPackageTypes('@ijstech/components'));            
         let pack:Types.IPackage = { files: await storage.getFiles(Path.join(scRootDir, 'src'))};
         for (let n in pack.files){
             if (n == 'index.ts' || n == 'index.tsx')
@@ -193,11 +193,6 @@ export async function bundlePlugin(storage: Types.IStorage, RootPath?: string){
             else
                 pack.files[n] = `///<amd-module name='${packageConfig.name}/${n}'/> \n` + pack.files[n];
         };
-            // if (pack.files['index.ts']){
-            //     pack.files['index.ts'] = `///<amd-module name='${packageConfig.name}'/> \n` + pack.files['index.ts']
-            // }
-            // else if (pack.files['index.tsx'])
-            //     pack.files['index.tsx'] = `///<amd-module name='${packageConfig.name}'/> \n` + pack.files['index.tsx']
         packageManager.addPackage(packageConfig.name, pack);
         await packageManager.buildAll();
 
@@ -214,11 +209,11 @@ export async function bundlePlugin(storage: Types.IStorage, RootPath?: string){
         let dts = '';
         if (pack.script && pack.script['index.js'])
             script = pack.script['index.js'];
-        if (pack.script && pack.script['index.d.ts'])
-            dts = pack.script['index.d.ts'];
-        await storage.copyAssets(Path.join(scRootDir, 'src'), distDir);            
-        await storage.writeFile(Path.join(distDir, 'index.js'), script);
-        await storage.writeFile(Path.join(typesDir, 'index.d.ts'), dts);
+        if (pack.dts && pack.dts['index.d.ts'])
+            dts = pack.dts['index.d.ts'];
+        storage.copyAssets(Path.join(scRootDir, 'src'), distDir);            
+        storage.writeFile(Path.join(distDir, 'index.js'), script);
+        storage.writeFile(Path.join(typesDir, 'index.d.ts'), dts);
     };
 };
 export async function bundleDapp(storage: Types.IStorage, RootPath?: string){
@@ -452,8 +447,8 @@ export class PackageManager{
         for (let name in this._packages){
             let result = await this.buildPackage(name);
             if (result.errors && result.errors.length > 0){
-                console.dir('Failed to build package: ' + name)
-                console.dir(result.errors);
+                console.error('Failed to build package: ' + name)
+                console.error(JSON.stringify(result.errors, null, 4));
                 throw new Error('Failed to build package: ' + name);
             }
         };

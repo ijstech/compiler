@@ -164,8 +164,8 @@ define("@scom/demo-contract/contracts/Demo.ts", ["require", "exports", "@ijstech
             });
         }
     }
-    exports.Demo = Demo;
     Demo._abi = Demo_json_1.default.abi;
+    exports.Demo = Demo;
 });
 define("@scom/demo-contract/contracts/index.ts", ["require", "exports", "@scom/demo-contract/contracts/Demo.ts"], function (require, exports, Demo_1) {
     "use strict";
