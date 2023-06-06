@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import Path from 'path';
-import { Types, bundleContract, bundleContractDist, bundleContractLib, bundleDapp, bundlePlugin} from '@ijstech/compiler';
+import { Types, bundleContract, bundleContractDist, bundleContractLib, bundleDapp, bundleWidget} from '@ijstech/compiler';
 import { promises as Fs, createReadStream} from 'fs';
 import {Storage} from './storage';
 import {Solc} from './solc';
@@ -102,8 +102,8 @@ async function main() {
             case 'contract':
                 await bundleContract(new Solc(), storage);
                 break;
-            case 'plugin':
-                await bundlePlugin(storage);
+            case 'widget':
+                await bundleWidget(storage);
                 break;
             default:
                 await bundleDapp(storage);
@@ -111,7 +111,7 @@ async function main() {
         }
     }
     else{
-        await bundlePlugin(storage);
+        await bundleWidget(storage);
     };
     // let scRootDir = RootPath;
     // if (SourcePath)

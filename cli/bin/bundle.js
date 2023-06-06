@@ -99,8 +99,8 @@ async function main() {
             case 'contract':
                 await (0, compiler_1.bundleContract)(new solc_1.Solc(), storage);
                 break;
-            case 'plugin':
-                await (0, compiler_1.bundlePlugin)(storage);
+            case 'widget':
+                await (0, compiler_1.bundleWidget)(storage);
                 break;
             default:
                 await (0, compiler_1.bundleDapp)(storage);
@@ -108,7 +108,7 @@ async function main() {
         }
     }
     else {
-        await (0, compiler_1.bundlePlugin)(storage);
+        await (0, compiler_1.bundleWidget)(storage);
     }
     ;
 }

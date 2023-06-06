@@ -140,6 +140,7 @@ class Storage {
         let pack = await getLocalPackage(packName);
         if (pack && !this.copied[packName]) {
             let path = pack.path;
+            this.copied[packName] = true;
             console.dir('#Copy dependence: ' + packName);
             let distFile = pack.plugin || pack.browser;
             if (distFile && distFile.endsWith('.js')) {

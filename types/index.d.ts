@@ -7,13 +7,13 @@ export { Types };
 export declare enum EPackageType {
     contract = "contract",
     dapp = "dapp",
-    plugin = "plugin",
+    widget = "widget",
     worker = "worker"
 }
 export declare function bundleContract(solc: Types.ISolc, storage: Types.IStorage, RootPath?: string): Promise<void>;
 export declare function bundleContractLib(storage: Types.IStorage, RootPath?: string): Promise<void>;
 export declare function bundleContractDist(storage: Types.IStorage, RootPath?: string): Promise<void>;
-export declare function bundlePlugin(storage: Types.IStorage, RootPath?: string): Promise<void>;
+export declare function bundleWidget(storage: Types.IStorage, RootPath?: string): Promise<void>;
 export declare function bundleDapp(storage: Types.IStorage, RootPath?: string): Promise<void>;
 export declare function resolveAbsolutePath(baseFilePath: string, relativeFilePath: string): string;
 export type FileImporter = (fileName: string, isPackage?: boolean) => Promise<{

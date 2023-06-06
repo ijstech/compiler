@@ -149,6 +149,7 @@ export class Storage implements IStorage{
         let pack = await getLocalPackage(packName);
         if (pack && !this.copied[packName]){
             let path = pack.path;
+            this.copied[packName] = true;
             console.dir('#Copy dependence: ' + packName);
             let distFile: string = pack.plugin || pack.browser;
             if (distFile && distFile.endsWith('.js')){

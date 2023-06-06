@@ -47,7 +47,7 @@ const indexHtmlTemplate = `
 export enum EPackageType{
     contract = 'contract',
     dapp = 'dapp',  
-    plugin = 'plugin',
+    widget = 'widget',
     worker = 'worker'
 }
 // export async function bundle(storage: IStorage, RootPath: string, packageType?: EPackageType){
@@ -174,7 +174,7 @@ export async function bundleContractDist(storage: Types.IStorage, RootPath?: str
         await storage.writeFile(Path.join(typesDir, 'index.d.ts'), dts);
     };
 };
-export async function bundlePlugin(storage: Types.IStorage, RootPath?: string){
+export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
     RootPath = RootPath || storage.rootPath;
     let scRootDir = RootPath;
     let packageConfig = await storage.getPackageConfig();
