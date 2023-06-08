@@ -38,6 +38,7 @@
         "test": "mocha --exit --require ts-node/register test/*.spec.ts",
         "test:compiler": "mocha --exit --require ts-node/register test/compiler.spec.ts",
         "test:path": "mocha --exit --require ts-node/register test/path.spec.ts",
-        "test:bundle": "mocha --exit --require ts-node/register test/bundle.spec.ts"
+        "test:bundle": "mocha --exit --require ts-node/register test/bundle.spec.ts",
+        "test:solidity": "rm -rf test/solidity/src && mocha --exit --require ts-node/register test/solidity.spec.ts && tsc -p test/solidity --noEmit && if diff -r test/solidity/expected test/solidity/src ; then echo \"results are the same as expcted\" ; else echo \"results are different than the expected\"; fi"
     }
 }
