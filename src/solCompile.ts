@@ -105,7 +105,7 @@ async function buildInput(storage: Types.IStorage, root: string, source: string[
         },
     };
     if (source && Array.isArray(source) && source.length){
-        source.forEach(async (e)=> await recursiveAdd(storage, root, e, input.sources, exclude));
+        await Promise.all(source.map((e)=> recursiveAdd(storage, root, e, input.sources, exclude)));
     } else {
         await recursiveAdd(storage, root, "", input.sources, exclude);
     }
