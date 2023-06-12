@@ -94,7 +94,7 @@ describe('Bundle', async function () {
         bundleResult = {};
         let rootDir = Path.join(__dirname, 'contract');
         let storage = new Storage(rootDir);
-        await bundleContract(new Solc(), storage, rootDir);    
+        await bundleContract(storage, new Solc(), rootDir);    
         assert.equal(typeof(bundleResult['/dist/index.js']), 'string');
         for (let fileName in bundleResult){
             let content = bundleResult[fileName];
