@@ -1,6 +1,6 @@
 {
     "name": "@ijstech/compiler",
-    "version": "0.1.41",
+    "version": "0.1.42",
     "main": "lib/index.js",
     "types": "types/index.d.ts",
     "pluginTypes": "dist/index.d.ts",
@@ -12,15 +12,16 @@
     "bin": {
         "compiler": "cli/bin/bundle.js"
     },
-    "dependencies": {
-        "solc": "^0.8.19",
-        "bignumber.js": "9.1.1"
+    "dependencies": {        
+        "solc": "^0.8.19"
     },
     "devDependencies": {
+        "bignumber.js": "9.1.1",
         "@ijstech/components": "^0.1.55",
         "@ijstech/eth-contract": "^0.1.18",
         "@ijstech/eth-wallet": "^0.1.56",
-        "@openzeppelin/contracts": "^4.9.0",
+        "@ijstech/plugin": "^0.1.8",
+        "@openzeppelin/contracts": "4.9.1",
         "@types/mocha": "9.0.0",
         "@types/node": "18.11",
         "mocha": "10.0.0",
