@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import Path from 'path';
-import { Types, bundleContract, bundleContractDist, bundleContractLib, bundleDapp, bundleWidget} from '@ijstech/compiler';
+import {  bundleContract, bundleDapp, bundleWidget, bundleWorker} from '@ijstech/compiler';
 import { promises as Fs, createReadStream} from 'fs';
 import {Storage} from './storage';
 import {Solc} from './solc';
@@ -104,6 +104,9 @@ async function main() {
                 break;
             case 'widget':
                 await bundleWidget(storage);
+                break;
+            case 'worker':
+                await bundleWorker(storage);
                 break;
             default:
                 await bundleDapp(storage);

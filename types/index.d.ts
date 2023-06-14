@@ -13,6 +13,7 @@ export declare enum EPackageType {
 export declare function bundleContract(storage: Types.IStorage, solc: Types.ISolc, RootPath?: string): Promise<void>;
 export declare function bundleContractLib(storage: Types.IStorage, RootPath?: string): Promise<void>;
 export declare function bundleContractDist(storage: Types.IStorage, RootPath?: string): Promise<void>;
+export declare function bundleWorker(storage: Types.IStorage, RootPath?: string): Promise<void>;
 export declare function bundleWidget(storage: Types.IStorage, RootPath?: string): Promise<void>;
 export declare function bundleDapp(storage: Types.IStorage, RootPath?: string): Promise<void>;
 export declare function resolveAbsolutePath(baseFilePath: string, relativeFilePath: string): string;

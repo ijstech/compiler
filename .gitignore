@@ -2,5 +2,6 @@ node_modules
 bundle
 package-lock.json
 test/dapp/dist
+cli/src/solcjs
 *.sh
 tmp

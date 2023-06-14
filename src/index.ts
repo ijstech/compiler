@@ -174,6 +174,73 @@ export async function bundleContractDist(storage: Types.IStorage, RootPath?: str
         await storage.writeFile(Path.join(typesDir, 'index.d.ts'), dts);
     };
 };
+export async function bundleWorker(storage: Types.IStorage, RootPath?: string){
+    RootPath = RootPath || storage.rootPath;
+    let scConfig = await storage.getSCConfig();
+    if (scConfig?.workers){
+        let results: {[name: string]: string} = {};
+        let files = await storage.getFiles(Path.join(RootPath, 'src'));
+        let deps: string[] = [];
+        for (let n in scConfig.workers){
+            if (!results[n]){
+                let workerConfig = scConfig.workers[n];
+                if (workerConfig.module){
+                    let modulePath = Path.join(RootPath, 'src', workerConfig.module);
+                    let pack: any = { files: {}};
+                    for (let n in files)
+                        pack.files[n] = files[n];
+                    pack.files['index.ts'] = files[workerConfig.module];
+                    let packageManager = new PackageManager({
+                        packageImporter: async (packName: string) => {
+                            let pack = await storage.getPackageTypes(packName);
+                            return pack;
+                        },
+                        tsconfig: {
+                            allowJs: false,
+                            alwaysStrict: true,
+                            declaration: false,
+                            esModuleInterop: true,
+                            removeComments: true,
+                            moduleResolution: TS.ModuleResolutionKind.Classic,
+                            resolveJsonModule: false,
+                            skipLibCheck: true,
+                            noEmitOnError: true,
+                            outFile: "index.js",
+                            module: TS.ModuleKind.AMD,
+                            target: TS.ScriptTarget.ES2017
+                        }
+                    });
+                    packageManager.addPackage('worker', pack);
+                    if (workerConfig.plugins?.wallet){
+                        packageManager.addPackage('bignumber.js', await storage.getPackageTypes('bignumber.js'));
+                        packageManager.addPackage('@ijstech/eth-wallet', await storage.getPackageTypes('@ijstech/eth-wallet'));
+                        packageManager.addPackage('@ijstech/eth-contract', await storage.getPackageTypes('@ijstech/eth-contract'));
+                        packageManager.addPackage('@ijstech/wallet', await storage.getPackageTypes('@ijstech/wallet'));
+                    };
+                    await packageManager.buildAll();
+                    pack = packageManager.packages('worker');
+                    results[n] = pack.script['index.js'];
+                    workerConfig.module = `${n}.js`;
+                    workerConfig.dependencies = [];
+                    for (let i = 0; i < pack.dependencies.length; i++){
+                        let n = pack.dependencies[i];
+                        if (['bignumber.js', '@ijstech/plugin', '@ijstech/types', '@ijstech/eth-wallet', '@ijstech/eth-contract', '@ijstech/wallet'].indexOf(n) < 0){
+                            workerConfig.dependencies.push(n);
+                            if (deps.indexOf(n) < 0)
+                                deps.push(n);
+                        };
+                    };
+                    await storage.writeFile(`dist/workers/${n}.js`, results[n]);
+                };
+            };
+        };
+        await storage.writeFile('dist/scconfig.json', JSON.stringify(scConfig, null, 4));
+        for (let i = 0; i < deps.length; i++){
+            let dep = deps[i];
+            await storage.copyPackage(dep, `dist/libs/${dep}`);
+        };
+    };
+};
 export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
     RootPath = RootPath || storage.rootPath;
     let scRootDir = RootPath;

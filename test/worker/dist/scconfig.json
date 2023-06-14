@@ -1,0 +1,29 @@
+{
+    "type": "worker",
+    "workers": {
+        "worker1": {
+            "module": "worker1.js",
+            "params": {
+                "param1": "default worker1 session param value"
+            },
+            "plugins": {
+                "cache": false,
+                "db": false,
+                "wallet": true
+            },
+            "dependencies": [
+                "@scom/scom-domain-contract"
+            ]
+        }
+    },
+    "schedules": [
+        {
+            "id": "job:worker1",
+            "cron": "*/4 * * * * *",
+            "worker": "worker1",
+            "params": {
+                "param2": "worker param value"
+            }
+        }
+    ]
+}

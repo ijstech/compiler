@@ -102,6 +102,9 @@ async function main() {
             case 'widget':
                 await (0, compiler_1.bundleWidget)(storage);
                 break;
+            case 'worker':
+                await (0, compiler_1.bundleWorker)(storage);
+                break;
             default:
                 await (0, compiler_1.bundleDapp)(storage);
                 break;

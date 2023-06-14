@@ -1,6 +1,6 @@
 import 'mocha'
 import * as assert from 'assert'
-import {Types, bundleDapp, bundleContract, EPackageType} from '../src';
+import {Types, bundleDapp, bundleContract, bundleWorker} from '../src';
 import Path from 'path';
 import { promises as Fs} from 'fs';
 import {copyAssets, getLocalPackage, readSCConfig, readPackageConfig, getLocalPackageTypes, getLocalScripts} from '../cli/src/storage';
@@ -83,13 +83,19 @@ class Storage implements Types.IStorage{
         return Fs.readFile(fileName, 'utf8');
     };
     async writeFile(fileName: string, content: string): Promise<void>{
-        console.dir('#Write file: ' + fileName)
         let f = fileName.replace(this.rootPath, '');
         bundleResult[f] = content;
     };
 };
 describe('Bundle', async function () {
     this.timeout(60000)
+    it('worker', async()=>{
+        bundleResult = {};
+        let rootDir = Path.join(__dirname, 'worker');
+        let storage = new Storage(rootDir);
+        await bundleWorker(storage, rootDir);    
+    });
+    return;
     it('Contract', async()=>{
         bundleResult = {};
         let rootDir = Path.join(__dirname, 'contract');
@@ -107,7 +113,7 @@ describe('Bundle', async function () {
         bundleResult = {};
         let rootDir = Path.join(__dirname, 'dapp');
         let storage = new Storage(rootDir);
-        await bundleDapp(storage, rootDir);    
+        await bundleDapp(storage, rootDir);
         assert.equal(typeof(bundleResult['/dist/modules/main/index.js']), 'string');
         for (let fileName in bundleResult){
             let content = bundleResult[fileName];
