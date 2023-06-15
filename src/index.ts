@@ -174,6 +174,16 @@ export async function bundleContractDist(storage: Types.IStorage, RootPath?: str
         await storage.writeFile(Path.join(typesDir, 'index.d.ts'), dts);
     };
 };
+const WorkerDefaultPackages = [
+    'bignumber.js', 
+    '@ijstech/eth-contract', 
+    '@ijstech/eth-wallet', 
+    '@ijstech/fetch',
+    '@ijstech/pdm', 
+    '@ijstech/plugin', 
+    '@ijstech/types', 
+    '@ijstech/wallet'
+];
 export async function bundleWorker(storage: Types.IStorage, RootPath?: string){
     RootPath = RootPath || storage.rootPath;
     let scConfig = await storage.getSCConfig();
@@ -233,7 +243,7 @@ export async function bundleWorker(storage: Types.IStorage, RootPath?: string){
                     workerConfig.dependencies = [];
                     for (let i = 0; i < pack.dependencies.length; i++){
                         let n = pack.dependencies[i];
-                        if (['bignumber.js', '@ijstech/plugin', '@ijstech/types', '@ijstech/eth-wallet', '@ijstech/eth-contract', '@ijstech/wallet'].indexOf(n) < 0){
+                        if (WorkerDefaultPackages.indexOf(n) < 0){
                             workerConfig.dependencies.push(n);
                             if (deps.indexOf(n) < 0)
                                 deps.push(n);
