@@ -213,9 +213,9 @@ export async function bundleWorker(storage: Types.IStorage, RootPath?: string){
                             target: TS.ScriptTarget.ES2017
                         }
                     });
+                    packageManager.addPackage('bignumber.js', await storage.getPackageTypes('bignumber.js'));
                     packageManager.addPackage('worker', pack);
                     if (workerConfig.plugins?.wallet){
-                        packageManager.addPackage('bignumber.js', await storage.getPackageTypes('bignumber.js'));
                         packageManager.addPackage('@ijstech/eth-wallet', await storage.getPackageTypes('@ijstech/eth-wallet'));
                         packageManager.addPackage('@ijstech/eth-contract', await storage.getPackageTypes('@ijstech/eth-contract'));
                         packageManager.addPackage('@ijstech/wallet', await storage.getPackageTypes('@ijstech/wallet'));
