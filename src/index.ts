@@ -189,7 +189,9 @@ export async function bundleWorker(storage: Types.IStorage, RootPath?: string){
                     let pack: any = { files: {}};
                     for (let n in files)
                         pack.files[n] = files[n];
-                    pack.files['index.ts'] = files[workerConfig.module];
+                    let indexFile = workerConfig.module;
+                    pack.indexFile = indexFile;
+                    // pack.files['index.ts'] = files[workerConfig.module];
                     let packageManager = new PackageManager({
                         packageImporter: async (packName: string) => {
                             let pack = await storage.getPackageTypes(packName);
@@ -200,13 +202,14 @@ export async function bundleWorker(storage: Types.IStorage, RootPath?: string){
                             alwaysStrict: true,
                             declaration: false,
                             esModuleInterop: true,
-                            removeComments: true,
+                            experimentalDecorators: true,  
+                            module: TS.ModuleKind.AMD,
                             moduleResolution: TS.ModuleResolutionKind.Classic,
-                            resolveJsonModule: false,
-                            skipLibCheck: true,
                             noEmitOnError: true,
                             outFile: "index.js",
-                            module: TS.ModuleKind.AMD,
+                            removeComments: true,                            
+                            resolveJsonModule: false,
+                            skipLibCheck: true,
                             target: TS.ScriptTarget.ES2017
                         }
                     });
@@ -219,6 +222,12 @@ export async function bundleWorker(storage: Types.IStorage, RootPath?: string){
                     };
                     await packageManager.buildAll();
                     pack = packageManager.packages('worker');
+                    let script = pack.script['index.js'];
+                    if (!script){
+                        console.error('Worker compilation error: ' + n);
+                        console.error(JSON.stringify(pack.errors, null, 4));
+                        return;
+                    };
                     results[n] = pack.script['index.js'];
                     workerConfig.module = `${n}.js`;
                     workerConfig.dependencies = [];
@@ -526,7 +535,9 @@ export class PackageManager{
         if (!pack.dts && pack.files){
             // console.dir('#Build package: ' + name);
             let indexFile: string = '';
-            if (pack.files['index.ts'])
+            if (pack.indexFile)
+                indexFile = pack.indexFile;
+            else if (pack.files['index.ts'])
                 indexFile = 'index.ts'
             else if (pack.files['index.tsx'])
                 indexFile = 'index.tsx';
@@ -577,7 +588,9 @@ export class PackageManager{
                             else if (pack.files[fileName + '.tsx'])
                                 name = fileName + '.tsx'
                             else if (pack.files[fileName + '.d.ts'])
-                                name = fileName + '.d.ts';
+                                name = fileName + '.d.ts'
+                            else if (pack.files[fileName + '/index.ts'])
+                                name = fileName + '/index.ts';
                             if (name)
                                 return {
                                     fileName: name,
@@ -666,7 +679,7 @@ export class Compiler {
                             if (file){
                                 result.push('./' + file.fileName);
                                 this.addFile(file.fileName, file.content);
-                                await this.importDependencies(filePath, file.content, fileImporter, result);
+                                await this.importDependencies(file.fileName, file.content, fileImporter, result);
                             }                        
                         }
                     }
@@ -875,6 +888,7 @@ export class Compiler {
         };        
         if (!result && fileName.endsWith('.ts'))
             result = this.packages[fileName.slice(0, -3)] != undefined;
+        this.resolvedFileName = '';
         if (!result && this.files[fileName.slice(0, -3) + '/index.ts'] != undefined){
             result = true;
             this.resolvedFileName = fileName.slice(0, -3) + '/index.ts';

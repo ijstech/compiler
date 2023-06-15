@@ -30,6 +30,7 @@ export interface ICompilerResult {
 };
 export type IPackageFiles = {[filePath: string]: string};
 export interface IPackage{
+    indexFile?: string;
     files?:IPackageFiles;
     path?: string;
     errors?: ICompilerError[];

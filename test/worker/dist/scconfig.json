@@ -11,9 +11,7 @@
                 "db": false,
                 "wallet": true
             },
-            "dependencies": [
-                "@scom/scom-domain-contract"
-            ]
+            "dependencies": []
         }
     },
     "schedules": [

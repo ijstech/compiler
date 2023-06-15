@@ -10,15 +10,14 @@ define("hello", ["require", "exports"], function (require, exports) {
     }
     exports.hello = hello;
 });
-define("index", ["require", "exports", "@scom/scom-domain-contract", "@ijstech/wallet", "hello"], function (require, exports, scom_domain_contract_1, wallet_1, hello_1) {
+define("index", ["require", "exports", "@ijstech/wallet", "hello"], function (require, exports, wallet_1, hello_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     wallet_1 = __importDefault(wallet_1);
     class Worker {
         async process(session, data) {
-            let contract;
-            contract = new scom_domain_contract_1.Contracts.Domain(wallet_1.default);
-            (0, hello_1.hello)('Hello from worker');
+            let chainId = await wallet_1.default.getChainId();
+            (0, hello_1.hello)('chainId: ' + chainId);
             console.dir('### data ###');
             console.dir(data);
             console.dir('### session.params ###');
