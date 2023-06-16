@@ -1,6 +1,6 @@
 {
     "name": "@ijstech/compiler",
-    "version": "0.1.45",
+    "version": "0.1.46",
     "main": "lib/index.js",
     "types": "types/index.d.ts",
     "pluginTypes": "dist/index.d.ts",
@@ -13,7 +13,8 @@
         "compiler": "cli/bin/bundle.js"
     },
     "dependencies": {
-        "solc": "^0.8.19"
+        "solc": "^0.8.19",
+        "bignumber.js": "9.1.1"
     },
     "devDependencies": {
         "@ijstech/components": "^0.1.55",
@@ -24,7 +25,6 @@
         "@openzeppelin/contracts": "4.9.1",
         "@types/mocha": "9.0.0",
         "@types/node": "18.11",
-        "bignumber.js": "9.1.1",
         "mocha": "10.0.0",
         "ts-node": "10.9.1",
         "typescript": "5.0.4"
