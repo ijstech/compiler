@@ -1,6 +1,14 @@
 import { promises as Fs} from 'fs';
 import Path from 'path';
+import IPFS from './ipfs.js';
 
+export interface ICidInfo {
+    cid: string;
+    links?: ICidInfo[];
+    name?: string;
+    size: number;
+    type?: 'dir' | 'file'
+};
 export interface IStorage{
     rootPath: string;
     copyAssets(sourceDir: string, targetDir: string): Promise<void>;
@@ -10,11 +18,13 @@ export interface IStorage{
     getPackageConfig(): Promise<any>;
     getPackageTypes(packName: string): Promise<IPackage>;
     getFiles(dir: string): Promise<{ [filePath: string]: string }>;
+    hashDir(dir: string): Promise<ICidInfo>;
     isDirectory(dir: string): Promise<boolean>;
     isFile(filePath: string): Promise<boolean>;
     isFileExists(filePath: string): Promise<boolean>;
     readDir(dir: string): Promise<string[]>;
     readFile(fileName: string): Promise<string>;
+    rename(oldPath: string, newPath: string): Promise<void>;
     writeFile(fileName: string, content: string): Promise<void>;
 };
 
@@ -176,6 +186,42 @@ export class Storage implements IStorage{
     getFiles(dir: string): Promise<{ [filePath: string]: string }>{
         return getLocalScripts(dir);
     };
+    async hashDir(dir: string): Promise<ICidInfo> {
+        let files = await Fs.readdir(dir);
+        let items = [];
+        for (let i = 0; i < files.length; i++) {
+            let file = files[i];
+            let path = Path.join(dir, file);
+            let stat = await Fs.stat(path)
+            if (stat.isDirectory()) {
+                let result = await this.hashDir(path);
+                result.name = file;
+                items.push(result);
+            }
+            else {
+                try{
+                    let result = await IPFS.hashFile(path, 1);
+                    items.push({
+                        cid: result.cid,
+                        name: file,
+                        size: result.size,
+                        type: 'file'
+                    })
+                }
+                catch(err){
+                    console.dir(path)
+                }
+            }
+        };
+        let result = await IPFS.hashItems(items, 1);
+        return {
+            cid: result.cid,
+            name: '',
+            size: result.size,
+            type: 'dir',
+            links: items
+        };
+    };
     async isDirectory(dir: string): Promise<boolean>{
         try{
             return (await Fs.stat(dir)).isDirectory();
@@ -201,17 +247,20 @@ export class Storage implements IStorage{
             return false;
         };
     };
-    readDir(dir: string): Promise<string[]>{
+    async readDir(dir: string): Promise<string[]>{
         if (dir[0] != '/')
             dir = Path.join(this.rootPath, dir);
         return Fs.readdir(dir);
     };
-    readFile(fileName: string): Promise<string>{
+    async readFile(fileName: string): Promise<string>{
         if (fileName[0] == '@')
             fileName = Path.join(this.rootPath, 'node_modules', fileName);
         else if (fileName[0] != '/')
             fileName = Path.join(this.rootPath, fileName);
         return Fs.readFile(fileName, 'utf8');
+    };
+    async rename(oldPath: string, newPath: string): Promise<void>{
+        await Fs.rename(oldPath, newPath);
     };
     async writeFile(fileName: string, content: string): Promise<void>{
         if (fileName[0] != '/')

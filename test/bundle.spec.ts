@@ -32,20 +32,23 @@ class Storage implements Types.IStorage{
         };
         return pack;
     };
-    getSCConfig(): Promise<any>{
+    async getSCConfig(): Promise<any>{
         return readSCConfig(this.rootPath);
     };
-    getPackage(packName: string): Promise<any>{
+    async getPackage(packName: string): Promise<any>{
         return getLocalPackage(packName);
     };
-    getPackageConfig(): Promise<any>{
+    async getPackageConfig(): Promise<any>{
         return readPackageConfig(this.rootPath);
     };
-    getPackageTypes(packName: string): Promise<Types.IPackage>{
+    async getPackageTypes(packName: string): Promise<Types.IPackage>{
         return getLocalPackageTypes(packName);
     };
-    getFiles(dir: string): Promise<{ [filePath: string]: string }>{
+    async getFiles(dir: string): Promise<{ [filePath: string]: string }>{
         return getLocalScripts(dir);
+    };
+    async hashDir(dir: string): Promise<Types.ICidInfo>{
+        return {cid: '', size: 0};
     };
     async isDirectory(dir: string): Promise<boolean>{
         try{
@@ -72,15 +75,18 @@ class Storage implements Types.IStorage{
             return false;
         };
     };
-    readDir(dir: string): Promise<string[]>{
+    async readDir(dir: string): Promise<string[]>{
         return Fs.readdir(dir);
     };
-    readFile(fileName: string): Promise<string>{
+    async readFile(fileName: string): Promise<string>{
         if (fileName[0] == '@')
             fileName = Path.join(this.rootPath, 'node_modules', fileName);
         else if (fileName[0] != '/')
             fileName = Path.join(this.rootPath, fileName);
         return Fs.readFile(fileName, 'utf8');
+    };
+    async rename(oldPath: string, newPath: string): Promise<void>{
+
     };
     async writeFile(fileName: string, content: string): Promise<void>{
         let f = fileName.replace(this.rootPath, '');

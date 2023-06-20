@@ -6,6 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Storage = exports.readPackageConfig = exports.readSCConfig = exports.getLocalScripts = exports.getLocalPackageTypes = exports.getLocalPackage = exports.getLocalPackagePath = exports.copyAssets = void 0;
 const fs_1 = require("fs");
 const path_1 = __importDefault(require("path"));
+const ipfs_js_1 = __importDefault(require("./ipfs.js"));
+;
 ;
 ;
 ;
@@ -174,6 +176,44 @@ class Storage {
         return getLocalScripts(dir);
     }
     ;
+    async hashDir(dir) {
+        let files = await fs_1.promises.readdir(dir);
+        let items = [];
+        for (let i = 0; i < files.length; i++) {
+            let file = files[i];
+            let path = path_1.default.join(dir, file);
+            let stat = await fs_1.promises.stat(path);
+            if (stat.isDirectory()) {
+                let result = await this.hashDir(path);
+                result.name = file;
+                items.push(result);
+            }
+            else {
+                try {
+                    let result = await ipfs_js_1.default.hashFile(path, 1);
+                    items.push({
+                        cid: result.cid,
+                        name: file,
+                        size: result.size,
+                        type: 'file'
+                    });
+                }
+                catch (err) {
+                    console.dir(path);
+                }
+            }
+        }
+        ;
+        let result = await ipfs_js_1.default.hashItems(items, 1);
+        return {
+            cid: result.cid,
+            name: '',
+            size: result.size,
+            type: 'dir',
+            links: items
+        };
+    }
+    ;
     async isDirectory(dir) {
         try {
             return (await fs_1.promises.stat(dir)).isDirectory();
@@ -205,18 +245,22 @@ class Storage {
         ;
     }
     ;
-    readDir(dir) {
+    async readDir(dir) {
         if (dir[0] != '/')
             dir = path_1.default.join(this.rootPath, dir);
         return fs_1.promises.readdir(dir);
     }
     ;
-    readFile(fileName) {
+    async readFile(fileName) {
         if (fileName[0] == '@')
             fileName = path_1.default.join(this.rootPath, 'node_modules', fileName);
         else if (fileName[0] != '/')
             fileName = path_1.default.join(this.rootPath, fileName);
         return fs_1.promises.readFile(fileName, 'utf8');
+    }
+    ;
+    async rename(oldPath, newPath) {
+        await fs_1.promises.rename(oldPath, newPath);
     }
     ;
     async writeFile(fileName, content) {

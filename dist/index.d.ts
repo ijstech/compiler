@@ -7222,6 +7222,13 @@ declare module "@ijstech/compiler/path" {
 /// <amd-module name="@ijstech/compiler/types" />
 declare module "@ijstech/compiler/types" {
     import TS from "./lib/typescript";
+    export interface ICidInfo {
+        cid: string;
+        links?: ICidInfo[];
+        name?: string;
+        size: number;
+        type?: 'dir' | 'file';
+    }
     export interface IStorage {
         rootPath: string;
         copyAssets(sourceDir: string, targetDir: string): Promise<void>;
@@ -7233,11 +7240,13 @@ declare module "@ijstech/compiler/types" {
         getFiles(dir: string): Promise<{
             [filePath: string]: string;
         }>;
+        hashDir(dir: string): Promise<ICidInfo>;
         isDirectory(dir: string): Promise<boolean>;
         isFile(filePath: string): Promise<boolean>;
         isFileExists(filePath: string): Promise<boolean>;
         readDir(dir: string): Promise<string[]>;
         readFile(fileName: string): Promise<string>;
+        rename(oldPath: string, newPath: string): Promise<void>;
         writeFile(fileName: string, content: string): Promise<void>;
     }
     export interface ICompilerError {

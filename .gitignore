@@ -3,5 +3,6 @@ bundle
 package-lock.json
 test/dapp/dist
 cli/src/solcjs
+src/solcjs
 *.sh
 tmp
