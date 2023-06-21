@@ -502,23 +502,24 @@ export async function bundleDapp(storage: Types.IStorage, RootPath?: string){
             };
         };
         indexHtml = indexHtml.replace('{{meta}}', meta);
+        indexHtml = indexHtml.replace('{{main}}', `${scconfig.main || '@scom/dapp'}`);
         if (scconfig.ipfs == true){
-            let cid = await storage.hashDir(distDir);
             delete scconfig.ipfs;
-            let d = Path.join(scRootDir, scconfig.distDir || 'dist');
+            let idx = indexHtml.replaceAll('{{rootDir}}', scconfig.rootDir?scconfig.rootDir+'/':'');
+            await storage.writeFile(Path.join(distDir, 'index.html'), idx);
             await storage.writeFile(Path.join(distDir, 'scconfig.json'), JSON.stringify(scconfig, null, 4));
-            await storage.writeFile(Path.join(distDir, 'ipfs.json'), JSON.stringify(cid));
+            let cid = await storage.hashDir(distDir);            
+            let d = Path.join(scRootDir, scconfig.distDir || 'dist');
             await storage.rename(distDir, Path.join(d, cid.cid));
-            indexHtml = indexHtml.replaceAll('{{rootDir}}', cid.cid + '/' + (scconfig.rootDir?scconfig.rootDir+'/':''));
-            indexHtml = indexHtml.replace('{{main}}', `${scconfig.main || '@scom/dapp'}`);
+            indexHtml = indexHtml.replaceAll('{{rootDir}}', cid.cid + '/' + (scconfig.rootDir?scconfig.rootDir+'/':''));            
             await storage.writeFile(Path.join(d, 'index.html'), indexHtml);
+            await storage.writeFile(Path.join(Path.join(d, `${cid.cid}.json`)), JSON.stringify(cid));
         }
         else{
             indexHtml = indexHtml.replaceAll('{{rootDir}}', scconfig.rootDir?scconfig.rootDir+'/':'');
-            indexHtml = indexHtml.replace('{{main}}', `${scconfig.main || '@scom/dapp'}`);
-            await storage.writeFile(Path.join(distDir, 'scconfig.json'), JSON.stringify(scconfig, null, 4))
-            await storage.writeFile(Path.join(scRootDir, scconfig.distDir || 'dist', 'index.html'), indexHtml);
-        }
+            await storage.writeFile(Path.join(distDir, 'index.html'), indexHtml);
+            await storage.writeFile(Path.join(distDir, 'scconfig.json'), JSON.stringify(scconfig, null, 4));            
+        };
         
         // if (scconfig.ipfs == true){
         //     let cid = await hashDir(distDir);
