@@ -518,7 +518,7 @@ export async function bundleDapp(storage: Types.IStorage, RootPath?: string){
         else{
             indexHtml = indexHtml.replaceAll('{{rootDir}}', scconfig.rootDir?scconfig.rootDir+'/':'');
             await storage.writeFile(Path.join(distDir, 'index.html'), indexHtml);
-            await storage.writeFile(Path.join(distDir, 'scconfig.json'), JSON.stringify(scconfig, null, 4));            
+            await storage.writeFile(Path.join(distDir, scconfig.rootDir?scconfig.rootDir+'/':'', 'scconfig.json'), JSON.stringify(scconfig, null, 4));            
         };
         
         // if (scconfig.ipfs == true){
