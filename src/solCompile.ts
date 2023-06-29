@@ -25,7 +25,7 @@ interface Input {
 };
 
 async function importFile(storage: Types.IStorage, fileName: string, sources: Types.ISource): Promise<string[]>{
-    let content = await storage.readFile(fileName);
+    let content = await storage.readFile("node_modules/" + fileName);
     let dependencies: string[] = [];
     sources[fileName] = {content: content};
     let importRegex = /^\s*import\s+(?:"([^"]+)"|'([^']+)')./gm;
@@ -37,17 +37,40 @@ async function importFile(storage: Types.IStorage, fileName: string, sources: Ty
             importPath = Path.resolve(dir, importPath);
             if (!dependencies.includes(importPath)) 
                 dependencies.push(importPath);
-            await importFile(storage, importPath, sources);
+            if (!sources[importPath]) {
+                await importFile(storage, importPath, sources);
+            }
+        } else if (importPath.startsWith("@")) {
+            if (!sources[importPath]) {
+                await importFile(storage, importPath, sources);
+            }
         };
     };
     return dependencies;
 };
 async function recursiveAdd(storage: Types.IStorage, root: string, srcPath: string, sources: Types.ISource, exclude: string[]): Promise<Types.ISource | undefined> {
-    let currPath = Path.join(root, srcPath);
+    let currPath = Path.resolve(root, srcPath);
     // signle file
     if (await storage.isFile(currPath)) {
         let content = await storage.readFile(currPath);
-        sources[currPath.replace(new RegExp(`^${root}`),'contracts/')] = { content: content};
+        sources[currPath.replace(new RegExp(`^${root}`),'contracts/')] = { content: content };
+        let importRegex = /^\s*import\s+(?:"([^"]+)"|'([^']+)')./gm;
+        let importMatch;
+        let dependencies: string[] = [];
+        while ((importMatch = importRegex.exec(content))) {
+            const importPath = importMatch[1] || importMatch[2];
+            if (!dependencies.includes(importPath))
+                dependencies.push(importPath);
+            if (!sources[importPath]) {
+                if (importPath.startsWith(".")) {
+                    let path = Path.resolve(root, Path.dirname(srcPath)+'/'+importPath).replace(new RegExp(`^${root}`),'contracts/');
+                    if (!sources[path])
+                        await recursiveAdd(storage, root, Path.dirname(srcPath)+'/'+importPath, sources, exclude);
+                } else {
+                    await importFile(storage, importPath, sources);
+                }
+            }
+        }
         return sources;
     }
     else if (await storage.isFileExists(Path.join(currPath, '.ignoreAll')))
@@ -60,6 +83,7 @@ async function recursiveAdd(storage: Types.IStorage, root: string, srcPath: stri
             if (!sources[files[i]]) {
                 if ((!exclude || !exclude.includes(_path))){
                     let content = await storage.readFile(Path.resolve(currPath, files[i]));
+                    sources[_path.replace(new RegExp(`^${root}`),'contracts/')] = { content: content };
                     let importRegex = /^\s*import\s+(?:"([^"]+)"|'([^']+)')./gm;
                     let importMatch;
                     let dependencies: string[] = [];
@@ -71,7 +95,6 @@ async function recursiveAdd(storage: Types.IStorage, root: string, srcPath: stri
                             await importFile(storage, importPath, sources);
                         };
                     }
-                    sources[_path.replace(new RegExp(`^${root}`),'contracts/')] = { content: content};
                 }
             }
         }
@@ -134,6 +157,7 @@ function prettyPrint(s: string): string {
 interface Type { name: string; type: string; components?: Type[]; internalType?: string; }
 interface Item { name: string; type: string; stateMutability: string; inputs?: Type[]; outputs?: Type[];}
 interface Output {[sourceFile:string]:{[contract:string]:{evm:{bytecode:{object:string}},abi:Item[]}}}
+interface LinkReferences {[file:string]:{[contract:string]:{length:number; start:number;}[]}}
 
 // the compiled results of normal contracts have both abi and bytecode;
 // the compiled results of abstract contracts and interfaces have abi only and without any bytecode;
@@ -144,8 +168,8 @@ interface OutputOptions {
     batchCall?: boolean; //default false
     txData?: boolean; //default false
 }
-async function processOutput(storage: Types.IStorage, sourceDir: string, output:Output, outputDir: string, outputOptions: OutputOptions, exclude?: string[], include?: string[]): Promise<string> {
-    let index = '';
+async function processOutput(storage: Types.IStorage, sourceDir: string, output:Output, outputDir: string, outputOptions: OutputOptions, exclude?: string[], include?: string[]): Promise<string[]> {
+    let exports:string[] = [];
     if (output.contracts) {
         for (let i in output.contracts) {
             if (i.startsWith('@'))
@@ -163,45 +187,95 @@ async function processOutput(storage: Types.IStorage, sourceDir: string, output:
             for (let j in output.contracts[i]) {
                 let abi = (<any>output.contracts[i])[j].abi;
                 let bytecode = (<any>output.contracts[i])[j].evm?.bytecode?.object;
+                let linkReferences = (<any>output.contracts[i])[j].evm?.bytecode?.linkReferences;
 
-
-                let outputBytecode = (outputOptions.bytecode === undefined) ? (!!(bytecode && abi && abi.length)) : (outputOptions.bytecode && bytecode);
-                let outputAbi = (outputOptions.abi === undefined) ? (!!(bytecode && abi && abi.length)) : (outputOptions.abi && abi && abi.length);
-
-                if (outputBytecode || outputAbi) {
-                    let file: {[key: string]: string} = {};
-                    if (outputAbi) {
-                        file["abi"] = abi;
-                    }
-                    if (outputBytecode) {
-                        file["bytecode"] = bytecode;
-                    }
-                    await storage.writeFile(outputDir + '/' + p + j +  '.json.ts', "export default " + prettyPrint(JSON.stringify(file)));
-
-                    let relPath = './';         
-                    let hasBatchCall = outputOptions.batchCall;       
-                    let hasTxData = outputOptions.txData;       
-                    let options: IUserDefinedOptions = {
-                        outputAbi,
-                        outputBytecode,
-                        hasBatchCall,
-                        hasTxData
-                    }
-                    let code = codeGen(j, relPath, abi, options);
-                    await storage.writeFile(outputDir + '/' + p + j +  '.ts', code);
-
-                    index += `export { ${j} } from \'./${p + j}\';\n`;
+                let _export = await callCodeGen(storage, outputDir, p, j, abi, bytecode, linkReferences, outputOptions);
+                if (_export) {
+                    exports.push(_export);
                 }
             }
         }
     }
-    return index;
+    return exports;
 }
 
+async function recursiveAddArtifacts(storage: Types.IStorage, root: string, srcPath: string, outputDir: string, outputOptions: OutputOptions, exports:string[]): Promise<string[]> {
+    let currPath = Path.join(root, srcPath);
+    // signle file
+    if (await storage.isFile(currPath)) {
+        let content = await storage.readFile(currPath);
+        let file = JSON.parse(content);
+        if (file.bytecode=="0x") 
+            file.bytecode=undefined;
+        // TODO: fix currPath
+        let _export = await callCodeGen(storage, outputDir, '', currPath.replace('.json',''), file.abi, file.bytecode, file.linkReferences, outputOptions)
+        if (_export) {
+            exports.push(_export);
+        }
+        return exports;
+    }
+    else if (await storage.isFileExists(Path.join(currPath, '.ignoreAll')))
+        return exports;
+
+    let files = await storage.readDir(currPath);
+    for (let i = 0; i < files.length; i++) {
+        let _path = Path.join(root, srcPath, files[i]).replace(/\\/g, "/").replace(/^([A-Za-z]):/, "/$1");
+        if (files[i].endsWith(".json") && await storage.isFile(_path)) {
+            let content = await storage.readFile(Path.resolve(currPath, files[i]));
+            let file = JSON.parse(content);
+            if (file.bytecode=="0x") 
+                file.bytecode=undefined;
+            let _export = await callCodeGen(storage, outputDir, '', files[i].replace('.json',''), file.abi, file.bytecode, file.linkReferences, outputOptions)
+            if (_export) {
+                exports.push(_export);
+            }
+        }
+    };
+    for (let i = 0; i < files.length; i++) {
+        let _path = Path.join(root, srcPath, files[i]).replace(/\\/g, "/").replace(/^([A-Za-z]):/, "/$1");
+        if (await storage.isDirectory(_path)) {
+            await recursiveAddArtifacts(storage, root, Path.join(srcPath, files[i]), outputDir, outputOptions, exports);
+        }
+    }
+    return exports;
+}
+
+async function callCodeGen(storage: Types.IStorage, outputDir: string, path: string, name:string, abi: Item[], bytecode: string, linkReferences: LinkReferences, outputOptions: OutputOptions) {
+    let outputBytecode = (outputOptions.bytecode === undefined) ? (!!(bytecode && abi && abi.length)) : (outputOptions.bytecode && !!bytecode);
+    let outputAbi = (outputOptions.abi === undefined) ? (!!(bytecode && abi && abi.length)) : (outputOptions.abi && abi && !!abi.length);
+
+    if (outputBytecode || outputAbi) {
+        let file:any = {};
+        if (outputAbi) {
+            file["abi"] = abi;
+        }
+        if (outputBytecode) {
+            file["bytecode"] = bytecode;
+            if (Object.keys(linkReferences).length)
+                file["linkReferences"] = linkReferences;
+        }
+        await storage.writeFile(outputDir + '/' + path + name +  '.json.ts', "export default " + prettyPrint(JSON.stringify(file)));
+
+        let relPath = './';         
+        let hasBatchCall = outputOptions.batchCall;       
+        let hasTxData = outputOptions.txData;       
+        let options: IUserDefinedOptions = {
+            outputAbi,
+            outputBytecode,
+            hasBatchCall,
+            hasTxData
+        }
+        let code = codeGen(name, relPath, abi, linkReferences, options);
+        await storage.writeFile(outputDir + '/' + path + name +  '.ts', code);
+
+        return `export { ${name} } from \'./${path + name}\';\n`;
+    }    
+}
 interface CompileOptions { version?: string; optimizerRuns?: number; viaIR?:boolean, outputOptions?: OutputOptions }
 interface Override extends CompileOptions { root?:string, sources:string[]; };
 interface Config extends CompileOptions {
     sourceDir?: string;
+    artifactsDir?: string;
     outputDir?: string;
     output?: string;
     overrides?: Override[];
@@ -241,7 +315,7 @@ export async function bundle(solc: Types.ISolc, storage: Types.IStorage, config:
                 sources[n] = input.sources[n];
         };
         let output = JSON.parse(await solc.compile(JSON.stringify(input), version));
-        let index = await processOutput(storage, sourceDir, output, outputDir, outputOptions, customSources);
+        let exports = await processOutput(storage, sourceDir, output, outputDir, outputOptions, customSources);
         if (output.errors) {
             output.errors/*.filter(e=>e.severity!='warning')*/.forEach((e: any) => console.log(e.formattedMessage));
         }
@@ -258,13 +332,16 @@ export async function bundle(solc: Types.ISolc, storage: Types.IStorage, config:
                         sources[n] = input.sources[n];
                 };
                 output = JSON.parse(await solc.compile(JSON.stringify(input), overrides[s].version || version));
-                index = index + (await processOutput(storage, sourceDir, output, outputDir, overrides[s].outputOptions || outputOptions, [], overrides[s].sources.map(f=>_sourceDir+f)));
+                exports = exports.concat(await processOutput(storage, sourceDir, output, outputDir, overrides[s].outputOptions || outputOptions, [], overrides[s].sources.map(f=>_sourceDir+f)));
                 if (output.errors) {
                     output.errors/*.filter(e=>e.severity!='warning')*/.forEach((e:any)=>console.log(e.formattedMessage));
                 }
             }
         }
-        await storage.writeFile(outputDir + '/index.ts', index);
+        if (config.artifactsDir) {
+            exports = exports.concat(await recursiveAddArtifacts(storage, config.artifactsDir, '', outputDir, outputOptions, []));
+        }
+        await storage.writeFile(outputDir + '/index.ts', exports.join(''));
 
         if (flattenFiles) {
             const flattenedDestDir = Path.join(RootPath, 'flattened/');

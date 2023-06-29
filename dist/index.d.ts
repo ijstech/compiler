@@ -7306,13 +7306,21 @@ declare module "@ijstech/compiler/solCodeGen" {
         inputs?: Type[];
         outputs?: Type[];
     }
+    interface LinkReferences {
+        [file: string]: {
+            [contract: string]: {
+                length: number;
+                start: number;
+            }[];
+        };
+    }
     export interface IUserDefinedOptions {
         outputAbi: boolean;
         outputBytecode: boolean;
         hasBatchCall?: boolean;
         hasTxData?: boolean;
     }
-    export default function (name: string, abiPath: string, abi: Item[], options: IUserDefinedOptions): string;
+    export default function (name: string, abiPath: string, abi: Item[], linkReferences: LinkReferences, options: IUserDefinedOptions): string;
 }
 /// <amd-module name="@ijstech/compiler/solFlatten" />
 declare module "@ijstech/compiler/solFlatten" {
@@ -7340,6 +7348,7 @@ declare module "@ijstech/compiler/solCompile" {
     }
     interface Config extends CompileOptions {
         sourceDir?: string;
+        artifactsDir?: string;
         outputDir?: string;
         output?: string;
         overrides?: Override[];

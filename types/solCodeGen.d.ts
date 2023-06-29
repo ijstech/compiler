@@ -16,11 +16,19 @@ interface Item {
     inputs?: Type[];
     outputs?: Type[];
 }
+interface LinkReferences {
+    [file: string]: {
+        [contract: string]: {
+            length: number;
+            start: number;
+        }[];
+    };
+}
 export interface IUserDefinedOptions {
     outputAbi: boolean;
     outputBytecode: boolean;
     hasBatchCall?: boolean;
     hasTxData?: boolean;
 }
-export default function (name: string, abiPath: string, abi: Item[], options: IUserDefinedOptions): string;
+export default function (name: string, abiPath: string, abi: Item[], linkReferences: LinkReferences, options: IUserDefinedOptions): string;
 export {};

@@ -22,6 +22,7 @@ interface Override extends CompileOptions {
 }
 interface Config extends CompileOptions {
     sourceDir?: string;
+    artifactsDir?: string;
     outputDir?: string;
     output?: string;
     overrides?: Override[];
