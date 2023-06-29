@@ -21,13 +21,21 @@ interface Line {
     indent: number;
     text?: string;
 }
+interface LinkReferences {
+    [file:string]:{
+        [contract:string]:{
+            length:number; 
+            start:number;
+        }[]
+    };
+}
 export interface IUserDefinedOptions {
     outputAbi: boolean;
     outputBytecode: boolean;
     hasBatchCall?: boolean;
     hasTxData?: boolean;
 }
-export default function(name: string, abiPath: string, abi: Item[], options: IUserDefinedOptions){
+export default function(name: string, abiPath: string, abi: Item[], linkReferences: LinkReferences, options: IUserDefinedOptions){
     let result: string[] = [];
     let events: {[key: string]: string} = {};
     let callFunctionNames: string[] = [];
@@ -375,16 +383,27 @@ export default function(name: string, abiPath: string, abi: Item[], options: IUs
         // addLine(2, '});');
         addLine(1, '}');
     }
-    const addDeployer = function(abi: Item[]): void {
+    const addDeployer = function(abi: Item[], linkReferences: LinkReferences): void {
         let item = abi.find(e=>e.type=='constructor');
+        let hasLinkReferences = linkReferences && Object.keys(linkReferences).length;
         if (item) {
             let input = (item.inputs && item.inputs.length > 0) ? `[${toSolidityInput(item)}]` : "[]";
-            addLine(1, `deploy(${inputs(item.name, item)}${payable(item)}): Promise<string>{`);
-            addLine(2, `return this.__deploy(${input}, options);`);
+            if (hasLinkReferences) {
+                addLine(1, `deploy(${inputs(item.name, item)}${item.inputs && item.inputs.length == 0 ? '':', '}libraries: ILibraries, ${((item.stateMutability=='payable') ? 'options?: number|BigNumber|TransactionOptions' : 'options?: TransactionOptions')}): Promise<string>{`);
+                addLine(2, `return this.__deploy(${input}, {...options, libraries, linkReferences:Bin.linkReferences});`);
+            } else {
+                addLine(1, `deploy(${inputs(item.name, item)}${payable(item)}): Promise<string>{`);
+                addLine(2, `return this.__deploy(${input}, options);`);
+            }
             addLine(1, `}`);
         } else {
-            addLine(1, `deploy(options?: TransactionOptions): Promise<string>{`);
-            addLine(2, `return this.__deploy([], options);`);
+            if (hasLinkReferences) {
+                addLine(1, `deploy(libraries: ILibraries, options?: TransactionOptions): Promise<string>{`);
+                addLine(2, `return this.__deploy([], {...options, libraries, linkReferences:Bin.linkReferences});`);
+            } else {
+                addLine(1, `deploy(options?: TransactionOptions): Promise<string>{`);
+                addLine(2, `return this.__deploy([], options);`);
+            }
             addLine(1, `}`);
         }
     }
@@ -421,6 +440,18 @@ export default function(name: string, abiPath: string, abi: Item[], options: IUs
         if (abi[i].type != 'function' && abi[i].type != 'constructor') continue;
         addParamsInterface(abi[i]);
     }
+    if (linkReferences && Object.keys(linkReferences).length) {
+        let l = "export type ILibraries = {"
+        for (let file in linkReferences) {
+            l += "\"" + file + "\": {";
+            for (let contract in linkReferences[file]) {
+                l += "\"" + contract + "\": string; ";
+            }
+            l += "}; ";
+        }
+        l += "}";
+        addLine(0, l);
+    }
     addLine(0, `export class ${name} extends _Contract{`);
     if (hasAbi)
         addLine(1, `static _abi: any = Bin.abi;`);
@@ -429,7 +460,7 @@ export default function(name: string, abiPath: string, abi: Item[], options: IUs
     addLine(2, `this.assign()`);
     addLine(1, `}`);
     if (abi && options.outputBytecode)
-        addDeployer(abi);
+        addDeployer(abi, linkReferences);
     let eventAbiItems = abi ? abi.filter(v => v.type == 'event') : [];
     for (let i = 0; i < eventAbiItems.length; i++) {
         addEvent(eventAbiItems[i]);
