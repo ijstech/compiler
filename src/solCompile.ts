@@ -76,6 +76,9 @@ async function recursiveAdd(storage: Types.IStorage, root: string, srcPath: stri
     else if (await storage.isFileExists(Path.join(currPath, '.ignoreAll')))
         return;
 
+    if (! await storage.isFileExists(currPath))
+        return exports;
+
     let files = await storage.readDir(currPath);
     for (let i = 0; i < files.length; i++) {
         let _path = Path.join(root, srcPath, files[i]).replace(/\\/g, "/").replace(/^([A-Za-z]):/, "/$1");
@@ -217,6 +220,9 @@ async function recursiveAddArtifacts(storage: Types.IStorage, root: string, srcP
     else if (await storage.isFileExists(Path.join(currPath, '.ignoreAll')))
         return exports;
 
+    if (! await storage.isFileExists(currPath))
+        return exports;
+
     let files = await storage.readDir(currPath);
     for (let i = 0; i < files.length; i++) {
         let _path = Path.join(root, srcPath, files[i]).replace(/\\/g, "/").replace(/^([A-Za-z]):/, "/$1");
@@ -326,13 +332,15 @@ export async function bundle(solc: Types.ISolc, storage: Types.IStorage, config:
                     // solc = await getSolc(overrides[s].version);
                 }
                 _sourceDir = overrides[s].root || root;
+                if (!_sourceDir.endsWith('/'))
+                    _sourceDir = _sourceDir + '/';
                 input = await buildInput(storage, _sourceDir, overrides[s].sources, overrides[s].optimizerRuns||optimizerRuns, viaIR, [])
                 for (let n in input.sources){
                     if (!sources[n])
                         sources[n] = input.sources[n];
                 };
                 output = JSON.parse(await solc.compile(JSON.stringify(input), overrides[s].version || version));
-                exports = exports.concat(await processOutput(storage, sourceDir, output, outputDir, overrides[s].outputOptions || outputOptions, [], overrides[s].sources.map(f=>_sourceDir+f)));
+                exports = exports.concat(await processOutput(storage, _sourceDir, output, outputDir, overrides[s].outputOptions || outputOptions, [], overrides[s].sources.map(f=>_sourceDir+f)));
                 if (output.errors) {
                     output.errors/*.filter(e=>e.severity!='warning')*/.forEach((e:any)=>console.log(e.formattedMessage));
                 }
