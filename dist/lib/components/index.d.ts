@@ -4551,7 +4551,7 @@ declare module "packages/upload/src/upload" {
         toBase64(file: File): Promise<unknown>;
         preview(uri: string): void;
         clear(): void;
-        upload(endpoint: string): Promise<void>;
+        upload(): Promise<void>;
         addFiles(): void;
         addFolder(): void;
         protected init(): void;
@@ -4639,7 +4639,7 @@ declare module "packages/modal/src/style/modal.css" {
 declare module "packages/modal/src/modal" {
     import { Control, ControlElement, Container, IBackground, IBorder, Background, Border } from "@ijstech/components/base";
     import { Icon, IconElement } from "packages/icon/src/index";
-    export type modalPopupPlacementType = 'center' | 'bottom' | 'bottomLeft' | 'bottomRight' | 'top' | 'topLeft' | 'topRight' | 'rightTop';
+    export type modalPopupPlacementType = 'center' | 'bottom' | 'bottomLeft' | 'bottomRight' | 'top' | 'topLeft' | 'topRight' | 'rightTop' | 'left';
     type eventCallback = (target: Control) => void;
     type ModalPositionType = "fixed" | "absolute";
     export interface ModalElement extends ControlElement {
@@ -4668,6 +4668,9 @@ declare module "packages/modal/src/modal" {
         private _closeOnBackdropClick;
         private _showBackdrop;
         private _wrapperPositionAt;
+        private insideClick;
+        private boundHandleModalMouseDown;
+        private boundHandleModalMouseUp;
         protected _onOpen: eventCallback;
         onClose: eventCallback;
         constructor(parent?: Control, options?: any);
@@ -4695,7 +4698,8 @@ declare module "packages/modal/src/modal" {
         private getWrapperFixCoords;
         private getWrapperAbsoluteCoords;
         protected _handleOnShow(event: Event): void;
-        _handleClick(event: Event): boolean;
+        private handleModalMouseDown;
+        private handleModalMouseUp;
         private updateModal;
         refresh(): void;
         get background(): Background;
@@ -5506,6 +5510,16 @@ declare module "packages/color/src/utils" {
     export function isHValid(value: string): boolean;
     export function isPercentValid(value: string): boolean;
     export function customRound(value: number, threshold: number): number;
+    export function hsvToHsl(h: number, s: number, v: number): {
+        h: number;
+        s: number;
+        l: number;
+    };
+    export function hslToHsv(h: number, s: number, l: number): {
+        h: number;
+        s: number;
+        v: number;
+    };
 }
 declare module "packages/color/src/style/color.css" { }
 declare module "packages/color/src/color" {
@@ -5542,7 +5556,9 @@ declare module "packages/color/src/color" {
         private currentH;
         private currentColor;
         private currentPalette;
+        private isMousePressed;
         onChanged: notifyEventCallback;
+        onClosed: () => void;
         constructor(parent?: Control, options?: any);
         get value(): string;
         set value(color: string);
@@ -5554,9 +5570,13 @@ declare module "packages/color/src/color" {
         set height(value: number | string);
         private generateUUID;
         protected init(): Promise<void>;
+        private onOpenPicker;
         private onClosePicker;
         private createInputGroup;
         private createPreview;
+        protected _handleMouseDown(event: MouseEvent): boolean;
+        private handleMouseMove;
+        private handleMouseUp;
         private createPicker;
         private activeEyeDropper;
         private onPaletteChanged;
@@ -5608,6 +5628,7 @@ declare module "packages/input/src/input" {
         onBlur?: actionCallback;
         onFocus?: actionCallback;
         onClearClick?: actionCallback;
+        onClosed?: () => void;
     }
     global {
         namespace JSX {
@@ -5633,6 +5654,7 @@ declare module "packages/input/src/input" {
         private inputElm;
         private _inputControl;
         private clearIconElm;
+        private _onClosed;
         onKeyDown: notifyEventCallback;
         onKeyUp: notifyEventCallback;
         onChanged: notifyEventCallback;
@@ -5666,6 +5688,8 @@ declare module "packages/input/src/input" {
         set resize(value: resizeType);
         set border(value: IBorder);
         get border(): Border;
+        set onClosed(callback: () => void);
+        get onClosed(): () => void;
         private _createInputElement;
         private _inputCallback;
         private _handleChange;
@@ -11104,6 +11128,7 @@ declare module "packages/form/src/styles/index.css" {
     export const cardStyle: string;
     export const cardHeader: string;
     export const cardBody: string;
+    export const uploadStyle: string;
 }
 declare module "packages/form/src/types/jsonSchema4" {
     export type IJSONSchema4TypeName = 'string' | 'number' | 'integer' | 'boolean' | 'object' | 'array' | 'null' | 'any';
@@ -11403,6 +11428,7 @@ declare module "packages/form/src/form" {
         private validateRule;
         private getDataSchemaByScope;
         private renderGroup;
+        private renderLabel;
         private renderInput;
         private renderNumberInput;
         private renderTextArea;
@@ -11414,6 +11440,7 @@ declare module "packages/form/src/form" {
         private renderCheckBox;
         private renderList;
         private renderCard;
+        private validateOnValueChanged;
         private checkPropertyChange;
         private mustBeValid;
         validate(instance: any, schema: IDataSchema, options: any): ValidationResult;
