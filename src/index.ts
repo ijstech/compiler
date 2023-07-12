@@ -619,6 +619,8 @@ export class PackageManager{
                         // console.dir('Add dependence: ' + fileName)
                         if (fileName == '@ijstech/eth-contract' || fileName == '@ijstech/eth-wallet')
                             await compiler.addPackage('bignumber.js');
+                        if (fileName == '@ijstech/eth-wallet')
+                            await compiler.addPackage('@ijstech/eth-contract');
                         let result = await compiler.addPackage(fileName);
                         if (result)
                             return result;
@@ -1041,7 +1043,13 @@ export class Compiler {
                 }
                 else
                     resolvedModules.push(result.resolvedModule);
-            };
+            }
+            else
+                resolvedModules.push(<any>{
+                    resolvedFileName: moduleName + '/index.d.ts',
+                    extension: '.ts',
+                    isExternalLibraryImport: true
+                });
         };
         return resolvedModules;
     };
