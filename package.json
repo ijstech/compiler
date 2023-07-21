@@ -37,7 +37,7 @@
         "build:types": "rm -rf bundle && node tools/buildLib.js && tsc --P tsconfig.types.json && rm -rf bundle && rm -rf src/lib.ts && node tools/bundleLib.js",
         "build:test": "rm -rf bundle && tsc --P tsconfig.test.json && node tools/bundleTest.js && rm -rf bundle",
         "cp:typescript": "cp -f node_modules/typescript/lib/typescript.js src/lib/typescript.js && cp -f node_modules/typescript/lib/typescript.d.ts src/lib/typescript.d.ts",
-        "test": "mocha --exit --require ts-node/register test/*.spec.ts",
+        "test": "NODE_OPTIONS=--max-old-space-size=4096 mocha --exit --require ts-node/register test/*.spec.ts",
         "test:compiler": "mocha --exit --require ts-node/register test/compiler.spec.ts",
         "test:path": "mocha --exit --require ts-node/register test/path.spec.ts",
         "test:bundle": "mocha --exit --require ts-node/register test/bundle.spec.ts",

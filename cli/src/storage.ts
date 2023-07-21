@@ -188,7 +188,7 @@ export class Storage implements IStorage{
     };
     async hashDir(dir: string): Promise<ICidInfo> {
         let files = await Fs.readdir(dir);
-        let items = [];
+        let items:ICidInfo[] = [];
         for (let i = 0; i < files.length; i++) {
             let file = files[i];
             let path = Path.join(dir, file);
