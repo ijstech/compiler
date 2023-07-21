@@ -28,11 +28,11 @@ async function importFile(storage: Types.IStorage, fileName: string, sources: Ty
     let content = await storage.readFile("node_modules/" + fileName);
     let dependencies: string[] = [];
     sources[fileName] = {content: content};
-    let importRegex = /^\s*import\s+(?:"([^"]+)"|'([^']+)')./gm;
+    let importRegex = /^\s*import(\s+{[^}]+}\s+from)?\s+(?:"([^"]+)"|'([^']+)')./gm;
     let importMatch;
     let dir = Path.dirname(fileName);
     while ((importMatch = importRegex.exec(content))) {
-        let importPath = importMatch[1] || importMatch[2];
+        let importPath = importMatch[2] || importMatch[3];
         if (importPath.startsWith(".")) {
             importPath = Path.resolve(dir, importPath);
             if (!dependencies.includes(importPath)) 
@@ -40,7 +40,7 @@ async function importFile(storage: Types.IStorage, fileName: string, sources: Ty
             if (!sources[importPath]) {
                 await importFile(storage, importPath, sources);
             }
-        } else if (importPath.startsWith("@")) {
+        } else {
             if (!sources[importPath]) {
                 await importFile(storage, importPath, sources);
             }
@@ -54,11 +54,11 @@ async function recursiveAdd(storage: Types.IStorage, root: string, srcPath: stri
     if (await storage.isFile(currPath)) {
         let content = await storage.readFile(currPath);
         sources[currPath.replace(new RegExp(`^${root}`),'contracts/')] = { content: content };
-        let importRegex = /^\s*import\s+(?:"([^"]+)"|'([^']+)')./gm;
+        let importRegex = /^\s*import(\s+{[^}]+}\s+from)?\s+(?:"([^"]+)"|'([^']+)')./gm;
         let importMatch;
         let dependencies: string[] = [];
         while ((importMatch = importRegex.exec(content))) {
-            const importPath = importMatch[1] || importMatch[2];
+            const importPath = importMatch[2] || importMatch[3];
             if (!dependencies.includes(importPath))
                 dependencies.push(importPath);
             if (!sources[importPath]) {
@@ -87,11 +87,11 @@ async function recursiveAdd(storage: Types.IStorage, root: string, srcPath: stri
                 if ((!exclude || !exclude.includes(_path))){
                     let content = await storage.readFile(Path.resolve(currPath, files[i]));
                     sources[_path.replace(new RegExp(`^${root}`),'contracts/')] = { content: content };
-                    let importRegex = /^\s*import\s+(?:"([^"]+)"|'([^']+)')./gm;
+                    let importRegex = /^\s*import(\s+{[^}]+}\s+from)?\s+(?:"([^"]+)"|'([^']+)')./gm;
                     let importMatch;
                     let dependencies: string[] = [];
                     while ((importMatch = importRegex.exec(content))) {
-                        const importPath = importMatch[1] || importMatch[2];
+                        const importPath = importMatch[2] || importMatch[3];
                         if (!dependencies.includes(importPath))
                             dependencies.push(importPath);
                         if (!sources[importPath] && !importPath.startsWith(".")) {
@@ -121,7 +121,7 @@ async function buildInput(storage: Types.IStorage, root: string, source: string[
                 enabled: true,
                 runs: optimizerRuns || 999999
             } : undefined,
-            viaIR: viaIR,
+            viaIR: viaIR || undefined,
             // evmVersion: "istanbul",//"constantinople",//"byzantium",
             outputSelection: {
                 "*": {
@@ -278,9 +278,10 @@ async function callCodeGen(storage: Types.IStorage, outputDir: string, path: str
     }    
 }
 interface CompileOptions { version?: string; optimizerRuns?: number; viaIR?:boolean, outputOptions?: OutputOptions }
-interface Override extends CompileOptions { root?:string, sources:string[]; };
+interface Override extends CompileOptions { root?: string, sources: string[]; };
 interface Config extends CompileOptions {
     sourceDir?: string;
+    sources?: string[];
     artifactsDir?: string;
     outputDir?: string;
     output?: string;
@@ -293,6 +294,7 @@ export async function bundle(solc: Types.ISolc, storage: Types.IStorage, config:
     let {version, optimizerRuns, viaIR, outputOptions, overrides, libMap, flattenFiles} = config;
 
     let sourceDir = config.sourceDir || "contracts/";
+    let sourceFiles = config.sources || [];
     let outputDir = config.outputDir || "src/contracts/";
     optimizerRuns = optimizerRuns || 200;
     viaIR = viaIR || false;
@@ -315,7 +317,7 @@ export async function bundle(solc: Types.ISolc, storage: Types.IStorage, config:
         let customSources = overrides && overrides.map(e=>e.sources.map(f=>(e.root||root)+f)).reduce((a,b)=>a.concat(b),[]);
         customSources = customSources || [];
         let sources: Types.ISource = {};
-        let input = await buildInput(storage, sourceDir, [], optimizerRuns, viaIR, customSources);
+        let input = await buildInput(storage, sourceDir, sourceFiles, optimizerRuns, viaIR, customSources);
         for (let n in input.sources){
             if (!sources[n])
                 sources[n] = input.sources[n];
