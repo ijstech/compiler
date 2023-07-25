@@ -103,9 +103,14 @@ export async function getLocalPackageTypes(name: string, packName?: string): Pro
     if (path && path != '/') {
         try {
             let pack = JSON.parse(await Fs.readFile(Path.join(name, 'package.json'), 'utf8'))
+            let dependencies = [];
+            for (let name in pack.dependencies) {
+                dependencies.push(name);
+            }
             let dts = await Fs.readFile(Path.join(name, pack.pluginTypes || pack.types || pack.typings || 'index.d.ts'), 'utf8');
             return {
-                dts: {'index.d.ts': dts}
+                dts: {'index.d.ts': dts},
+                dependencies: dependencies
             };
         }
         catch (err) {
