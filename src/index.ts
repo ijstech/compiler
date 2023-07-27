@@ -298,6 +298,12 @@ export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
             dts = pack.dts['index.d.ts'];
         storage.copyAssets(Path.join(scRootDir, 'src'), distDir);            
         storage.writeFile(Path.join(distDir, 'index.js'), script);
+        storage.writeFile(Path.join(distDir, 'scconfig.json'), JSON.stringify({
+            name: packageConfig.name,
+            type: "widget",
+            version: packageConfig.version,                        
+            dependencies: pack.dependencies
+        },null,4));
         storage.writeFile(Path.join(typesDir, 'index.d.ts'), dts);
     };
 };
