@@ -171,6 +171,18 @@ export async function bundleContractDist(storage: Types.IStorage, RootPath?: str
             dts = pack.dts['index.d.ts'];    
         await storage.writeFile(Path.join(distDir, 'index.js'), script);
         await storage.writeFile(Path.join(typesDir, 'index.d.ts'), dts);
+        await storage.writeFile(Path.join(distDir, 'scconfig.json'), JSON.stringify({
+            name: packageConfig.name,
+            type: "contract",
+            version: packageConfig.version,                        
+            dependencies: pack.dependencies
+        },null,4));
+        await storage.writeFile(Path.join(distDir, 'scconfig.json'), JSON.stringify({
+            name: packageConfig.name,
+            type: "contract",
+            version: packageConfig.version,                        
+            dependencies: pack.dependencies
+        },null,4));
     };
 };
 const WorkerDefaultPackages = [
@@ -264,9 +276,11 @@ export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
     let scRootDir = RootPath;
     let packageConfig = await storage.getPackageConfig();
     if (packageConfig){
+        let packs: {[packName: string]: Types.IPackage} = {};
         let packageManager = new PackageManager({
             packageImporter: async (packName: string) => {
                 let pack = await storage.getPackageTypes(packName);
+                packs[packName] = pack;
                 return pack;
             }
         });
@@ -298,11 +312,33 @@ export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
             dts = pack.dts['index.d.ts'];
         storage.copyAssets(Path.join(scRootDir, 'src'), distDir);            
         storage.writeFile(Path.join(distDir, 'index.js'), script);
+        let dependencies: string[] = [];
+        pack.dependencies?.forEach((item: string) => {
+            let idx: number = 0;
+            if (dependencies.indexOf(item) < 0){
+                idx = dependencies.push(item);
+                let dep = packs[item];
+                dep?.dependencies?.forEach((depItem: string) => {
+                    if (depItem.startsWith('@scom/')){
+                        let depIdx = dependencies.indexOf(depItem);
+                        if (depIdx < 0){
+                            dependencies.splice(idx-1, 0, depItem);
+                            idx++;
+                        }
+                        else if (depIdx > idx){
+                            dependencies.splice(depIdx, 1);
+                            dependencies.splice(idx-1, 0, depItem);
+                            idx++;
+                        };
+                    }
+                });
+            };                
+        });
         storage.writeFile(Path.join(distDir, 'scconfig.json'), JSON.stringify({
             name: packageConfig.name,
             type: "widget",
             version: packageConfig.version,                        
-            dependencies: pack.dependencies
+            dependencies:  dependencies
         },null,4));
         storage.writeFile(Path.join(typesDir, 'index.d.ts'), dts);
     };

@@ -75,11 +75,23 @@ async function getLocalPackageTypes(name, packName) {
     let path = path_1.default.dirname(name);
     if (path && path != '/') {
         try {
-            let pack = JSON.parse(await fs_1.promises.readFile(path_1.default.join(name, 'package.json'), 'utf8'));
             let dependencies = [];
-            for (let name in pack.dependencies) {
-                dependencies.push(name);
+            let pack = JSON.parse(await fs_1.promises.readFile(path_1.default.join(name, 'package.json'), 'utf8'));
+            if (pack.main) {
+                try {
+                    let distPath = path_1.default.dirname(pack.main);
+                    let scconfig = JSON.parse(await fs_1.promises.readFile(path_1.default.join(distPath, 'scconfig.json'), 'utf8'));
+                    dependencies = scconfig.dependencies || [];
+                }
+                catch (err) { }
             }
+            ;
+            if (dependencies.length == 0) {
+                for (let name in pack.dependencies) {
+                    dependencies.push(name);
+                }
+            }
+            ;
             let dts = await fs_1.promises.readFile(path_1.default.join(name, pack.pluginTypes || pack.types || pack.typings || 'index.d.ts'), 'utf8');
             return {
                 dts: { 'index.d.ts': dts },
