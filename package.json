@@ -1,6 +1,6 @@
 {
     "name": "@ijstech/compiler",
-    "version": "0.1.55",
+    "version": "0.1.57",
     "main": "lib/index.js",
     "types": "types/index.d.ts",
     "pluginTypes": "dist/index.d.ts",
@@ -38,6 +38,7 @@
         "build:test": "rm -rf bundle && tsc --P tsconfig.test.json && node tools/bundleTest.js && rm -rf bundle",
         "cp:typescript": "cp -f node_modules/typescript/lib/typescript.js src/lib/typescript.js && cp -f node_modules/typescript/lib/typescript.d.ts src/lib/typescript.d.ts",
         "test": "NODE_OPTIONS=--max-old-space-size=4096 mocha --exit --require ts-node/register test/*.spec.ts",
+        "test:parser": "mocha --exit --require ts-node/register test/parser.spec.ts",
         "test:compiler": "mocha --exit --require ts-node/register test/compiler.spec.ts",
         "test:path": "mocha --exit --require ts-node/register test/path.spec.ts",
         "test:bundle": "mocha --exit --require ts-node/register test/bundle.spec.ts",
