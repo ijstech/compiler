@@ -399,9 +399,11 @@ export async function bundleDapp(storage: Types.IStorage, RootPath?: string){
         let distDir = Path.join(scRootDir, scconfig.distDir || 'dist');
         if (scconfig.ipfs)
             distDir = distDir + '/output';
-
-        let distLibDir = Path.join(distDir, scconfig.rootDir || '', scconfig.libDir || 'libs');
-        let distModuleDir = Path.join(distDir, scconfig.rootDir || '', 'modules');
+        let rootDir = '';
+        if (scconfig.version && scconfig.bundle)
+            rootDir = scconfig.version;
+        let distLibDir = Path.join(distDir, rootDir, scconfig.libDir || 'libs');
+        let distModuleDir = Path.join(distDir, rootDir, 'modules');
         // let distModuleDir = Path.join(distDir, 'libs/' + packageConfig.name);//'modules');
                 
         for (let name in scconfig.modules) {
@@ -503,7 +505,7 @@ export async function bundleDapp(storage: Types.IStorage, RootPath?: string){
                 deps[scconfig.main] = '*';
                 await bundleDependencies(deps);
             };
-            await storage.writeFile(Path.join(distDir, scconfig.rootDir || '', 'bundle.json'), JSON.stringify(bundleLibs));
+            await storage.writeFile(Path.join(distDir, rootDir, 'bundle.json'), JSON.stringify(bundleLibs));
         }
         else
             await copyDependencies(scconfig.dependencies, true);
@@ -529,8 +531,8 @@ export async function bundleDapp(storage: Types.IStorage, RootPath?: string){
             for (let n in scconfig.meta){
                 if (n == 'favicon'){
                     let value = scconfig.meta[n];
-                    if (scconfig.rootDir && value.startsWith('modules/'))
-                        value = `${scconfig.rootDir}/${value}`;
+                    if (rootDir && value.startsWith('modules/'))
+                        value = `${rootDir}/${value}`;
                     meta += `  <link rel="icon" href="${value}">\n`
                 }
                 else if (n == 'title')
@@ -547,20 +549,20 @@ export async function bundleDapp(storage: Types.IStorage, RootPath?: string){
         indexHtml = indexHtml.replace('{{main}}', `${scconfig.main || '@scom/dapp'}`);
         if (scconfig.ipfs == true){
             delete scconfig.ipfs;
-            let idx = indexHtml.replaceAll('{{rootDir}}', scconfig.rootDir?scconfig.rootDir+'/':'');
+            let idx = indexHtml.replaceAll('{{rootDir}}', rootDir?rootDir+'/':'');
             await storage.writeFile(Path.join(distDir, 'index.html'), idx);
             await storage.writeFile(Path.join(distDir, 'scconfig.json'), JSON.stringify(scconfig, null, 4));
             let cid = await storage.hashDir(distDir);            
             let d = Path.join(scRootDir, scconfig.distDir || 'dist');
             await storage.rename(distDir, Path.join(d, cid.cid));
-            indexHtml = indexHtml.replaceAll('{{rootDir}}', cid.cid + '/' + (scconfig.rootDir?scconfig.rootDir+'/':''));            
+            indexHtml = indexHtml.replaceAll('{{rootDir}}', cid.cid + '/' + (rootDir?rootDir+'/':''));            
             await storage.writeFile(Path.join(d, 'index.html'), indexHtml);
             await storage.writeFile(Path.join(Path.join(d, `${cid.cid}.json`)), JSON.stringify(cid));
         }
         else{
-            indexHtml = indexHtml.replaceAll('{{rootDir}}', scconfig.rootDir?scconfig.rootDir+'/':'');
+            indexHtml = indexHtml.replaceAll('{{rootDir}}', rootDir?rootDir+'/':'');
             await storage.writeFile(Path.join(distDir, 'index.html'), indexHtml);
-            await storage.writeFile(Path.join(distDir, scconfig.rootDir?scconfig.rootDir+'/':'', 'scconfig.json'), JSON.stringify(scconfig, null, 4));            
+            await storage.writeFile(Path.join(distDir, rootDir?rootDir+'/':'', 'scconfig.json'), JSON.stringify(scconfig, null, 4));            
         };
         
         // if (scconfig.ipfs == true){
