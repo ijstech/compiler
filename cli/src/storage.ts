@@ -181,8 +181,18 @@ export class Storage implements IStorage{
                 await Fs.mkdir(targetDir, {recursive: true});
                 await Fs.copyFile(Path.join(path, distFile), Path.join(targetDir, 'index.js'));                                
             }
-            else
+            else{
                 await Fs.cp(Path.join(path, 'dist'), targetDir, {recursive: true});
+                try{
+                    let distPath = Path.dirname(pack.main);
+                    let scconfig = JSON.parse(await Fs.readFile(Path.join(path, 'dist', 'scconfig.json'), 'utf8'));
+                    pack.dependencies = {};
+                    scconfig.dependencies.forEach((name: string) => {
+                        pack.dependencies[name] = '*';
+                    });
+                }
+                catch(err){}
+            }
         };
         return pack;
     };

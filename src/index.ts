@@ -451,7 +451,7 @@ export async function bundleDapp(storage: Types.IStorage, RootPath?: string){
             };
         };
         //copy dependencies        
-        let deps = ['@ijstech/components'];
+        let deps: string[] = [];
         await storage.copyPackage('@ijstech/components', Path.join(distLibDir, '@ijstech/components'));
 
         async function copyDependencies(dependencies: any, all?: boolean){
@@ -464,20 +464,22 @@ export async function bundleDapp(storage: Types.IStorage, RootPath?: string){
             // };
             dependencies = dependencies || {};
             for (let name in dependencies){
-                if (name.startsWith('@ijstech/components/'))
-                    name = '@ijstech/components';
-                if ((all || name.startsWith('@ijstech/') || name.startsWith('@scom/'))){    
+                if (name != '@ijstech/components/' && !name.startsWith('@ijstech/components/')){
+                    if ((all || name.startsWith('@ijstech/') || name.startsWith('@scom/'))){    
 
-                    let pack = await storage.copyPackage(name, Path.join(distLibDir, name));
-                    if (pack){                     
-                        deps.unshift(name);
-                        let dependencies = pack.dependencies || {};
-                        if (name == '@ijstech/eth-contract')
-                            dependencies['@ijstech/eth-wallet'] = '*';
-                        await copyDependencies(dependencies);
+                        let pack = await storage.copyPackage(name, Path.join(distLibDir, name));
+                        if (pack){       
+                            let existsIdx = deps.indexOf(name);
+                            if (existsIdx >= 0)
+                                deps.splice(existsIdx, 1);              
+                            deps.unshift(name);
+                            let dependencies = pack.dependencies || {};
+                            // if (name == '@ijstech/eth-contract')
+                            //     dependencies['@ijstech/eth-wallet'] = '*';
+                            await copyDependencies(dependencies);
+                        };
                     };
                 };
-                
             };            
         };
         async function bundleDependencies(dependencies: any){

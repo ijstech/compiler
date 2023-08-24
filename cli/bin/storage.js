@@ -166,8 +166,18 @@ class Storage {
                 await fs_1.promises.mkdir(targetDir, { recursive: true });
                 await fs_1.promises.copyFile(path_1.default.join(path, distFile), path_1.default.join(targetDir, 'index.js'));
             }
-            else
+            else {
                 await fs_1.promises.cp(path_1.default.join(path, 'dist'), targetDir, { recursive: true });
+                try {
+                    let distPath = path_1.default.dirname(pack.main);
+                    let scconfig = JSON.parse(await fs_1.promises.readFile(path_1.default.join(path, 'dist', 'scconfig.json'), 'utf8'));
+                    pack.dependencies = {};
+                    scconfig.dependencies.forEach((name) => {
+                        pack.dependencies[name] = '*';
+                    });
+                }
+                catch (err) { }
+            }
         }
         ;
         return pack;
