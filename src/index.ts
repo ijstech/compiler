@@ -474,8 +474,12 @@ export async function bundleDapp(storage: Types.IStorage, RootPath?: string){
                                 deps.splice(existsIdx, 1);              
                             deps.unshift(name);
                             let dependencies = pack.dependencies || {};
-                            // if (name == '@ijstech/eth-contract')
-                            //     dependencies['@ijstech/eth-wallet'] = '*';
+                            if (name == '@ijstech/eth-contract'){
+                                existsIdx = deps.indexOf('@ijstech/eth-wallet');
+                                if (existsIdx >= 0)
+                                    deps.splice(existsIdx, 1);
+                                deps.unshift('@ijstech/eth-wallet');
+                            }
                             await copyDependencies(dependencies);
                         };
                     };
