@@ -103,15 +103,15 @@ export async function getLocalPackageTypes(name: string, packName?: string): Pro
     if (path && path != '/') {
         try {
             let dependencies = [];
-            let pack = JSON.parse(await Fs.readFile(Path.join(name, 'package.json'), 'utf8'))
-            if (pack.main){
-                try{
-                    let distPath = Path.dirname(pack.main);
-                    let scconfig = JSON.parse(await Fs.readFile(Path.join(distPath, 'scconfig.json'), 'utf8'));
-                    dependencies = scconfig.dependencies || [];
-                }
-                catch(err){}
-            };  
+            let pack = JSON.parse(await Fs.readFile(Path.join(name, 'package.json'), 'utf8'));
+            let distPath = 'dist';
+            if (pack.main)
+                distPath = Path.dirname(pack.main);
+            try{
+                let scconfig = JSON.parse(await Fs.readFile(Path.join(name, distPath, 'scconfig.json'), 'utf8'));
+                dependencies = scconfig.dependencies || [];
+            }
+            catch(err){};
             if (dependencies.length == 0){        
                 for (let name in pack.dependencies) {
                     dependencies.push(name);
