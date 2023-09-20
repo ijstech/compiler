@@ -8,6 +8,7 @@ export interface ICidInfo {
 }
 export interface IStorage {
     rootPath: string;
+    cidToSri(value: string): Promise<string>;
     copyAssets(sourceDir: string, targetDir: string): Promise<void>;
     copyPackage(packName: string, targetDir: string): Promise<any>;
     getSCConfig(): Promise<any>;
@@ -17,6 +18,7 @@ export interface IStorage {
     getFiles(dir: string): Promise<{
         [filePath: string]: string;
     }>;
+    hashContent(dir: string): Promise<string>;
     hashDir(dir: string): Promise<ICidInfo>;
     isDirectory(dir: string): Promise<boolean>;
     isFile(filePath: string): Promise<boolean>;

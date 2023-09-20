@@ -151,6 +151,10 @@ class Storage {
         this.rootPath = rootPath;
     }
     ;
+    async cidToSri(value) {
+        return ipfs_js_1.default.cidToSri(value);
+    }
+    ;
     async copyAssets(sourceDir, targetDir) {
         copyAssets(sourceDir, targetDir);
     }
@@ -203,6 +207,10 @@ class Storage {
         return getLocalScripts(dir);
     }
     ;
+    async hashContent(content) {
+        return ipfs_js_1.default.hashContent(content, 1);
+    }
+    ;
     async hashDir(dir) {
         let files = await fs_1.promises.readdir(dir);
         let items = [];
@@ -227,6 +235,7 @@ class Storage {
                 }
                 catch (err) {
                     console.dir(path);
+                    console.dir(err);
                 }
             }
         }

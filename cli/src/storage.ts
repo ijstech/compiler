@@ -11,6 +11,7 @@ export interface ICidInfo {
 };
 export interface IStorage{
     rootPath: string;
+    cidToSri(cid: string): Promise<string>;
     copyAssets(sourceDir: string, targetDir: string): Promise<void>;
     copyPackage(packName: string, targetDir: string): Promise<any>;
     getSCConfig(): Promise<any>;
@@ -18,6 +19,7 @@ export interface IStorage{
     getPackageConfig(): Promise<any>;
     getPackageTypes(packName: string): Promise<IPackage>;
     getFiles(dir: string): Promise<{ [filePath: string]: string }>;
+    hashContent(content: string): Promise<string>;
     hashDir(dir: string): Promise<ICidInfo>;
     isDirectory(dir: string): Promise<boolean>;
     isFile(filePath: string): Promise<boolean>;
@@ -167,6 +169,9 @@ export class Storage implements IStorage{
     constructor(rootPath: string){
         this.rootPath = rootPath;
     };
+    async cidToSri(value: string): Promise<string>{
+        return IPFS.cidToSri(value)
+    };
     async copyAssets(sourceDir: string, targetDir: string): Promise<void>{
         copyAssets(sourceDir, targetDir);
     };
@@ -211,6 +216,9 @@ export class Storage implements IStorage{
     getFiles(dir: string): Promise<{ [filePath: string]: string }>{
         return getLocalScripts(dir);
     };
+    async hashContent(content: string): Promise<string> {
+        return IPFS.hashContent(content, 1);
+    };
     async hashDir(dir: string): Promise<ICidInfo> {
         let files = await Fs.readdir(dir);
         let items:ICidInfo[] = [];
@@ -235,6 +243,7 @@ export class Storage implements IStorage{
                 }
                 catch(err){
                     console.dir(path)
+                    console.dir(err)
                 }
             }
         };
