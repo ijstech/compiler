@@ -593,7 +593,7 @@ if (!rootDir.endsWith('/'))
         if (scconfig.bundle){
             let cid = await storage.hashContent(bundleJS);
             let sri = await storage.cidToSri(cid);
-            indexHtml = indexHtml.replace('{{bundleJS}}', `<script src="${rootDir?rootDir:''}/bundle.js" integrity="sha256-${sri}" crossorigin="anonymous"></script>`);
+            indexHtml = indexHtml.replace('{{bundleJS}}', `<script src="${rootDir?rootDir+'/':''}bundle.js" integrity="sha256-${sri}" crossorigin="anonymous"></script>`);
         }
         else
             indexHtml = indexHtml.replace('{{bundleJS}}', ``);
