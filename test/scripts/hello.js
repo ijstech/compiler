@@ -21,7 +21,8 @@ define("hello", ["require", "exports"], function (require, exports) {
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.hello = void 0;
     function hello() {
-        return "Hello World";
+        let bitInt = BigInt(1);
+        return "Hello World " + BigInt.toString();
     }
     exports.hello = hello;
 });

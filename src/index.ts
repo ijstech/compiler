@@ -109,7 +109,7 @@ export async function bundleContractLib(storage: Types.IStorage, RootPath?: stri
                 skipLibCheck: true,
                 noEmitOnError: true,
                 module: TS.ModuleKind.CommonJS,
-                target: TS.ScriptTarget.ES2017
+                target: TS.ScriptTarget.ES2020
             }
         });
         packageManager.addPackage('@ijstech/eth-contract', await storage.getPackageTypes('@ijstech/eth-contract'));            
@@ -234,7 +234,7 @@ export async function bundleWorker(storage: Types.IStorage, RootPath?: string){
                             removeComments: true,                            
                             resolveJsonModule: false,
                             skipLibCheck: true,
-                            target: TS.ScriptTarget.ES2017
+                            target: TS.ScriptTarget.ES2020
                         }
                     });
                     packageManager.addPackage('bignumber.js', await storage.getPackageTypes('bignumber.js'));
@@ -781,7 +781,7 @@ export class Compiler {
             module: TS.ModuleKind.AMD,
             outFile: 'index.js',
             // module: TS.ModuleKind.CommonJS,
-            target: TS.ScriptTarget.ES2017,
+            target: TS.ScriptTarget.ES2020,
             "jsx": 2,      
             "jsxFactory": "global.$JSX"
         };
@@ -795,7 +795,7 @@ export class Compiler {
             skipLibCheck: true,       
             module: TS.ModuleKind.CommonJS,
             noEmitOnError: true,
-            target: TS.ScriptTarget.ES2017
+            target: TS.ScriptTarget.ES2020
         };
         this.files = {};
         this.packageFiles = {};
@@ -804,7 +804,7 @@ export class Compiler {
         let ast = TS.createSourceFile(
             fileName,
             content,
-            TS.ScriptTarget.ES2017,
+            TS.ScriptTarget.ES2020,
             true
         );
         result = result || [];
@@ -1045,7 +1045,7 @@ export class Compiler {
         let ast = TS.createSourceFile(
             fileName,
             content,
-            TS.ScriptTarget.ES2017,
+            TS.ScriptTarget.ES2020,
             true
         );
         result = result || [];

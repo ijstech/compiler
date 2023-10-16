@@ -13,6 +13,9 @@ class Storage implements Types.IStorage{
     constructor(rootPath: string){
         this.rootPath = rootPath;
     };
+    async cidToSri(cid: string): Promise<string>{
+        return '';
+    };
     async copyAssets(sourceDir: string, targetDir: string): Promise<void>{
         // copyAssets(sourceDir, targetDir);
     };
@@ -47,6 +50,9 @@ class Storage implements Types.IStorage{
     async getFiles(dir: string): Promise<{ [filePath: string]: string }>{
         return getLocalScripts(dir);
     };
+    async hashContent(content: string): Promise<string>{
+        return '';
+    }
     async hashDir(dir: string): Promise<Types.ICidInfo>{
         return {cid: '', size: 0};
     };

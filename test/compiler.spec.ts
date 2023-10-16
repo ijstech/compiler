@@ -121,8 +121,10 @@ describe('Compiler', async function () {
             Utils.getScript
         )
         let result = await compiler.compile(true)
+        // Utils.writeScript('hello.js', result.script['index.js'])
         assert.strictEqual(result.errors.length, 0)
-        if (result.errors.length) console.dir(result.errors)
+        if (result.errors.length) 
+            console.dir(result.errors)
         let exp = (await Utils.getScript('hello.js')).content
         if (exp) assert.strictEqual(result.script['index.js'], exp)
         else await Utils.setScriptContent('hello.js', result.script['index.js'])

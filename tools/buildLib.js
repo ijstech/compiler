@@ -63,7 +63,11 @@ const libs = [
     "es2017.sharedmemory",
     "es2017.string",
     "es2017.intl",
-    "es2017.typedarrays"
+    "es2017.typedarrays",
+    "es2018.intl",
+    "es2019.intl",
+    "es2020.intl",
+    "es2020.bigint"
 ]
 async function bundle(){
     await mkdir(Path.resolve(__dirname, '../bundle'));    
