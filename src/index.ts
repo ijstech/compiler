@@ -594,8 +594,8 @@ if (!rootDir.endsWith('/'))
         if (scconfig.oauth) {
             let scripts = [];
             for (let provider in scconfig.oauth) {
-                let enabled = scconfig.oauth[provider];
-                if (!enabled) continue;
+                let providerInfo = scconfig.oauth[provider];
+                if (!providerInfo.enabled) continue;
                 if (provider == 'google') {
                     scripts.push(`<script src="https://accounts.google.com/gsi/client" async></script>`);
                 }
