@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Storage = exports.readPackageConfig = exports.readSCConfig = exports.getLocalScripts = exports.getLocalPackageTypes = exports.getLocalPackage = exports.getLocalPackagePath = exports.copyAssets = void 0;
+exports.Storage = exports.writePackageConfig = exports.readPackageConfig = exports.writeSCConfig = exports.readSCConfig = exports.getLocalScripts = exports.getLocalPackageTypes = exports.getLocalPackage = exports.getLocalPackagePath = exports.copyAssets = void 0;
 const fs_1 = require("fs");
 const path_1 = __importDefault(require("path"));
 const ipfs_js_1 = __importDefault(require("./ipfs.js"));
@@ -131,19 +131,35 @@ exports.getLocalScripts = getLocalScripts;
 ;
 async function readSCConfig(path) {
     try {
-        return JSON.parse(JSON.stringify(JSON.parse(await fs_1.promises.readFile(path_1.default.join(path, 'scconfig.json'), 'utf-8'))));
+        return JSON.parse(await fs_1.promises.readFile(path_1.default.join(path, 'scconfig.json'), 'utf-8'));
     }
     catch (err) { }
 }
 exports.readSCConfig = readSCConfig;
 ;
+async function writeSCConfig(path, config) {
+    try {
+        return await fs_1.promises.writeFile(path_1.default.join(path, 'scconfig.json'), JSON.stringify(config, null, 4), 'utf-8');
+    }
+    catch (err) { }
+}
+exports.writeSCConfig = writeSCConfig;
+;
 async function readPackageConfig(path) {
     try {
-        return JSON.parse(JSON.stringify(JSON.parse(await fs_1.promises.readFile(path_1.default.join(path, 'package.json'), 'utf-8'))));
+        return JSON.parse(await fs_1.promises.readFile(path_1.default.join(path, 'package.json'), 'utf-8'));
     }
     catch (err) { }
 }
 exports.readPackageConfig = readPackageConfig;
+;
+async function writePackageConfig(path, config) {
+    try {
+        return await fs_1.promises.writeFile(path_1.default.join(path, 'package.json'), JSON.stringify(config, null, 4), 'utf-8');
+    }
+    catch (err) { }
+}
+exports.writePackageConfig = writePackageConfig;
 ;
 class Storage {
     constructor(rootPath) {
@@ -297,6 +313,14 @@ class Storage {
     ;
     async rename(oldPath, newPath) {
         await fs_1.promises.rename(oldPath, newPath);
+    }
+    ;
+    async updateSCConfig(config) {
+        await writeSCConfig(this.rootPath, config);
+    }
+    ;
+    async updatePackageConfig(config) {
+        await writePackageConfig(this.rootPath, config);
     }
     ;
     async writeFile(fileName, content) {

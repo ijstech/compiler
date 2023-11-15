@@ -90,8 +90,21 @@ exports.hashDir = hashDir;
 ;
 async function main() {
     let storage = new storage_1.Storage(RootPath);
+    let version = '';
+    if (process.argv.length > 2)
+        version = process.argv[2];
+    if (version) {
+        let packConfig = await storage.getPackageConfig();
+        packConfig.version = version;
+        await storage.updatePackageConfig(packConfig);
+    }
     let scconfig = await storage.getSCConfig();
     if (scconfig) {
+        if (version) {
+            scconfig.version = version;
+            await storage.updateSCConfig(scconfig);
+        }
+        ;
         switch (scconfig?.type) {
             case 'dapp':
                 await (0, compiler_1.bundleDapp)(storage);

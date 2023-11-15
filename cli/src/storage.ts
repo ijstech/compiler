@@ -153,13 +153,25 @@ export async function getLocalScripts(path: string): Promise<{ [filePath: string
 };
 export async function readSCConfig(path: string): Promise<any>{
     try{
-        return JSON.parse(JSON.stringify(JSON.parse(await Fs.readFile(Path.join(path, 'scconfig.json'), 'utf-8'))));
+        return JSON.parse(await Fs.readFile(Path.join(path, 'scconfig.json'), 'utf-8'));
     }
     catch(err){}
 };
+export async function writeSCConfig(path: string, config: any): Promise<any>{
+    try{
+        return await Fs.writeFile(Path.join(path, 'scconfig.json'), JSON.stringify(config, null, 4), 'utf-8');
+    }
+    catch(err){} 
+};
 export async function readPackageConfig(path: string): Promise<any>{
     try{
-        return JSON.parse(JSON.stringify(JSON.parse(await Fs.readFile(Path.join(path, 'package.json'), 'utf-8'))));
+        return JSON.parse(await Fs.readFile(Path.join(path, 'package.json'), 'utf-8'));
+    }
+    catch(err){}
+};
+export async function writePackageConfig(path: string, config: any): Promise<any>{
+    try{
+        return await Fs.writeFile(Path.join(path, 'package.json'), JSON.stringify(config, null, 4), 'utf-8');
     }
     catch(err){}
 };
@@ -295,6 +307,12 @@ export class Storage implements IStorage{
     };
     async rename(oldPath: string, newPath: string): Promise<void>{
         await Fs.rename(oldPath, newPath);
+    };
+    async updateSCConfig(config: any){
+        await writeSCConfig(this.rootPath, config);
+    };
+    async updatePackageConfig(config: any){
+        await writePackageConfig(this.rootPath, config);
     };
     async writeFile(fileName: string, content: string): Promise<void>{
         if (fileName[0] != '/')
