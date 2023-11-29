@@ -87,10 +87,15 @@ export async function bundleContract(storage: Types.IStorage, solc: Types.ISolc,
         "outputDir": "src/contracts",
         "outputObjects": "bytecode"
     }, RootPath);
-    await bundleContractDist(storage, RootPath);
-    await bundleContractLib(storage, RootPath);
+    await bundleDist('contract', storage, RootPath);
+    await bundleLib(storage, RootPath);
 };
-export async function bundleContractLib(storage: Types.IStorage, RootPath?: string){
+export async function bundleSdk(storage: Types.IStorage, RootPath?: string){
+    RootPath = RootPath || storage.rootPath;
+    await bundleDist('sdk', storage, RootPath);
+    await bundleLib(storage, RootPath);
+};
+export async function bundleLib(storage: Types.IStorage, RootPath?: string){
     RootPath = RootPath || storage.rootPath;
     let packageConfig = await storage.getPackageConfig();
     if (packageConfig){
@@ -138,7 +143,7 @@ export async function bundleContractLib(storage: Types.IStorage, RootPath?: stri
         };
     };
 };
-export async function bundleContractDist(storage: Types.IStorage, RootPath?: string){
+export async function bundleDist(bundleType: string, storage: Types.IStorage, RootPath?: string){
     RootPath = RootPath || storage.rootPath;
     let packageConfig = await storage.getPackageConfig();
     if (packageConfig){
@@ -177,13 +182,13 @@ export async function bundleContractDist(storage: Types.IStorage, RootPath?: str
         await storage.writeFile(Path.join(typesDir, 'index.d.ts'), dts);
         await storage.writeFile(Path.join(distDir, 'scconfig.json'), JSON.stringify({
             name: packageConfig.name,
-            type: "contract",
+            type: bundleType,
             version: packageConfig.version,                        
             dependencies: pack.dependencies
         },null,4));
         await storage.writeFile(Path.join(distDir, 'scconfig.json'), JSON.stringify({
             name: packageConfig.name,
-            type: "contract",
+            type: bundleType,
             version: packageConfig.version,                        
             dependencies: pack.dependencies
         },null,4));

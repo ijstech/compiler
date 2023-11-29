@@ -109,6 +109,9 @@ async function main() {
             case 'dapp':
                 await (0, compiler_1.bundleDapp)(storage);
                 break;
+            case 'sdk':
+                await (0, compiler_1.bundleSdk)(storage);
+                break;
             case 'contract':
                 await (0, compiler_1.bundleContract)(storage, new solc_1.Solc());
                 break;

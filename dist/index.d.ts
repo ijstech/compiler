@@ -7377,8 +7377,9 @@ declare module "@ijstech/compiler" {
         worker = "worker"
     }
     export function bundleContract(storage: Types.IStorage, solc: Types.ISolc, RootPath?: string): Promise<void>;
-    export function bundleContractLib(storage: Types.IStorage, RootPath?: string): Promise<void>;
-    export function bundleContractDist(storage: Types.IStorage, RootPath?: string): Promise<void>;
+    export function bundleSdk(storage: Types.IStorage, RootPath?: string): Promise<void>;
+    export function bundleLib(storage: Types.IStorage, RootPath?: string): Promise<void>;
+    export function bundleDist(bundleType: string, storage: Types.IStorage, RootPath?: string): Promise<void>;
     export function bundleWorker(storage: Types.IStorage, RootPath?: string): Promise<void>;
     export function bundleWidget(storage: Types.IStorage, RootPath?: string): Promise<void>;
     export function bundleDapp(storage: Types.IStorage, RootPath?: string): Promise<void>;

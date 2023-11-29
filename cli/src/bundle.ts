@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import Path from 'path';
-import {  bundleContract, bundleDapp, bundleWidget, bundleWorker} from '@ijstech/compiler';
+import {  bundleContract, bundleDapp, bundleWidget, bundleSdk, bundleWorker} from '@ijstech/compiler';
 import { promises as Fs, createReadStream} from 'fs';
 import {Storage} from './storage';
 import {Solc} from './solc';
@@ -110,6 +110,9 @@ async function main() {
         switch(scconfig?.type){
             case 'dapp':
                 await bundleDapp(storage);
+                break;
+            case 'sdk':
+                await bundleSdk(storage);
                 break;
             case 'contract':
                 await bundleContract(storage, new Solc());
