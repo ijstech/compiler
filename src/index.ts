@@ -594,7 +594,7 @@ if (!rootDir.endsWith('/'))
         indexHtml = indexHtml.replace('{{meta}}', meta);
         let manifestLink = '';
         if (scconfig.manifest){  
-            manifestLink = '  <link rel="manifest" href="manifest.json" >';         
+            manifestLink = '  <link rel="manifest" href="manifest.webmanifest" >';         
             let manifest = {
                 "scope": "/",
                 "start_url": "/",
@@ -607,7 +607,7 @@ if (!rootDir.endsWith('/'))
                 if (icon.src.startsWith('modules/'))
                     icon.src = `/${scconfig.version}/${icon.src}`;
             }
-            await storage.writeFile(Path.join(distDir, 'manifest.json'), JSON.stringify(manifest, null, 4));
+            await storage.writeFile(Path.join(distDir, 'manifest.webmanifest'), JSON.stringify(manifest, null, 4));
         }
         indexHtml = indexHtml.replace('{{manifest}}', manifestLink);
         indexHtml = indexHtml.replace('{{main}}', `${scconfig.main || '@scom/dapp'}`);
