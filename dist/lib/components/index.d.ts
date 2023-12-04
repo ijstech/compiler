@@ -876,15 +876,19 @@ declare module "packages/style/src/theme" {
     export interface ITheme {
         action: {
             active: IColorVar;
+            activeBackground: IColorVar;
             activeOpacity: number;
             disabled: IColorVar;
             disabledBackground: IColorVar;
             disabledOpacity: number;
             focus: IColorVar;
+            focusBackground: IColorVar;
             focusOpacity: number;
             hover: IColorVar;
+            hoverBackground: IColorVar;
             hoverOpacity: number;
             selected: IColorVar;
+            selectedBackground: IColorVar;
             selectedOpacity: number;
         };
         background: {
@@ -894,7 +898,7 @@ declare module "packages/style/src/theme" {
             modal: IColorVar;
             gradient: IColorVar;
         };
-        breakboints: {
+        breakpoints: {
             xs: number;
             sm: number;
             md: number;
@@ -946,15 +950,19 @@ declare module "packages/style/src/theme" {
     export interface IThemeVariables {
         action: {
             active: string;
+            activeBackground: string;
             activeOpacity: string;
             disabled: string;
             disabledBackground: string;
             disabledOpacity: string;
             focus: string;
+            focusBackground: string;
             focusOpacity: string;
             hover: string;
+            hoverBackground: string;
             hoverOpacity: string;
             selected: string;
+            selectedBackground: string;
             selectedOpacity: string;
         };
         background: {
@@ -964,7 +972,7 @@ declare module "packages/style/src/theme" {
             modal: string;
             gradient: string;
         };
-        breakboints: {
+        breakpoints: {
             xs: string;
             sm: string;
             md: string;
@@ -3720,6 +3728,7 @@ declare module "packages/base/src/component" {
     export type TextTransform = 'capitalize' | 'uppercase' | 'lowercase' | 'full-width' | 'full-size-kana' | 'inherit' | 'initial' | 'revert' | 'revert-layer' | 'unset';
     export type WrapType = 'nowrap' | 'wrap' | 'wrap-reverse' | 'initial' | 'inherit';
     export type OverflowType = 'visible' | 'hidden' | 'clip' | 'scroll' | 'auto' | 'initial' | 'inherit' | 'unset';
+    export type CursorType = "auto" | "default" | "none" | "context-menu" | "help" | "pointer" | "progress" | "wait" | "cell" | "crosshair" | "text" | "vertical-text" | "alias" | "copy" | "move" | "no-drop" | "not-allowed" | "grab" | "grabbing" | "e-resize" | "n-resize" | "ne-resize" | "nw-resize" | "s-resize" | "se-resize" | "sw-resize" | "w-resize" | "ew-resize" | "ns-resize" | "nesw-resize" | "nwse-resize" | "col-resize" | "row-resize" | "all-scroll" | "zoom-in" | "zoom-out";
     export interface IOverflow {
         x?: OverflowType;
         y?: OverflowType;
@@ -3785,9 +3794,10 @@ declare module "packages/base/src/component" {
             [prop: string]: string;
         };
         private _propInfo;
+        protected _uuid: string;
         constructor(parent?: Component, options?: any, defaults?: any);
         connectedCallback(): void;
-        disconnectCallback(): void;
+        disconnectedCallback(): void;
         protected parseDesignPropValue(value: string): any;
         _getDesignPropValue(prop: string): string;
         _setDesignPropValue(prop: string, value: string): void;
@@ -3802,6 +3812,7 @@ declare module "packages/base/src/component" {
         getAttribute(name: string, removeAfter?: boolean, defaultValue?: any): any;
         getPositionAttribute(name: string, removeAfter?: boolean, defaultValue?: any): number;
         getStyleAttribute(name: string, removeAfter?: boolean, defaultValue?: any): string;
+        get uuid(): string;
         get id(): string;
         set id(value: string);
         ready(): Promise<void>;
@@ -3810,16 +3821,23 @@ declare module "packages/base/src/component" {
     }
 }
 declare module "packages/base/src/style/base.css" {
-    import { BorderStylesSideType, IBorder, IBorderSideStyles, IOverflow, IBackground, IControlMediaQuery } from "@ijstech/components/base";
+    import { BorderStylesSideType, IBorder, IBorderSideStyles, IOverflow, IBackground, IControlMediaQuery, DisplayType } from "@ijstech/components/base";
     export const disabledStyle: string;
     export const containerStyle: string;
     export const getBorderSideStyleClass: (side: BorderStylesSideType, value: IBorderSideStyles) => string;
     export const getBorderStyleClass: (value: IBorder) => string;
     export const getOverflowStyleClass: (value: IOverflow) => string;
+    export const getBackground: (value: IBackground) => {
+        background: string;
+    };
     export const getBackgroundStyleClass: (value: IBackground) => string;
     export const getSpacingValue: (value: string | number) => string;
-    export const getControlMediaQueriesStyle: (mediaQueries: IControlMediaQuery[]) => any;
-    export const getControlMediaQueriesStyleClass: (mediaQueries: IControlMediaQuery[]) => string;
+    interface IProps {
+        display?: DisplayType;
+    }
+    export const getControlMediaQueriesStyle: (mediaQueries: IControlMediaQuery[], props?: IProps | undefined) => any;
+    export const getControlMediaQueriesStyleClass: (mediaQueries: IControlMediaQuery[], props: IProps) => string;
+    export const getOpacityStyleClass: (opacity: number | string) => string;
 }
 declare module "packages/tooltip/src/style/tooltip.css" { }
 declare module "packages/tooltip/src/tooltip" {
@@ -3860,7 +3878,7 @@ declare module "packages/tooltip/src/tooltip" {
         get maxWidth(): string;
         set maxWidth(value: string);
         private show;
-        private close;
+        close(): void;
         private onHandleClick;
         private renderTooltip;
         private initEvents;
@@ -3870,18 +3888,18 @@ declare module "packages/tooltip/src/index" {
     export { Tooltip, ITooltip } from "packages/tooltip/src/tooltip";
 }
 declare module "packages/base/src/control" {
-    import { Component, IStack, IFont, ISpace, IOverflow, OverflowType, IAnchor, IBackground, ICustomProperties } from "packages/base/src/component";
+    import { Component, IStack, IFont, ISpace, IOverflow, OverflowType, IAnchor, IBackground, ICustomProperties, CursorType } from "packages/base/src/component";
     import { notifyEventCallback, notifyMouseEventCallback, notifyKeyboardEventCallback } from "@ijstech/components/base";
     export type DockStyle = 'none' | 'bottom' | 'center' | 'fill' | 'left' | 'right' | 'top';
     export type LineHeightType = string | number | 'normal' | 'initial' | 'inherit';
-    export type DisplayType = 'inline-block' | 'block' | 'inline-flex' | 'flex' | 'inline' | 'initial' | 'inherit' | 'none';
+    export type DisplayType = 'inline-block' | 'block' | 'inline-flex' | 'flex' | 'inline' | 'initial' | 'inherit' | 'none' | '-webkit-box';
     export interface IMediaQuery<T> {
         minWidth?: string | number;
         maxWidth?: string | number;
         properties: T;
     }
     export type SpaceProps = 'margin' | 'padding';
-    class SpaceValue implements ISpace {
+    export class SpaceValue implements ISpace {
         private _value;
         private _prop;
         private _owner;
@@ -3894,6 +3912,7 @@ declare module "packages/base/src/control" {
         set right(value: string | number | undefined);
         get bottom(): string | number | undefined;
         set bottom(value: string | number | undefined);
+        getSpacingValue(value: string | number): string;
         update(value?: ISpace): void;
     }
     export type PositionType = 'static' | 'relative' | 'absolute' | 'fixed' | 'sticky' | 'inherit' | 'initial';
@@ -3963,7 +3982,7 @@ declare module "packages/base/src/control" {
         verticalAlignment?: "stretch" | "start" | "end" | "center";
         area?: string;
     }
-    class Overflow {
+    export class Overflow {
         private _target;
         private _value;
         private _style;
@@ -3992,8 +4011,18 @@ declare module "packages/base/src/control" {
         margin?: ISpace;
         border?: IBorder;
         visible?: boolean;
+        display?: DisplayType;
         background?: IBackground;
         grid?: IGrid;
+        position?: PositionType;
+        top?: number | string;
+        left?: number | string;
+        right?: number | string;
+        bottom?: number | string;
+        zIndex?: string | number;
+        maxHeight?: string | number;
+        maxWidth?: string | number;
+        overflow?: IOverflow | OverflowType;
     }
     export type IControlMediaQuery = IMediaQuery<IControlMediaQueryProps>;
     export const ControlProperties: ICustomProperties;
@@ -4032,10 +4061,16 @@ declare module "packages/base/src/control" {
         private _tooltip;
         protected _font: IFont;
         protected _display: DisplayType;
+        protected _cursor: CursorType;
+        protected _letterSpacing: string | number;
+        protected _boxShadow: string;
         private _cmediaQueries;
         protected _mediaStyle: string;
         protected _contextMenuId: string | null;
         protected _contextMenuControl: Control | null;
+        private _opacity;
+        protected _zIndex: string;
+        protected propertyClassMap: Record<string, string>;
         _container?: HTMLElement;
         tag: any;
         protected static create(options?: any, parent?: Container, defaults?: any): Promise<Control>;
@@ -4057,9 +4092,8 @@ declare module "packages/base/src/control" {
         protected removeChildControl(control: Control): void;
         get parent(): Control | undefined;
         set parent(value: Control | undefined);
-        protected getSpacingValue(value: string | number): string;
         connectedCallback(): void;
-        disconnectCallback(): void;
+        disconnectedCallback(): void;
         protected getParentHeight(): number;
         protected getParentWidth(): number;
         protected getParentOccupiedLeft(): number;
@@ -4122,7 +4156,7 @@ declare module "packages/base/src/control" {
         set grid(value: IGrid);
         get background(): Background;
         set background(value: IBackground);
-        get zIndex(): string | number;
+        get zIndex(): string;
         set zIndex(value: string | number);
         get lineHeight(): LineHeightType;
         set lineHeight(value: LineHeightType);
@@ -4145,10 +4179,18 @@ declare module "packages/base/src/control" {
         set display(value: DisplayType);
         get anchor(): IAnchor;
         set anchor(value: IAnchor);
-        get opacity(): number | string;
+        get opacity(): string;
         set opacity(value: number | string);
+        get cursor(): CursorType;
+        set cursor(value: CursorType);
+        get letterSpacing(): string | number;
+        set letterSpacing(value: string | number);
+        get boxShadow(): string;
+        set boxShadow(value: string);
         get mediaQueries(): any[];
         set mediaQueries(value: any[]);
+        protected removeStyle<P extends keyof Control>(propertyName: P): void;
+        protected setStyle<P extends keyof Control>(propertyName: P, value: string): void;
     }
     export class ContainerResizer {
         private target;
@@ -4184,14 +4226,14 @@ declare module "packages/base/src/types" {
 /// <amd-module name="@ijstech/components/base" />
 declare module "@ijstech/components/base" {
     export { Observe, Unobserve, ClearObservers, Observables, isObservable, observable } from "packages/base/src/observable";
-    export { IFont, Component, BorderSides, ISpace, IStack, FontStyle, IOverflow, IBackground, TextTransform, ICustomEventParam } from "packages/base/src/component";
-    export { IBorder, BorderStylesSideType, IBorderSideStyles, IMediaQuery, DisplayType, PositionType, Background, Border, IControlMediaQueryProps, IControlMediaQuery, IContextMenu } from "packages/base/src/control";
-    import { IStack, IFont, ISpace, IOverflow, OverflowType, IAnchor, IBackground, ICustomProperties } from "packages/base/src/component";
+    export { IFont, Component, BorderSides, ISpace, IStack, FontStyle, IOverflow, OverflowType, IBackground, TextTransform, ICustomEventParam } from "packages/base/src/component";
+    export { IBorder, BorderStylesSideType, IBorderSideStyles, IMediaQuery, DisplayType, PositionType, Background, Border, SpaceValue, IControlMediaQueryProps, IControlMediaQuery, IContextMenu, Overflow } from "packages/base/src/control";
+    import { IStack, IFont, ISpace, IOverflow, OverflowType, IAnchor, IBackground, ICustomProperties, CursorType } from "packages/base/src/component";
     import { Control, Container, DockStyle, LineHeightType, IBorder, IGrid, DisplayType, PositionType, IControlMediaQuery } from "packages/base/src/control";
     import { ITooltip } from "packages/tooltip/src/index";
     export { Control, Container };
     export * as Types from "packages/base/src/types";
-    export { getControlMediaQueriesStyle } from "packages/base/src/style/base.css";
+    export { getControlMediaQueriesStyle, getBackground, getSpacingValue } from "packages/base/src/style/base.css";
     let LibPath: string;
     export { LibPath };
     export const RequireJS: {
@@ -4236,6 +4278,9 @@ declare module "@ijstech/components/base" {
         anchor?: IAnchor;
         opacity?: number | string;
         tag?: any;
+        cursor?: CursorType;
+        letterSpacing?: string | number;
+        boxShadow?: string;
         mediaQueries?: IControlMediaQuery[];
         onClick?: notifyMouseEventCallback;
         onDblClick?: notifyMouseEventCallback;
@@ -4250,9 +4295,225 @@ declare module "@ijstech/components/base" {
     };
     export function customElements(tagName: string, properties?: ICustomProperties): (constructor: CustomElementConstructor) => void;
     export function customModule(target: any): void;
+    export function setAttributeToProperty<T extends Control>(element: T, propertyName: keyof T): void;
+}
+declare module "packages/image/src/style/image.css" { }
+declare module "packages/image/src/image" {
+    import { Control, ControlElement, IBorder, Border } from "@ijstech/components/base";
+    import "packages/image/src/style/image.css";
+    type ObjectFitType = 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
+    export interface ImageElement extends ControlElement {
+        rotate?: number;
+        url?: string;
+        fallbackUrl?: string;
+        objectFit?: ObjectFitType;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-image']: ImageElement;
+            }
+        }
+    }
+    export class Image extends Control {
+        private imageElm;
+        private _url;
+        private _rotate;
+        private _fallbackUrl;
+        private _objectFit;
+        private _borderValue;
+        constructor(parent?: Control, options?: any);
+        get rotate(): number;
+        set rotate(value: any);
+        get url(): string;
+        set url(value: string);
+        get objectFit(): ObjectFitType;
+        set objectFit(value: ObjectFitType);
+        get border(): Border;
+        set border(value: IBorder);
+        protected init(): void;
+        static create(options?: ImageElement, parent?: Control): Promise<Image>;
+    }
+}
+declare module "packages/image/src/index" {
+    export { Image, ImageElement } from "packages/image/src/image";
+}
+declare module "packages/icon/src/style/icon.css" { }
+declare module "packages/icon/src/icon" {
+    import { Control, ControlElement, Types } from "@ijstech/components/base";
+    import { Image, ImageElement } from "packages/image/src/index";
+    import "packages/icon/src/style/icon.css";
+    export type IconName = "" | "ad" | "address-book" | "address-card" | "adjust" | "air-freshener" | "align-center" | "align-justify" | "align-left" | "align-right" | "allergies" | "ambulance" | "american-sign-language-interpreting" | "anchor" | "angle-double-down" | "angle-double-left" | "angle-double-right" | "angle-double-up" | "angle-down" | "angle-left" | "angle-right" | "angle-up" | "angry" | "ankh" | "apple-alt" | "archive" | "archway" | "arrow-alt-circle-down" | "arrow-alt-circle-left" | "arrow-alt-circle-right" | "arrow-alt-circle-up" | "arrow-circle-down" | "arrow-circle-left" | "arrow-circle-right" | "arrow-circle-up" | "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "arrows-alt" | "arrows-alt-h" | "arrows-alt-v" | "assistive-listening-systems" | "asterisk" | "at" | "atlas" | "atom" | "audio-description" | "award" | "baby" | "baby-carriage" | "backspace" | "backward" | "bacon" | "bacteria" | "bacterium" | "bahai" | "balance-scale" | "balance-scale-left" | "balance-scale-right" | "ban" | "band-aid" | "barcode" | "bars" | "baseball-ball" | "basketball-ball" | "bath" | "battery-empty" | "battery-full" | "battery-half" | "battery-quarter" | "battery-three-quarters" | "bed" | "beer" | "bell" | "bell-slash" | "bezier-curve" | "bible" | "bicycle" | "biking" | "binoculars" | "biohazard" | "birthday-cake" | "blender" | "blender-phone" | "blind" | "blog" | "bold" | "bolt" | "bomb" | "bone" | "bong" | "book" | "book-dead" | "book-medical" | "book-open" | "book-reader" | "bookmark" | "border-all" | "border-none" | "border-style" | "bowling-ball" | "box" | "box-open" | "box-tissue" | "boxes" | "braille" | "brain" | "bread-slice" | "briefcase" | "briefcase-medical" | "broadcast-tower" | "broom" | "brush" | "bug" | "building" | "bullhorn" | "bullseye" | "burn" | "bus" | "bus-alt" | "business-time" | "calculator" | "calendar" | "calendar-alt" | "calendar-check" | "calendar-day" | "calendar-minus" | "calendar-plus" | "calendar-times" | "calendar-week" | "camera" | "camera-retro" | "campground" | "candy-cane" | "cannabis" | "capsules" | "car" | "car-alt" | "car-battery" | "car-crash" | "car-side" | "caravan" | "caret-down" | "caret-left" | "caret-right" | "caret-square-down" | "caret-square-left" | "caret-square-right" | "caret-square-up" | "caret-up" | "carrot" | "cart-arrow-down" | "cart-plus" | "cash-register" | "cat" | "certificate" | "chair" | "chalkboard" | "chalkboard-teacher" | "charging-station" | "chart-area" | "chart-bar" | "chart-line" | "chart-pie" | "check" | "check-circle" | "check-double" | "check-square" | "cheese" | "chess" | "chess-bishop" | "chess-board" | "chess-king" | "chess-knight" | "chess-pawn" | "chess-queen" | "chess-rook" | "chevron-circle-down" | "chevron-circle-left" | "chevron-circle-right" | "chevron-circle-up" | "chevron-down" | "chevron-left" | "chevron-right" | "chevron-up" | "child" | "church" | "circle" | "circle-notch" | "city" | "clinic-medical" | "clipboard" | "clipboard-check" | "clipboard-list" | "clock" | "clone" | "closed-captioning" | "cloud" | "cloud-download-alt" | "cloud-meatball" | "cloud-moon" | "cloud-moon-rain" | "cloud-rain" | "cloud-showers-heavy" | "cloud-sun" | "cloud-sun-rain" | "cloud-upload-alt" | "cocktail" | "code" | "code-branch" | "coffee" | "cog" | "cogs" | "coins" | "columns" | "comment" | "comment-alt" | "comment-dollar" | "comment-dots" | "comment-medical" | "comment-slash" | "comments" | "comments-dollar" | "compact-disc" | "compass" | "compress" | "compress-alt" | "compress-arrows-alt" | "concierge-bell" | "cookie" | "cookie-bite" | "copy" | "copyright" | "couch" | "credit-card" | "crop" | "crop-alt" | "cross" | "crosshairs" | "crow" | "crown" | "crutch" | "cube" | "cubes" | "cut" | "database" | "deaf" | "democrat" | "desktop" | "dharmachakra" | "diagnoses" | "dice" | "dice-d20" | "dice-d6" | "dice-five" | "dice-four" | "dice-one" | "dice-six" | "dice-three" | "dice-two" | "digital-tachograph" | "directions" | "disease" | "divide" | "dizzy" | "dna" | "dog" | "dollar-sign" | "dolly" | "dolly-flatbed" | "donate" | "door-closed" | "door-open" | "dot-circle" | "dove" | "download" | "drafting-compass" | "dragon" | "draw-polygon" | "drum" | "drum-steelpan" | "drumstick-bite" | "dumbbell" | "dumpster" | "dumpster-fire" | "dungeon" | "edit" | "egg" | "eject" | "ellipsis-h" | "ellipsis-v" | "envelope" | "envelope-open" | "envelope-open-text" | "envelope-square" | "equals" | "eraser" | "ethernet" | "euro-sign" | "exchange-alt" | "exclamation" | "exclamation-circle" | "exclamation-triangle" | "expand" | "expand-alt" | "expand-arrows-alt" | "external-link-alt" | "external-link-square-alt" | "eye" | "eye-dropper" | "eye-slash" | "fan" | "fast-backward" | "fast-forward" | "faucet" | "fax" | "feather" | "feather-alt" | "female" | "fighter-jet" | "file" | "file-alt" | "file-archive" | "file-audio" | "file-code" | "file-contract" | "file-csv" | "file-download" | "file-excel" | "file-export" | "file-image" | "file-import" | "file-invoice" | "file-invoice-dollar" | "file-medical" | "file-medical-alt" | "file-pdf" | "file-powerpoint" | "file-prescription" | "file-signature" | "file-upload" | "file-video" | "file-word" | "fill" | "fill-drip" | "film" | "filter" | "fingerprint" | "fire" | "fire-alt" | "fire-extinguisher" | "first-aid" | "fish" | "fist-raised" | "flag" | "flag-checkered" | "flag-usa" | "flask" | "flushed" | "folder" | "folder-minus" | "folder-open" | "folder-plus" | "font" | "font-awesome-logo-full" | "football-ball" | "forward" | "frog" | "frown" | "frown-open" | "funnel-dollar" | "futbol" | "gamepad" | "gas-pump" | "gavel" | "gem" | "genderless" | "ghost" | "gift" | "gifts" | "glass-cheers" | "glass-martini" | "glass-martini-alt" | "glass-whiskey" | "glasses" | "globe" | "globe-africa" | "globe-americas" | "globe-asia" | "globe-europe" | "golf-ball" | "gopuram" | "graduation-cap" | "greater-than" | "greater-than-equal" | "grimace" | "grin" | "grin-alt" | "grin-beam" | "grin-beam-sweat" | "grin-hearts" | "grin-squint" | "grin-squint-tears" | "grin-stars" | "grin-tears" | "grin-tongue" | "grin-tongue-squint" | "grin-tongue-wink" | "grin-wink" | "grip-horizontal" | "grip-lines" | "grip-lines-vertical" | "grip-vertical" | "guitar" | "h-square" | "hamburger" | "hammer" | "hamsa" | "hand-holding" | "hand-holding-heart" | "hand-holding-medical" | "hand-holding-usd" | "hand-holding-water" | "hand-lizard" | "hand-middle-finger" | "hand-paper" | "hand-peace" | "hand-point-down" | "hand-point-left" | "hand-point-right" | "hand-point-up" | "hand-pointer" | "hand-rock" | "hand-scissors" | "hand-sparkles" | "hand-spock" | "hands" | "hands-helping" | "hands-wash" | "handshake" | "handshake-alt-slash" | "handshake-slash" | "hanukiah" | "hard-hat" | "hashtag" | "hat-cowboy" | "hat-cowboy-side" | "hat-wizard" | "hdd" | "head-side-cough" | "head-side-cough-slash" | "head-side-mask" | "head-side-virus" | "heading" | "headphones" | "headphones-alt" | "headset" | "heart" | "heart-broken" | "heartbeat" | "helicopter" | "highlighter" | "hiking" | "hippo" | "history" | "hockey-puck" | "holly-berry" | "home" | "horse" | "horse-head" | "hospital" | "hospital-alt" | "hospital-symbol" | "hospital-user" | "hot-tub" | "hotdog" | "hotel" | "hourglass" | "hourglass-end" | "hourglass-half" | "hourglass-start" | "house-damage" | "house-user" | "hryvnia" | "i-cursor" | "ice-cream" | "icicles" | "icons" | "id-badge" | "id-card" | "id-card-alt" | "igloo" | "image" | "images" | "inbox" | "indent" | "industry" | "infinity" | "info" | "info-circle" | "italic" | "jedi" | "joint" | "journal-whills" | "kaaba" | "key" | "keyboard" | "khanda" | "kiss" | "kiss-beam" | "kiss-wink-heart" | "kiwi-bird" | "landmark" | "language" | "laptop" | "laptop-code" | "laptop-house" | "laptop-medical" | "laugh" | "laugh-beam" | "laugh-squint" | "laugh-wink" | "layer-group" | "leaf" | "lemon" | "less-than" | "less-than-equal" | "level-down-alt" | "level-up-alt" | "life-ring" | "lightbulb" | "link" | "lira-sign" | "list" | "list-alt" | "list-ol" | "list-ul" | "location-arrow" | "lock" | "lock-open" | "long-arrow-alt-down" | "long-arrow-alt-left" | "long-arrow-alt-right" | "long-arrow-alt-up" | "low-vision" | "luggage-cart" | "lungs" | "lungs-virus" | "magic" | "magnet" | "mail-bulk" | "male" | "map" | "map-marked" | "map-marked-alt" | "map-marker" | "map-marker-alt" | "map-pin" | "map-signs" | "marker" | "mars" | "mars-double" | "mars-stroke" | "mars-stroke-h" | "mars-stroke-v" | "mask" | "medal" | "medkit" | "meh" | "meh-blank" | "meh-rolling-eyes" | "memory" | "menorah" | "mercury" | "meteor" | "microchip" | "microphone" | "microphone-alt" | "microphone-alt-slash" | "microphone-slash" | "microscope" | "minus" | "minus-circle" | "minus-square" | "mitten" | "mobile" | "mobile-alt" | "money-bill" | "money-bill-alt" | "money-bill-wave" | "money-bill-wave-alt" | "money-check" | "money-check-alt" | "monument" | "moon" | "mortar-pestle" | "mosque" | "motorcycle" | "mountain" | "mouse" | "mouse-pointer" | "mug-hot" | "music" | "network-wired" | "neuter" | "newspaper" | "not-equal" | "notes-medical" | "object-group" | "object-ungroup" | "oil-can" | "om" | "otter" | "outdent" | "pager" | "paint-brush" | "paint-roller" | "palette" | "pallet" | "paper-plane" | "paperclip" | "parachute-box" | "paragraph" | "parking" | "passport" | "pastafarianism" | "paste" | "pause" | "pause-circle" | "paw" | "peace" | "pen" | "pen-alt" | "pen-fancy" | "pen-nib" | "pen-square" | "pencil-alt" | "pencil-ruler" | "people-arrows" | "people-carry" | "pepper-hot" | "percent" | "percentage" | "person-booth" | "phone" | "phone-alt" | "phone-slash" | "phone-square" | "phone-square-alt" | "phone-volume" | "photo-video" | "piggy-bank" | "pills" | "pizza-slice" | "place-of-worship" | "plane" | "plane-arrival" | "plane-departure" | "plane-slash" | "play" | "play-circle" | "plug" | "plus" | "plus-circle" | "plus-square" | "podcast" | "poll" | "poll-h" | "poo" | "poo-storm" | "poop" | "portrait" | "pound-sign" | "power-off" | "pray" | "praying-hands" | "prescription" | "prescription-bottle" | "prescription-bottle-alt" | "print" | "procedures" | "project-diagram" | "pump-medical" | "pump-soap" | "puzzle-piece" | "qrcode" | "question" | "question-circle" | "quidditch" | "quote-left" | "quote-right" | "quran" | "radiation" | "radiation-alt" | "rainbow" | "random" | "receipt" | "record-vinyl" | "recycle" | "redo" | "redo-alt" | "registered" | "remove-format" | "reply" | "reply-all" | "republican" | "restroom" | "retweet" | "ribbon" | "ring" | "road" | "robot" | "rocket" | "route" | "rss" | "rss-square" | "ruble-sign" | "ruler" | "ruler-combined" | "ruler-horizontal" | "ruler-vertical" | "running" | "rupee-sign" | "sad-cry" | "sad-tear" | "satellite" | "satellite-dish" | "save" | "school" | "screwdriver" | "scroll" | "sd-card" | "search" | "search-dollar" | "search-location" | "search-minus" | "search-plus" | "seedling" | "server" | "shapes" | "share" | "share-alt" | "share-alt-square" | "share-square" | "shekel-sign" | "shield-alt" | "shield-virus" | "ship" | "shipping-fast" | "shoe-prints" | "shopping-bag" | "shopping-basket" | "shopping-cart" | "shower" | "shuttle-van" | "sign" | "sign-in-alt" | "sign-language" | "sign-out-alt" | "signal" | "signature" | "sim-card" | "sink" | "sitemap" | "skating" | "skiing" | "skiing-nordic" | "skull" | "skull-crossbones" | "slash" | "sleigh" | "sliders-h" | "smile" | "smile-beam" | "smile-wink" | "smog" | "smoking" | "smoking-ban" | "sms" | "snowboarding" | "snowflake" | "snowman" | "snowplow" | "soap" | "socks" | "solar-panel" | "sort" | "sort-alpha-down" | "sort-alpha-down-alt" | "sort-alpha-up" | "sort-alpha-up-alt" | "sort-amount-down" | "sort-amount-down-alt" | "sort-amount-up" | "sort-amount-up-alt" | "sort-down" | "sort-numeric-down" | "sort-numeric-down-alt" | "sort-numeric-up" | "sort-numeric-up-alt" | "sort-up" | "spa" | "space-shuttle" | "spell-check" | "spider" | "spinner" | "splotch" | "spray-can" | "square" | "square-full" | "square-root-alt" | "stamp" | "star" | "star-and-crescent" | "star-half" | "star-half-alt" | "star-of-david" | "star-of-life" | "step-backward" | "step-forward" | "stethoscope" | "sticky-note" | "stop" | "stop-circle" | "stopwatch" | "stopwatch-20" | "store" | "store-alt" | "store-alt-slash" | "store-slash" | "stream" | "street-view" | "strikethrough" | "stroopwafel" | "subscript" | "subway" | "suitcase" | "suitcase-rolling" | "sun" | "superscript" | "surprise" | "swatchbook" | "swimmer" | "swimming-pool" | "synagogue" | "sync" | "sync-alt" | "syringe" | "table" | "table-tennis" | "tablet" | "tablet-alt" | "tablets" | "tachometer-alt" | "tag" | "tags" | "tape" | "tasks" | "taxi" | "teeth" | "teeth-open" | "temperature-high" | "temperature-low" | "tenge" | "terminal" | "text-height" | "text-width" | "th" | "th-large" | "th-list" | "theater-masks" | "thermometer" | "thermometer-empty" | "thermometer-full" | "thermometer-half" | "thermometer-quarter" | "thermometer-three-quarters" | "thumbs-down" | "thumbs-up" | "thumbtack" | "ticket-alt" | "times" | "times-circle" | "tint" | "tint-slash" | "tired" | "toggle-off" | "toggle-on" | "toilet" | "toilet-paper" | "toilet-paper-slash" | "toolbox" | "tools" | "tooth" | "torah" | "torii-gate" | "tractor" | "trademark" | "traffic-light" | "trailer" | "train" | "tram" | "transgender" | "transgender-alt" | "trash" | "trash-alt" | "trash-restore" | "trash-restore-alt" | "tree" | "trophy" | "truck" | "truck-loading" | "truck-monster" | "truck-moving" | "truck-pickup" | "tshirt" | "tty" | "tv" | "umbrella" | "umbrella-beach" | "underline" | "undo" | "undo-alt" | "universal-access" | "university" | "unlink" | "unlock" | "unlock-alt" | "upload" | "user" | "user-alt" | "user-alt-slash" | "user-astronaut" | "user-check" | "user-circle" | "user-clock" | "user-cog" | "user-edit" | "user-friends" | "user-graduate" | "user-injured" | "user-lock" | "user-md" | "user-minus" | "user-ninja" | "user-nurse" | "user-plus" | "user-secret" | "user-shield" | "user-slash" | "user-tag" | "user-tie" | "user-times" | "users" | "users-cog" | "users-slash" | "utensil-spoon" | "utensils" | "vector-square" | "venus" | "venus-double" | "venus-mars" | "vest" | "vest-patches" | "vial" | "vials" | "video" | "video-slash" | "vihara" | "virus" | "virus-slash" | "viruses" | "voicemail" | "volleyball-ball" | "volume-down" | "volume-mute" | "volume-off" | "volume-up" | "vote-yea" | "vr-cardboard" | "walking" | "wallet" | "warehouse" | "water" | "wave-square" | "weight" | "weight-hanging" | "wheelchair" | "wifi" | "wind" | "window-close" | "window-maximize" | "window-minimize" | "window-restore" | "wine-bottle" | "wine-glass" | "wine-glass-alt" | "won-sign" | "wrench" | "x-ray" | "yen-sign" | "yin-yang";
+    export interface IconElement extends ControlElement {
+        name?: IconName;
+        fill?: Types.Color;
+        image?: ImageElement;
+        spin?: boolean;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-icon']: IconElement;
+            }
+        }
+    }
+    export class Icon extends Control {
+        private svgElm;
+        private _name;
+        private _size;
+        private _image;
+        private _spin;
+        private _fill;
+        constructor(parent?: Control, options?: any);
+        protected init(): void;
+        get fill(): Types.Color;
+        set fill(color: Types.Color);
+        get name(): IconName;
+        set name(value: IconName);
+        get image(): Image;
+        set image(image: Image);
+        get spin(): boolean;
+        set spin(value: boolean);
+        private _updateIcon;
+        static create(options?: IconElement, parent?: Control): Promise<Icon>;
+    }
+}
+declare module "packages/icon/src/index" {
+    export { IconName, Icon, IconElement } from "packages/icon/src/icon";
+}
+declare module "packages/modal/src/style/modal.css" {
+    import { IModalMediaQuery } from "packages/modal/src/modal";
+    export const getOverlayStyle: () => string;
+    export const getWrapperStyle: () => string;
+    export const getNoBackdropStyle: () => string;
+    export const modalStyle: string;
+    export const titleStyle: string;
+    export const getModalMediaQueriesStyleClass: (mediaQueries: IModalMediaQuery[]) => string;
+}
+declare module "packages/modal/src/modal" {
+    import { Control, ControlElement, Container, IBackground, IBorder, Background, Border, IMediaQuery, IControlMediaQueryProps, ISpace, Overflow, IOverflow, OverflowType } from "@ijstech/components/base";
+    import { Icon, IconElement } from "packages/icon/src/index";
+    export type modalPopupPlacementType = 'center' | 'bottom' | 'bottomLeft' | 'bottomRight' | 'top' | 'topLeft' | 'topRight' | 'rightTop' | 'left';
+    type eventCallback = (target: Control) => void;
+    type ModalPositionType = "fixed" | "absolute";
+    export interface IModalMediaQueryProps extends IControlMediaQueryProps {
+        showBackdrop?: boolean;
+        popupPlacement?: 'center' | 'bottom' | 'top';
+        maxWidth?: string | number;
+        maxHeight?: string | number;
+        height?: string | number;
+        minWidth?: string | number;
+        width?: string | number;
+        position?: ModalPositionType;
+    }
+    export type IModalMediaQuery = IMediaQuery<IModalMediaQueryProps>;
+    export interface ModalElement extends ControlElement {
+        title?: string;
+        showBackdrop?: boolean;
+        closeIcon?: IconElement;
+        popupPlacement?: modalPopupPlacementType;
+        closeOnBackdropClick?: boolean;
+        isChildFixed?: boolean;
+        closeOnScrollChildFixed?: boolean;
+        item?: Control;
+        mediaQueries?: IModalMediaQuery[];
+        onOpen?: eventCallback;
+        onClose?: eventCallback;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-modal']: ModalElement;
+            }
+        }
+    }
+    export class Modal extends Container {
+        private wrapperDiv;
+        private titleSpan;
+        private modalDiv;
+        private bodyDiv;
+        private overlayDiv;
+        private _closeIcon;
+        private _placement;
+        private _closeOnBackdropClick;
+        private _showBackdrop;
+        private _wrapperPositionAt;
+        private _isChildFixed;
+        private _closeOnScrollChildFixed;
+        private _mediaQueries;
+        private hasInitializedChildFixed;
+        private mapScrollTop;
+        private insideClick;
+        private boundHandleModalMouseDown;
+        private boundHandleModalMouseUp;
+        protected _onOpen: eventCallback;
+        onClose: eventCallback;
+        constructor(parent?: Control, options?: any);
+        get visible(): boolean;
+        set visible(value: boolean);
+        get onOpen(): any;
+        set onOpen(callback: any);
+        get title(): string;
+        set title(value: string);
+        get popupPlacement(): modalPopupPlacementType;
+        set popupPlacement(value: modalPopupPlacementType);
+        get closeIcon(): Icon | null;
+        set closeIcon(elm: Icon | null);
+        get closeOnBackdropClick(): boolean;
+        set closeOnBackdropClick(value: boolean);
+        get showBackdrop(): boolean;
+        set showBackdrop(value: boolean);
+        get item(): Control;
+        set item(value: Control);
+        get body(): Control;
+        set body(value: Control);
+        get position(): ModalPositionType;
+        set position(value: ModalPositionType);
+        get isChildFixed(): boolean;
+        set isChildFixed(value: boolean);
+        get closeOnScrollChildFixed(): boolean;
+        set closeOnScrollChildFixed(value: boolean);
+        get mediaQueries(): IModalMediaQuery[];
+        set mediaQueries(value: IModalMediaQuery[]);
+        private setChildFixed;
+        private positionAtChildFixed;
+        private positionAt;
+        private positionAtFix;
+        private positionAtAbsolute;
+        private getWrapperFixCoords;
+        private getWrapperAbsoluteCoords;
+        protected _handleOnShow(event: Event): void;
+        private handleModalMouseDown;
+        private handleModalMouseUp;
+        private updateModal;
+        refresh(): void;
+        get background(): Background;
+        set background(value: IBackground);
+        get width(): number | string;
+        set width(value: number | string);
+        get height(): number | string;
+        set height(value: number | string);
+        get border(): Border;
+        set border(value: IBorder);
+        get padding(): ISpace;
+        set padding(value: ISpace);
+        get boxShadow(): string;
+        set boxShadow(value: string);
+        get overflow(): Overflow;
+        set overflow(value: OverflowType | IOverflow);
+        protected removeTargetStyle<P extends keyof Modal>(target: HTMLElement, propertyName: P): void;
+        protected setTargetStyle<P extends keyof Modal>(target: HTMLElement, propertyName: P, value: string): void;
+        protected init(): void;
+        static create(options?: ModalElement, parent?: Container): Promise<Modal>;
+    }
+}
+declare module "packages/modal/src/index" {
+    export { Modal, ModalElement, modalPopupPlacementType } from "packages/modal/src/modal";
 }
 declare module "packages/module/src/module" {
     import { Container, ContainerElement } from "@ijstech/components/base";
+    import { IconElement } from "packages/icon/src/index";
+    import { Modal } from "packages/modal/src/index";
     export interface ModuleElement extends ContainerElement {
         caption?: string;
     }
@@ -4264,10 +4525,18 @@ declare module "packages/module/src/module" {
             }
         }
     }
+    export interface IOpenModalOptions {
+        title?: string;
+        showBackdrop?: boolean;
+        closeIcon?: IconElement;
+        width?: number | string;
+        zIndex?: number;
+    }
     export class Module extends Container {
         private $renderElms;
         private $render;
         private modulesUrlRegex;
+        private static _modalMap;
         static create(options?: ModuleElement, parent?: Container, defaults?: ModuleElement): Promise<Module>;
         constructor(parent?: Container, options?: any, defaults?: any);
         init(): void;
@@ -4277,10 +4546,13 @@ declare module "packages/module/src/module" {
         onLoad(): void;
         onShow(options?: any): void;
         onHide(): void;
+        disconnectedCallback(): void;
+        openModal(options?: IOpenModalOptions): Modal;
+        closeModal(): void;
     }
 }
 declare module "packages/module/src/index" {
-    export { Module, ModuleElement } from "packages/module/src/module";
+    export { Module, ModuleElement, IOpenModalOptions } from "packages/module/src/module";
 }
 declare module "packages/application/src/event-bus" {
     export interface Registry {
@@ -4421,6 +4693,51 @@ declare module "packages/ipfs/src/index" {
         };
     }
     export function hashFiles(files: IFile[], version?: number): Promise<ICidInfo>;
+    export function cidToSri(cid: string): Promise<string>;
+}
+declare module "packages/button/src/style/button.css" { }
+/// <amd-module name="@ijstech/components/button" />
+declare module "@ijstech/components/button" {
+    import { Control, Container, ControlElement } from "@ijstech/components/base";
+    import { Icon, IconElement } from "packages/icon/src/index";
+    import "packages/button/src/style/button.css";
+    export interface ButtonElement extends ControlElement {
+        caption?: string;
+        icon?: IconElement;
+        rightIcon?: IconElement;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-button']: ButtonElement;
+            }
+        }
+    }
+    export class Button extends Control {
+        private captionElm;
+        private _icon;
+        private _rightIcon;
+        static create(options?: ButtonElement, parent?: Container): Promise<Button>;
+        constructor(parent?: Control, options?: ButtonElement);
+        get caption(): string;
+        set caption(value: string);
+        get icon(): Icon;
+        set icon(value: Icon);
+        get rightIcon(): Icon;
+        set rightIcon(value: Icon);
+        get enabled(): boolean;
+        set enabled(value: boolean);
+        private get isSpinning();
+        private prependIcon;
+        private appendIcon;
+        private updateButton;
+        _handleClick(event: MouseEvent): boolean;
+        refresh(): void;
+        protected init(): void;
+    }
+}
+declare module "packages/button/src/index" {
+    export { Button, ButtonElement } from "@ijstech/components/button";
 }
 declare module "packages/link/src/style/link.css" { }
 declare module "packages/link/src/link" {
@@ -4451,19 +4768,55 @@ declare module "packages/link/src/link" {
 declare module "packages/link/src/index" {
     export { Link, LinkElement } from "packages/link/src/link";
 }
-declare module "packages/label/src/style/label.css" {
-    export const captionStyle: string;
-}
-declare module "packages/label/src/label" {
-    import { Control, ControlElement } from "@ijstech/components/base";
-    import { Link, LinkElement } from "packages/link/src/index";
+declare module "packages/text/src/style/text.css" { }
+declare module "packages/text/src/text" {
+    import { Control, ControlElement, DisplayType } from "@ijstech/components/base";
+    import "packages/text/src/style/text.css";
     type WordBreakType = 'normal' | 'break-all' | 'keep-all' | 'break-word' | 'inherit' | 'initial' | 'revert' | 'unset';
     type OverflowWrapType = 'normal' | 'break-word' | 'anywhere' | 'inherit' | 'initial' | 'revert' | 'unset';
-    export interface LabelElement extends ControlElement {
-        caption?: string;
-        link?: LinkElement;
+    export type TextOverflowType = 'clip' | 'ellipsis' | 'initial' | 'inherit';
+    export interface TextElement extends ControlElement {
         wordBreak?: WordBreakType;
         overflowWrap?: OverflowWrapType;
+        textOverflow?: TextOverflowType;
+        lineClamp?: number;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-text']: TextElement;
+            }
+        }
+    }
+    export class Text extends Control {
+        constructor(parent?: Control, options?: any);
+        get wordBreak(): WordBreakType;
+        set wordBreak(value: WordBreakType);
+        get overflowWrap(): OverflowWrapType;
+        set overflowWrap(value: OverflowWrapType);
+        get textOverflow(): TextOverflowType;
+        set textOverflow(value: TextOverflowType);
+        get lineClamp(): number;
+        set lineClamp(value: number);
+        get display(): DisplayType;
+        set display(value: DisplayType);
+        protected init(): void;
+        static create(options?: TextElement, parent?: Control): Promise<Text>;
+    }
+}
+declare module "packages/text/src/index" {
+    export { Text, TextElement, TextOverflowType } from "packages/text/src/text";
+}
+declare module "packages/label/src/style/label.css" { }
+declare module "packages/label/src/label" {
+    import { Control } from "@ijstech/components/base";
+    import { Link, LinkElement } from "packages/link/src/index";
+    import { Text, TextElement } from "packages/text/src/index";
+    import "packages/label/src/style/label.css";
+    export interface LabelElement extends TextElement {
+        caption?: string;
+        link?: LinkElement;
+        textDecoration?: string;
     }
     global {
         namespace JSX {
@@ -4472,7 +4825,7 @@ declare module "packages/label/src/label" {
             }
         }
     }
-    export class Label extends Control {
+    export class Label extends Text {
         private captionSpan;
         private _link;
         constructor(parent?: Control, options?: any);
@@ -4482,10 +4835,8 @@ declare module "packages/label/src/label" {
         set link(value: Link);
         set height(value: number);
         set width(value: number);
-        get wordBreak(): WordBreakType;
-        set wordBreak(value: WordBreakType);
-        get overflowWrap(): OverflowWrapType;
-        set overflowWrap(value: OverflowWrapType);
+        get textDecoration(): string;
+        set textDecoration(value: string);
         protected init(): void;
         static create(options?: LabelElement, parent?: Control): Promise<Label>;
     }
@@ -4493,8 +4844,16 @@ declare module "packages/label/src/label" {
 declare module "packages/label/src/index" {
     export { Label, LabelElement } from "packages/label/src/label";
 }
+declare module "packages/layout/src/interfaces" {
+    export interface IHover {
+        opacity?: number;
+        backgroundColor?: string;
+        fontColor?: string;
+    }
+}
 declare module "packages/layout/src/style/panel.css" {
     import { IGridLayoutMediaQuery, IStackMediaQuery, StackDirectionType } from "packages/layout/src/index";
+    import { IHover } from "packages/layout/src/interfaces";
     export const panelStyle: string;
     export const overflowStyle: string;
     export const vStackStyle: string;
@@ -4510,14 +4869,20 @@ declare module "packages/layout/src/style/panel.css" {
     export const alignItemsStartStyle: string;
     export const alignItemsCenterStyle: string;
     export const alignItemsEndStyle: string;
+    export const alignSelfAutoStyle: string;
+    export const alignSelfStretchStyle: string;
+    export const alignSelfStartStyle: string;
+    export const alignSelfCenterStyle: string;
+    export const alignSelfEndStyle: string;
     export const getTemplateColumnsStyleClass: (columns: string[]) => string;
     export const getTemplateRowsStyleClass: (rows: string[]) => string;
     export const getTemplateAreasStyleClass: (templateAreas: string[][]) => string;
-    export const getSpacingValue: (value: string | number) => string;
     export const getGridLayoutMediaQueriesStyleClass: (mediaQueries: IGridLayoutMediaQuery[]) => string;
+    export const getHoverStyleClass: (hover: IHover) => string;
 }
 declare module "packages/layout/src/stack" {
     import { Container, ContainerElement, IMediaQuery, IBackground, PositionType, IControlMediaQueryProps } from "@ijstech/components/base";
+    import { IHover } from "packages/layout/src/interfaces";
     export interface IStackMediaQueryProps extends IControlMediaQueryProps {
         direction?: StackDirectionType;
         width?: number | string;
@@ -4526,6 +4891,7 @@ declare module "packages/layout/src/stack" {
         background?: IBackground;
         justifyContent?: StackJustifyContentType;
         alignItems?: StackAlignItemsType;
+        alignSelf?: StackAlignSelfType;
         position?: PositionType;
         top?: number | string;
     }
@@ -4534,13 +4900,16 @@ declare module "packages/layout/src/stack" {
     export type StackDirectionType = 'horizontal' | 'vertical';
     export type StackJustifyContentType = "start" | "center" | "end" | "space-between";
     export type StackAlignItemsType = "stretch" | "start" | "center" | "end";
+    export type StackAlignSelfType = "auto" | "stretch" | "start" | "center" | "end";
     export interface StackLayoutElement extends ContainerElement {
         gap?: number | string;
         wrap?: StackWrapType;
         direction?: StackDirectionType;
         justifyContent?: StackJustifyContentType;
         alignItems?: StackAlignItemsType;
+        alignSelf?: StackAlignSelfType;
         mediaQueries?: IStackMediaQuery[];
+        hover?: IHover;
     }
     export type HStackHAlignmentType = StackJustifyContentType;
     export type HStackVAlignmentType = StackAlignItemsType;
@@ -4583,7 +4952,9 @@ declare module "packages/layout/src/stack" {
         private _direction;
         private _justifyContent;
         private _alignItems;
+        private _alignSelf;
         private _mediaQueries;
+        private _hover;
         constructor(parent?: Container, options?: any);
         static create(options?: StackLayoutElement, parent?: Container): Promise<StackLayout>;
         get direction(): StackDirectionType;
@@ -4592,13 +4963,18 @@ declare module "packages/layout/src/stack" {
         set justifyContent(value: StackJustifyContentType);
         get alignItems(): StackAlignItemsType;
         set alignItems(value: StackAlignItemsType);
+        get alignSelf(): StackAlignSelfType;
+        set alignSelf(value: StackAlignSelfType);
         get gap(): number | string;
         set gap(value: number | string);
         get wrap(): StackWrapType;
         set wrap(value: StackWrapType);
         get mediaQueries(): IStackMediaQuery[];
         set mediaQueries(value: IStackMediaQuery[]);
-        protected setAttributeToProperty<P extends keyof StackLayout>(propertyName: P): void;
+        get hover(): IHover;
+        set hover(value: IHover);
+        protected removeStyle<P extends keyof StackLayout>(propertyName: P): void;
+        protected setStyle<P extends keyof StackLayout>(propertyName: P, value: string): void;
         protected init(): void;
     }
     export class HStack extends StackLayout {
@@ -4609,7 +4985,6 @@ declare module "packages/layout/src/stack" {
         set horizontalAlignment(value: HStackHAlignmentType);
         get verticalAlignment(): HStackVAlignmentType;
         set verticalAlignment(value: HStackVAlignmentType);
-        protected setAttributeToProperty<P extends keyof HStack>(propertyName: P): void;
         protected init(): void;
         static create(options?: HStackElement, parent?: Container): Promise<HStack>;
     }
@@ -4621,14 +4996,15 @@ declare module "packages/layout/src/stack" {
         set horizontalAlignment(value: VStackHAlignmentType);
         get verticalAlignment(): VStackVAlignmentType;
         set verticalAlignment(value: VStackVAlignmentType);
-        protected setAttributeToProperty<P extends keyof VStack>(propertyName: P): void;
         init(): void;
         static create(options?: VStackElement, parent?: Container): Promise<VStack>;
     }
 }
 declare module "packages/layout/src/panel" {
     import { Control, Container, ContainerElement } from "@ijstech/components/base";
+    import { IHover } from "packages/layout/src/interfaces";
     export interface PanelElement extends ContainerElement {
+        hover?: IHover;
     }
     global {
         namespace JSX {
@@ -4638,7 +5014,12 @@ declare module "packages/layout/src/panel" {
         }
     }
     export class Panel extends Container {
+        private _hover;
         constructor(parent?: Control, options?: any);
+        get hover(): IHover;
+        set hover(value: IHover);
+        protected removeStyle<P extends keyof Panel>(propertyName: P): void;
+        protected setStyle<P extends keyof Panel>(propertyName: P, value: string): void;
         protected init(): void;
         connectedCallback(): void;
         static create(options?: PanelElement, parent?: Control): Promise<Panel>;
@@ -4760,42 +5141,6 @@ declare module "packages/layout/src/index" {
     export { CardLayout, CardLayoutElement } from "packages/layout/src/card";
     export { IGridLayoutMediaQuery, GridLayout, GridLayoutElement } from "packages/layout/src/grid";
 }
-declare module "packages/image/src/style/image.css" { }
-declare module "packages/image/src/image" {
-    import { Control, ControlElement } from "@ijstech/components/base";
-    import "packages/image/src/style/image.css";
-    export interface ImageElement extends ControlElement {
-        rotate?: number;
-        url?: string;
-        fallbackUrl?: string;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-image']: ImageElement;
-            }
-        }
-    }
-    export class Image extends Control {
-        private imageElm;
-        private _wrapCropElm;
-        private _wrapResizeElm;
-        private _imageClippedElm;
-        private _url;
-        private _rotate;
-        private _fallbackUrl;
-        constructor(parent?: Control, options?: any);
-        get rotate(): number;
-        set rotate(value: any);
-        get url(): string;
-        set url(value: string);
-        protected init(): void;
-        static create(options?: ImageElement, parent?: Control): Promise<Image>;
-    }
-}
-declare module "packages/image/src/index" {
-    export { Image, ImageElement } from "packages/image/src/image";
-}
 declare module "packages/upload/src/style/upload.css" { }
 declare module "packages/upload/src/upload" {
     import { Control, ControlElement } from "@ijstech/components/base";
@@ -4895,94 +5240,6 @@ declare module "packages/upload/src/upload" {
         protected init(): void;
         static create(options?: UploadElement, parent?: Control): Promise<Upload>;
     }
-}
-declare module "packages/modal/src/style/modal.css" {
-    export const overlayStyle: string;
-    export const wrapperStyle: string;
-    export const noBackdropStyle: string;
-    export const visibleStyle: string;
-    export const modalStyle: string;
-    export const titleStyle: string;
-}
-declare module "packages/modal/src/modal" {
-    import { Control, ControlElement, Container, IBackground, IBorder, Background, Border } from "@ijstech/components/base";
-    import { Icon, IconElement } from "packages/icon/src/index";
-    export type modalPopupPlacementType = 'center' | 'bottom' | 'bottomLeft' | 'bottomRight' | 'top' | 'topLeft' | 'topRight' | 'rightTop' | 'left';
-    type eventCallback = (target: Control) => void;
-    type ModalPositionType = "fixed" | "absolute";
-    export interface ModalElement extends ControlElement {
-        title?: string;
-        showBackdrop?: boolean;
-        closeIcon?: IconElement;
-        popupPlacement?: modalPopupPlacementType;
-        closeOnBackdropClick?: boolean;
-        item?: Control;
-        onOpen?: eventCallback;
-        onClose?: eventCallback;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-modal']: ModalElement;
-            }
-        }
-    }
-    export class Modal extends Container {
-        private wrapperDiv;
-        private titleSpan;
-        private modalDiv;
-        private overlayDiv;
-        private _closeIcon;
-        private _placement;
-        private _closeOnBackdropClick;
-        private _showBackdrop;
-        private _wrapperPositionAt;
-        private insideClick;
-        private boundHandleModalMouseDown;
-        private boundHandleModalMouseUp;
-        protected _onOpen: eventCallback;
-        onClose: eventCallback;
-        constructor(parent?: Control, options?: any);
-        get visible(): boolean;
-        set visible(value: boolean);
-        get onOpen(): any;
-        set onOpen(callback: any);
-        get title(): string;
-        set title(value: string);
-        get popupPlacement(): modalPopupPlacementType;
-        set popupPlacement(value: modalPopupPlacementType);
-        get closeIcon(): Icon | null;
-        set closeIcon(elm: Icon | null);
-        get closeOnBackdropClick(): boolean;
-        set closeOnBackdropClick(value: boolean);
-        get showBackdrop(): boolean;
-        set showBackdrop(value: boolean);
-        get item(): Control;
-        set item(value: Control);
-        get position(): ModalPositionType;
-        set position(value: ModalPositionType);
-        private positionAt;
-        private positionAtFix;
-        private positionAtAbsolute;
-        private getWrapperFixCoords;
-        private getWrapperAbsoluteCoords;
-        protected _handleOnShow(event: Event): void;
-        private handleModalMouseDown;
-        private handleModalMouseUp;
-        private updateModal;
-        refresh(): void;
-        get background(): Background;
-        set background(value: IBackground);
-        get width(): number | string;
-        set width(value: number | string);
-        get border(): Border;
-        set border(value: IBorder);
-        protected init(): void;
-        static create(options?: ModalElement, parent?: Container): Promise<Modal>;
-    }
-}
-declare module "packages/modal/src/index" {
-    export { Modal, ModalElement, modalPopupPlacementType } from "packages/modal/src/modal";
 }
 declare module "packages/upload/src/style/upload-modal.css" { }
 declare module "packages/upload/src/upload-modal" {
@@ -5156,6 +5413,7 @@ declare module "packages/tab/src/tab" {
         private dropHandler;
         refresh(): void;
         protected init(): void;
+        private initTabsNav;
         static create(options?: TabsElement, parent?: Container): Promise<Tabs>;
     }
     export class Tab extends Container {
@@ -5273,7 +5531,7 @@ declare module "packages/combo-box/src/combo-box" {
         private onItemClick;
         clear(): void;
         protected init(): void;
-        disconnectCallback(): void;
+        disconnectedCallback(): void;
         static create(options?: ComboBoxElement, parent?: Control): Promise<ComboBox>;
     }
 }
@@ -5570,7 +5828,6 @@ declare module "packages/color/src/color" {
         set captionWidth(value: number | string);
         get height(): number;
         set height(value: number | string);
-        private generateUUID;
         protected init(): Promise<void>;
         private onOpenPicker;
         private onClosePicker;
@@ -5624,6 +5881,7 @@ declare module "packages/input/src/input" {
         rows?: number;
         multiline?: boolean;
         resize?: resizeType;
+        maxLength?: number;
         onChanged?: notifyEventCallback;
         onKeyDown?: notifyEventCallback;
         onKeyUp?: notifyEventCallback;
@@ -5651,6 +5909,7 @@ declare module "packages/input/src/input" {
         private _rows;
         private _multiline;
         private _resize;
+        private _maxLength;
         private captionSpanElm;
         private labelElm;
         private inputElm;
@@ -5690,6 +5949,8 @@ declare module "packages/input/src/input" {
         set resize(value: resizeType);
         set border(value: IBorder);
         get border(): Border;
+        set maxLength(value: number);
+        get maxLength(): number;
         set onClosed(callback: () => void);
         get onClosed(): () => void;
         private _createInputElement;
@@ -5700,6 +5961,7 @@ declare module "packages/input/src/input" {
         protected _handleBlur(event: Event, stopPropagation?: boolean): boolean;
         private _handleOnFocus;
         private _clearValue;
+        focus(): void;
         protected init(): void;
         static create(options?: InputElement, parent?: Control): Promise<Input>;
     }
@@ -6032,6 +6294,48 @@ declare module "packages/application/src/jsonUI" {
     }
     export function renderUI(target: Control, options: IRenderUIOptions, confirmCallback?: (result: boolean, data: any) => void, valueChangedCallback?: (data: any, errMsg: string) => void): void;
 }
+declare module "packages/moment/src/index" {
+    import Moment from 'moment';
+    var moment: typeof Moment;
+    export { moment };
+}
+declare module "packages/application/src/formatUtils" {
+    type RoundingMethod = 'floor' | 'round' | 'ceil';
+    export interface IFormatNumberOptions {
+        useSeparators?: boolean;
+        roundingMethod?: RoundingMethod;
+        decimalFigures?: number;
+        minValue?: number | string;
+        shortScale?: boolean;
+        hasTrailingZero?: boolean;
+    }
+    export class FormatUtils {
+        static unixToFormattedDate(unixTimestamp: number): string;
+        static truncateTxHash(hash: string, length?: number): string;
+        static truncateWalletAddress(address: string): string;
+        static formatNumber(value: BigInt | string | number, options?: IFormatNumberOptions): string;
+        private static scaleValue;
+        private static removeExponential;
+        private static compareToMinValue;
+        private static processDecimalPart;
+        private static customRound;
+        private static roundIntegerPart;
+        private static incrementLastDigit;
+    }
+    export class BigDecimal {
+        static decimals: number;
+        private bigVal;
+        constructor(value: string);
+        static fromBigInt(bigVal: bigint): any;
+        toString(): string;
+        divide(value: BigDecimal): any;
+    }
+}
+declare module "packages/application/src/idUtils" {
+    export class IdUtils {
+        static generateUUID(length?: number): string;
+    }
+}
 declare module "packages/application/src/index" {
     import { Module } from "packages/module/src/index";
     import { EventBus } from "packages/application/src/event-bus";
@@ -6158,10 +6462,10 @@ declare module "packages/application/src/index" {
         getContent(modulePath: string): Promise<string>;
         fetchDirectoryInfoByCID(ipfsCid: string): Promise<ICidInfo[]>;
         private calculatePackageModulePath;
-        private retrievePackageScript;
         loadPackage(packageName: string, modulePath?: string): Promise<{
             [name: string]: any;
         } | null>;
+        loadPackages(packages: string[]): Promise<void>;
         private dynamicImportPackage;
         loadModule(modulePath: string, options?: IHasDependencies): Promise<Module | null>;
         private getModulePath;
@@ -6174,94 +6478,9 @@ declare module "packages/application/src/index" {
     export const application: Application;
     export { EventBus, IEventBus } from "packages/application/src/event-bus";
     export { IDataSchema, IUISchema, IRenderUIOptions, renderUI, DataSchemaValidator } from "packages/application/src/jsonUI";
+    export { FormatUtils, IFormatNumberOptions } from "packages/application/src/formatUtils";
+    export { IdUtils } from "packages/application/src/idUtils";
     export default application;
-}
-declare module "packages/icon/src/style/icon.css" { }
-declare module "packages/icon/src/icon" {
-    import { Control, ControlElement, Types } from "@ijstech/components/base";
-    import { Image, ImageElement } from "packages/image/src/index";
-    import "packages/icon/src/style/icon.css";
-    export type IconName = "" | "ad" | "address-book" | "address-card" | "adjust" | "air-freshener" | "align-center" | "align-justify" | "align-left" | "align-right" | "allergies" | "ambulance" | "american-sign-language-interpreting" | "anchor" | "angle-double-down" | "angle-double-left" | "angle-double-right" | "angle-double-up" | "angle-down" | "angle-left" | "angle-right" | "angle-up" | "angry" | "ankh" | "apple-alt" | "archive" | "archway" | "arrow-alt-circle-down" | "arrow-alt-circle-left" | "arrow-alt-circle-right" | "arrow-alt-circle-up" | "arrow-circle-down" | "arrow-circle-left" | "arrow-circle-right" | "arrow-circle-up" | "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "arrows-alt" | "arrows-alt-h" | "arrows-alt-v" | "assistive-listening-systems" | "asterisk" | "at" | "atlas" | "atom" | "audio-description" | "award" | "baby" | "baby-carriage" | "backspace" | "backward" | "bacon" | "bacteria" | "bacterium" | "bahai" | "balance-scale" | "balance-scale-left" | "balance-scale-right" | "ban" | "band-aid" | "barcode" | "bars" | "baseball-ball" | "basketball-ball" | "bath" | "battery-empty" | "battery-full" | "battery-half" | "battery-quarter" | "battery-three-quarters" | "bed" | "beer" | "bell" | "bell-slash" | "bezier-curve" | "bible" | "bicycle" | "biking" | "binoculars" | "biohazard" | "birthday-cake" | "blender" | "blender-phone" | "blind" | "blog" | "bold" | "bolt" | "bomb" | "bone" | "bong" | "book" | "book-dead" | "book-medical" | "book-open" | "book-reader" | "bookmark" | "border-all" | "border-none" | "border-style" | "bowling-ball" | "box" | "box-open" | "box-tissue" | "boxes" | "braille" | "brain" | "bread-slice" | "briefcase" | "briefcase-medical" | "broadcast-tower" | "broom" | "brush" | "bug" | "building" | "bullhorn" | "bullseye" | "burn" | "bus" | "bus-alt" | "business-time" | "calculator" | "calendar" | "calendar-alt" | "calendar-check" | "calendar-day" | "calendar-minus" | "calendar-plus" | "calendar-times" | "calendar-week" | "camera" | "camera-retro" | "campground" | "candy-cane" | "cannabis" | "capsules" | "car" | "car-alt" | "car-battery" | "car-crash" | "car-side" | "caravan" | "caret-down" | "caret-left" | "caret-right" | "caret-square-down" | "caret-square-left" | "caret-square-right" | "caret-square-up" | "caret-up" | "carrot" | "cart-arrow-down" | "cart-plus" | "cash-register" | "cat" | "certificate" | "chair" | "chalkboard" | "chalkboard-teacher" | "charging-station" | "chart-area" | "chart-bar" | "chart-line" | "chart-pie" | "check" | "check-circle" | "check-double" | "check-square" | "cheese" | "chess" | "chess-bishop" | "chess-board" | "chess-king" | "chess-knight" | "chess-pawn" | "chess-queen" | "chess-rook" | "chevron-circle-down" | "chevron-circle-left" | "chevron-circle-right" | "chevron-circle-up" | "chevron-down" | "chevron-left" | "chevron-right" | "chevron-up" | "child" | "church" | "circle" | "circle-notch" | "city" | "clinic-medical" | "clipboard" | "clipboard-check" | "clipboard-list" | "clock" | "clone" | "closed-captioning" | "cloud" | "cloud-download-alt" | "cloud-meatball" | "cloud-moon" | "cloud-moon-rain" | "cloud-rain" | "cloud-showers-heavy" | "cloud-sun" | "cloud-sun-rain" | "cloud-upload-alt" | "cocktail" | "code" | "code-branch" | "coffee" | "cog" | "cogs" | "coins" | "columns" | "comment" | "comment-alt" | "comment-dollar" | "comment-dots" | "comment-medical" | "comment-slash" | "comments" | "comments-dollar" | "compact-disc" | "compass" | "compress" | "compress-alt" | "compress-arrows-alt" | "concierge-bell" | "cookie" | "cookie-bite" | "copy" | "copyright" | "couch" | "credit-card" | "crop" | "crop-alt" | "cross" | "crosshairs" | "crow" | "crown" | "crutch" | "cube" | "cubes" | "cut" | "database" | "deaf" | "democrat" | "desktop" | "dharmachakra" | "diagnoses" | "dice" | "dice-d20" | "dice-d6" | "dice-five" | "dice-four" | "dice-one" | "dice-six" | "dice-three" | "dice-two" | "digital-tachograph" | "directions" | "disease" | "divide" | "dizzy" | "dna" | "dog" | "dollar-sign" | "dolly" | "dolly-flatbed" | "donate" | "door-closed" | "door-open" | "dot-circle" | "dove" | "download" | "drafting-compass" | "dragon" | "draw-polygon" | "drum" | "drum-steelpan" | "drumstick-bite" | "dumbbell" | "dumpster" | "dumpster-fire" | "dungeon" | "edit" | "egg" | "eject" | "ellipsis-h" | "ellipsis-v" | "envelope" | "envelope-open" | "envelope-open-text" | "envelope-square" | "equals" | "eraser" | "ethernet" | "euro-sign" | "exchange-alt" | "exclamation" | "exclamation-circle" | "exclamation-triangle" | "expand" | "expand-alt" | "expand-arrows-alt" | "external-link-alt" | "external-link-square-alt" | "eye" | "eye-dropper" | "eye-slash" | "fan" | "fast-backward" | "fast-forward" | "faucet" | "fax" | "feather" | "feather-alt" | "female" | "fighter-jet" | "file" | "file-alt" | "file-archive" | "file-audio" | "file-code" | "file-contract" | "file-csv" | "file-download" | "file-excel" | "file-export" | "file-image" | "file-import" | "file-invoice" | "file-invoice-dollar" | "file-medical" | "file-medical-alt" | "file-pdf" | "file-powerpoint" | "file-prescription" | "file-signature" | "file-upload" | "file-video" | "file-word" | "fill" | "fill-drip" | "film" | "filter" | "fingerprint" | "fire" | "fire-alt" | "fire-extinguisher" | "first-aid" | "fish" | "fist-raised" | "flag" | "flag-checkered" | "flag-usa" | "flask" | "flushed" | "folder" | "folder-minus" | "folder-open" | "folder-plus" | "font" | "font-awesome-logo-full" | "football-ball" | "forward" | "frog" | "frown" | "frown-open" | "funnel-dollar" | "futbol" | "gamepad" | "gas-pump" | "gavel" | "gem" | "genderless" | "ghost" | "gift" | "gifts" | "glass-cheers" | "glass-martini" | "glass-martini-alt" | "glass-whiskey" | "glasses" | "globe" | "globe-africa" | "globe-americas" | "globe-asia" | "globe-europe" | "golf-ball" | "gopuram" | "graduation-cap" | "greater-than" | "greater-than-equal" | "grimace" | "grin" | "grin-alt" | "grin-beam" | "grin-beam-sweat" | "grin-hearts" | "grin-squint" | "grin-squint-tears" | "grin-stars" | "grin-tears" | "grin-tongue" | "grin-tongue-squint" | "grin-tongue-wink" | "grin-wink" | "grip-horizontal" | "grip-lines" | "grip-lines-vertical" | "grip-vertical" | "guitar" | "h-square" | "hamburger" | "hammer" | "hamsa" | "hand-holding" | "hand-holding-heart" | "hand-holding-medical" | "hand-holding-usd" | "hand-holding-water" | "hand-lizard" | "hand-middle-finger" | "hand-paper" | "hand-peace" | "hand-point-down" | "hand-point-left" | "hand-point-right" | "hand-point-up" | "hand-pointer" | "hand-rock" | "hand-scissors" | "hand-sparkles" | "hand-spock" | "hands" | "hands-helping" | "hands-wash" | "handshake" | "handshake-alt-slash" | "handshake-slash" | "hanukiah" | "hard-hat" | "hashtag" | "hat-cowboy" | "hat-cowboy-side" | "hat-wizard" | "hdd" | "head-side-cough" | "head-side-cough-slash" | "head-side-mask" | "head-side-virus" | "heading" | "headphones" | "headphones-alt" | "headset" | "heart" | "heart-broken" | "heartbeat" | "helicopter" | "highlighter" | "hiking" | "hippo" | "history" | "hockey-puck" | "holly-berry" | "home" | "horse" | "horse-head" | "hospital" | "hospital-alt" | "hospital-symbol" | "hospital-user" | "hot-tub" | "hotdog" | "hotel" | "hourglass" | "hourglass-end" | "hourglass-half" | "hourglass-start" | "house-damage" | "house-user" | "hryvnia" | "i-cursor" | "ice-cream" | "icicles" | "icons" | "id-badge" | "id-card" | "id-card-alt" | "igloo" | "image" | "images" | "inbox" | "indent" | "industry" | "infinity" | "info" | "info-circle" | "italic" | "jedi" | "joint" | "journal-whills" | "kaaba" | "key" | "keyboard" | "khanda" | "kiss" | "kiss-beam" | "kiss-wink-heart" | "kiwi-bird" | "landmark" | "language" | "laptop" | "laptop-code" | "laptop-house" | "laptop-medical" | "laugh" | "laugh-beam" | "laugh-squint" | "laugh-wink" | "layer-group" | "leaf" | "lemon" | "less-than" | "less-than-equal" | "level-down-alt" | "level-up-alt" | "life-ring" | "lightbulb" | "link" | "lira-sign" | "list" | "list-alt" | "list-ol" | "list-ul" | "location-arrow" | "lock" | "lock-open" | "long-arrow-alt-down" | "long-arrow-alt-left" | "long-arrow-alt-right" | "long-arrow-alt-up" | "low-vision" | "luggage-cart" | "lungs" | "lungs-virus" | "magic" | "magnet" | "mail-bulk" | "male" | "map" | "map-marked" | "map-marked-alt" | "map-marker" | "map-marker-alt" | "map-pin" | "map-signs" | "marker" | "mars" | "mars-double" | "mars-stroke" | "mars-stroke-h" | "mars-stroke-v" | "mask" | "medal" | "medkit" | "meh" | "meh-blank" | "meh-rolling-eyes" | "memory" | "menorah" | "mercury" | "meteor" | "microchip" | "microphone" | "microphone-alt" | "microphone-alt-slash" | "microphone-slash" | "microscope" | "minus" | "minus-circle" | "minus-square" | "mitten" | "mobile" | "mobile-alt" | "money-bill" | "money-bill-alt" | "money-bill-wave" | "money-bill-wave-alt" | "money-check" | "money-check-alt" | "monument" | "moon" | "mortar-pestle" | "mosque" | "motorcycle" | "mountain" | "mouse" | "mouse-pointer" | "mug-hot" | "music" | "network-wired" | "neuter" | "newspaper" | "not-equal" | "notes-medical" | "object-group" | "object-ungroup" | "oil-can" | "om" | "otter" | "outdent" | "pager" | "paint-brush" | "paint-roller" | "palette" | "pallet" | "paper-plane" | "paperclip" | "parachute-box" | "paragraph" | "parking" | "passport" | "pastafarianism" | "paste" | "pause" | "pause-circle" | "paw" | "peace" | "pen" | "pen-alt" | "pen-fancy" | "pen-nib" | "pen-square" | "pencil-alt" | "pencil-ruler" | "people-arrows" | "people-carry" | "pepper-hot" | "percent" | "percentage" | "person-booth" | "phone" | "phone-alt" | "phone-slash" | "phone-square" | "phone-square-alt" | "phone-volume" | "photo-video" | "piggy-bank" | "pills" | "pizza-slice" | "place-of-worship" | "plane" | "plane-arrival" | "plane-departure" | "plane-slash" | "play" | "play-circle" | "plug" | "plus" | "plus-circle" | "plus-square" | "podcast" | "poll" | "poll-h" | "poo" | "poo-storm" | "poop" | "portrait" | "pound-sign" | "power-off" | "pray" | "praying-hands" | "prescription" | "prescription-bottle" | "prescription-bottle-alt" | "print" | "procedures" | "project-diagram" | "pump-medical" | "pump-soap" | "puzzle-piece" | "qrcode" | "question" | "question-circle" | "quidditch" | "quote-left" | "quote-right" | "quran" | "radiation" | "radiation-alt" | "rainbow" | "random" | "receipt" | "record-vinyl" | "recycle" | "redo" | "redo-alt" | "registered" | "remove-format" | "reply" | "reply-all" | "republican" | "restroom" | "retweet" | "ribbon" | "ring" | "road" | "robot" | "rocket" | "route" | "rss" | "rss-square" | "ruble-sign" | "ruler" | "ruler-combined" | "ruler-horizontal" | "ruler-vertical" | "running" | "rupee-sign" | "sad-cry" | "sad-tear" | "satellite" | "satellite-dish" | "save" | "school" | "screwdriver" | "scroll" | "sd-card" | "search" | "search-dollar" | "search-location" | "search-minus" | "search-plus" | "seedling" | "server" | "shapes" | "share" | "share-alt" | "share-alt-square" | "share-square" | "shekel-sign" | "shield-alt" | "shield-virus" | "ship" | "shipping-fast" | "shoe-prints" | "shopping-bag" | "shopping-basket" | "shopping-cart" | "shower" | "shuttle-van" | "sign" | "sign-in-alt" | "sign-language" | "sign-out-alt" | "signal" | "signature" | "sim-card" | "sink" | "sitemap" | "skating" | "skiing" | "skiing-nordic" | "skull" | "skull-crossbones" | "slash" | "sleigh" | "sliders-h" | "smile" | "smile-beam" | "smile-wink" | "smog" | "smoking" | "smoking-ban" | "sms" | "snowboarding" | "snowflake" | "snowman" | "snowplow" | "soap" | "socks" | "solar-panel" | "sort" | "sort-alpha-down" | "sort-alpha-down-alt" | "sort-alpha-up" | "sort-alpha-up-alt" | "sort-amount-down" | "sort-amount-down-alt" | "sort-amount-up" | "sort-amount-up-alt" | "sort-down" | "sort-numeric-down" | "sort-numeric-down-alt" | "sort-numeric-up" | "sort-numeric-up-alt" | "sort-up" | "spa" | "space-shuttle" | "spell-check" | "spider" | "spinner" | "splotch" | "spray-can" | "square" | "square-full" | "square-root-alt" | "stamp" | "star" | "star-and-crescent" | "star-half" | "star-half-alt" | "star-of-david" | "star-of-life" | "step-backward" | "step-forward" | "stethoscope" | "sticky-note" | "stop" | "stop-circle" | "stopwatch" | "stopwatch-20" | "store" | "store-alt" | "store-alt-slash" | "store-slash" | "stream" | "street-view" | "strikethrough" | "stroopwafel" | "subscript" | "subway" | "suitcase" | "suitcase-rolling" | "sun" | "superscript" | "surprise" | "swatchbook" | "swimmer" | "swimming-pool" | "synagogue" | "sync" | "sync-alt" | "syringe" | "table" | "table-tennis" | "tablet" | "tablet-alt" | "tablets" | "tachometer-alt" | "tag" | "tags" | "tape" | "tasks" | "taxi" | "teeth" | "teeth-open" | "temperature-high" | "temperature-low" | "tenge" | "terminal" | "text-height" | "text-width" | "th" | "th-large" | "th-list" | "theater-masks" | "thermometer" | "thermometer-empty" | "thermometer-full" | "thermometer-half" | "thermometer-quarter" | "thermometer-three-quarters" | "thumbs-down" | "thumbs-up" | "thumbtack" | "ticket-alt" | "times" | "times-circle" | "tint" | "tint-slash" | "tired" | "toggle-off" | "toggle-on" | "toilet" | "toilet-paper" | "toilet-paper-slash" | "toolbox" | "tools" | "tooth" | "torah" | "torii-gate" | "tractor" | "trademark" | "traffic-light" | "trailer" | "train" | "tram" | "transgender" | "transgender-alt" | "trash" | "trash-alt" | "trash-restore" | "trash-restore-alt" | "tree" | "trophy" | "truck" | "truck-loading" | "truck-monster" | "truck-moving" | "truck-pickup" | "tshirt" | "tty" | "tv" | "umbrella" | "umbrella-beach" | "underline" | "undo" | "undo-alt" | "universal-access" | "university" | "unlink" | "unlock" | "unlock-alt" | "upload" | "user" | "user-alt" | "user-alt-slash" | "user-astronaut" | "user-check" | "user-circle" | "user-clock" | "user-cog" | "user-edit" | "user-friends" | "user-graduate" | "user-injured" | "user-lock" | "user-md" | "user-minus" | "user-ninja" | "user-nurse" | "user-plus" | "user-secret" | "user-shield" | "user-slash" | "user-tag" | "user-tie" | "user-times" | "users" | "users-cog" | "users-slash" | "utensil-spoon" | "utensils" | "vector-square" | "venus" | "venus-double" | "venus-mars" | "vest" | "vest-patches" | "vial" | "vials" | "video" | "video-slash" | "vihara" | "virus" | "virus-slash" | "viruses" | "voicemail" | "volleyball-ball" | "volume-down" | "volume-mute" | "volume-off" | "volume-up" | "vote-yea" | "vr-cardboard" | "walking" | "wallet" | "warehouse" | "water" | "wave-square" | "weight" | "weight-hanging" | "wheelchair" | "wifi" | "wind" | "window-close" | "window-maximize" | "window-minimize" | "window-restore" | "wine-bottle" | "wine-glass" | "wine-glass-alt" | "won-sign" | "wrench" | "x-ray" | "yen-sign" | "yin-yang";
-    export interface IconElement extends ControlElement {
-        name?: IconName;
-        fill?: Types.Color;
-        image?: ImageElement;
-        spin?: boolean;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-icon']: IconElement;
-            }
-        }
-    }
-    export class Icon extends Control {
-        private svgElm;
-        private _name;
-        private _size;
-        private _image;
-        private _spin;
-        private _fill;
-        constructor(parent?: Control, options?: any);
-        protected init(): void;
-        get fill(): Types.Color;
-        set fill(color: Types.Color);
-        get name(): IconName;
-        set name(value: IconName);
-        get image(): Image;
-        set image(image: Image);
-        get spin(): boolean;
-        set spin(value: boolean);
-        private _updateIcon;
-        static create(options?: IconElement, parent?: Control): Promise<Icon>;
-    }
-}
-declare module "packages/icon/src/index" {
-    export { IconName, Icon, IconElement } from "packages/icon/src/icon";
-}
-declare module "packages/button/src/style/button.css" { }
-/// <amd-module name="@ijstech/components/button" />
-declare module "@ijstech/components/button" {
-    import { Control, Container, ControlElement } from "@ijstech/components/base";
-    import { Icon, IconElement } from "packages/icon/src/index";
-    import "packages/button/src/style/button.css";
-    export interface ButtonElement extends ControlElement {
-        caption?: string;
-        icon?: IconElement;
-        rightIcon?: IconElement;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-button']: ButtonElement;
-            }
-        }
-    }
-    export class Button extends Control {
-        private captionElm;
-        private _icon;
-        private _rightIcon;
-        static create(options?: ButtonElement, parent?: Container): Promise<Button>;
-        constructor(parent?: Control, options?: ButtonElement);
-        get caption(): string;
-        set caption(value: string);
-        get icon(): Icon;
-        set icon(value: Icon);
-        get rightIcon(): Icon;
-        set rightIcon(value: Icon);
-        get enabled(): boolean;
-        set enabled(value: boolean);
-        private get isSpinning();
-        private prependIcon;
-        private appendIcon;
-        private updateButton;
-        _handleClick(event: MouseEvent): boolean;
-        refresh(): void;
-        protected init(): void;
-    }
-}
-declare module "packages/button/src/index" {
-    export { Button, ButtonElement } from "@ijstech/components/button";
 }
 declare module "packages/alert/src/style/alert.css" { }
 declare module "packages/alert/src/alert" {
@@ -9781,7 +10000,7 @@ declare module "@ijstech/components/dataGrid" {
 }
 declare module "packages/markdown/src/styles/index.css" { }
 declare module "packages/markdown/src/markdown" {
-    import { Control, ControlElement } from "@ijstech/components/base";
+    import { Control, ControlElement, ISpace } from "@ijstech/components/base";
     import "packages/markdown/src/styles/index.css";
     export interface MarkdownElement extends ControlElement {
         caption?: string;
@@ -9801,9 +10020,12 @@ declare module "packages/markdown/src/markdown" {
         gitbookProcess: boolean;
         fileRoot: string;
         private _theme;
+        private _space;
         constructor(parent?: Control, options?: MarkdownElement);
         get theme(): 'light' | 'dark';
         set theme(value: 'light' | 'dark');
+        get padding(): ISpace;
+        set padding(value: ISpace);
         private getRenderer;
         load(text: string): Promise<any>;
         beforeRender(text: string): Promise<void>;
@@ -9817,13 +10039,15 @@ declare module "packages/markdown/src/index" {
 }
 declare module "packages/markdown-editor/src/styles/index.css" { }
 declare module "packages/markdown-editor/src/markdown-editor" {
-    import { Container, Control, ControlElement } from "@ijstech/components/base";
+    import { Border, Container, Control, IBorder, ISpace, notifyEventCallback } from "@ijstech/components/base";
     import { Markdown } from "packages/markdown/src/index";
+    import { Text, TextElement } from "packages/text/src/index";
     import "packages/markdown-editor/src/styles/index.css";
-    export interface MarkdownEditorElement extends ControlElement {
+    export interface MarkdownEditorElement extends TextElement {
         mode?: 'wysiwyg' | 'markdown';
         theme?: 'light' | 'dark';
         previewStyle?: 'tab' | 'vertical';
+        hideModeSwitch?: boolean;
         value?: string;
         viewer?: boolean;
         width?: string;
@@ -9834,6 +10058,8 @@ declare module "packages/markdown-editor/src/markdown-editor" {
             rule: string | object;
             toDOM: (text: string) => any;
         }[];
+        placeholder?: string;
+        onChanged?: notifyEventCallback;
     }
     global {
         namespace JSX {
@@ -9842,7 +10068,7 @@ declare module "packages/markdown-editor/src/markdown-editor" {
             }
         }
     }
-    export class MarkdownEditor extends Control {
+    export class MarkdownEditor extends Text {
         private editor;
         private editorPlugins;
         private editorObj;
@@ -9857,6 +10083,9 @@ declare module "packages/markdown-editor/src/markdown-editor" {
         private _toolbarItems;
         private _customPlugins;
         private _widgetRules;
+        private _hideModeSwitch;
+        private _placeholder;
+        onChanged: notifyEventCallback;
         get mode(): 'wysiwyg' | 'markdown';
         set mode(value: 'wysiwyg' | 'markdown');
         get theme(): 'light' | 'dark';
@@ -9881,6 +10110,14 @@ declare module "packages/markdown-editor/src/markdown-editor" {
             rule: string | object;
             toDOM: (text: string) => any;
         }[]);
+        get hideModeSwitch(): boolean;
+        set hideModeSwitch(value: boolean);
+        get placeholder(): string;
+        set placeholder(value: string);
+        get padding(): ISpace;
+        set padding(value: ISpace);
+        get border(): Border;
+        set border(value: IBorder);
         static create(options?: MarkdownEditorElement, parent?: Container): Promise<MarkdownEditor>;
         constructor(parent?: Control, options?: MarkdownEditorElement);
         private loadPlugin;
@@ -9903,10 +10140,11 @@ declare module "packages/menu/src/style/menu.css" {
     export const modalStyle: string;
 }
 declare module "packages/menu/src/menu" {
-    import { Control, ControlElement, IContextMenu } from "@ijstech/components/base";
+    import { Control, ControlElement, IContextMenu, ISpace } from "@ijstech/components/base";
     import { Link, LinkElement } from "packages/link/src/index";
     import { Icon, IconElement } from "packages/icon/src/index";
     export type MenuMode = "horizontal" | "vertical" | "inline";
+    type AlignType = 'left' | 'right' | 'center';
     interface MenuItemElement extends IMenuItem {
         level?: number;
     }
@@ -9915,6 +10153,7 @@ declare module "packages/menu/src/menu" {
         link?: LinkElement;
         icon?: IconElement;
         items?: IMenuItem[];
+        textAlign?: AlignType;
     }
     export interface MenuElement extends ControlElement {
         mode?: MenuMode;
@@ -9990,6 +10229,7 @@ declare module "packages/menu/src/menu" {
         private openTimeout;
         private closeTimeout;
         private _level;
+        private _textAlign;
         constructor(parent?: Control, options?: MenuItemElement);
         add(options?: IMenuItem): MenuItem;
         delete(item: MenuItem): void;
@@ -10001,7 +10241,11 @@ declare module "packages/menu/src/menu" {
         set icon(elm: Icon);
         get items(): MenuItem[];
         set items(items: MenuItem[]);
+        get textAlign(): AlignType;
+        set textAlign(value: AlignType);
         set level(value: number);
+        get padding(): ISpace;
+        set padding(value: ISpace);
         private get selected();
         private set selected(value);
         private updateLevel;
@@ -10156,6 +10400,8 @@ declare module "packages/tree-view/src/treeView" {
         get rootParent(): TreeView;
         get icon(): Icon;
         get rightIcon(): Icon;
+        get height(): number | string;
+        set height(value: number | string);
         private handleChange;
         private renderEditMode;
         private handleEdit;
@@ -10547,7 +10793,9 @@ declare module "packages/progress/src/index" {
 declare module "packages/table/src/style/table.css" {
     import { TableColumnElement } from "packages/table/src/tableColumn";
     import { ITableMediaQuery } from "packages/table/src/table";
+    import { ControlElement } from "@ijstech/components/base";
     export const tableStyle: string;
+    export const getCustomStylesClass: (styles: ControlElement) => string;
     export const getTableMediaQueriesStyleClass: (columns: TableColumnElement[], mediaQueries: ITableMediaQuery[]) => string;
 }
 declare module "packages/table/src/tableCell" {
@@ -10665,6 +10913,8 @@ declare module "packages/table/src/table" {
         pagination?: string;
         expandable?: ITableExpandable;
         mediaQueries?: ITableMediaQuery[];
+        headingStyles?: ControlElement;
+        bodyStyles?: ControlElement;
         onRenderEmptyTable?: emptyCallback;
         onCellClick?: cellClickCallback;
         onColumnSort?: sortCallback;
@@ -10696,6 +10946,10 @@ declare module "packages/table/src/table" {
         private _expandable;
         private _sortConfig;
         private _heading;
+        private _headingStyles;
+        private _bodyStyles;
+        private _bodyStyle;
+        private _headingStyle;
         constructor(parent?: Control, options?: any);
         get data(): any;
         set data(value: any);
@@ -10715,6 +10969,10 @@ declare module "packages/table/src/table" {
         private get columnLength();
         get mediaQueries(): ITableMediaQuery[];
         set mediaQueries(value: ITableMediaQuery[]);
+        get headingStyles(): ControlElement;
+        set headingStyles(value: ControlElement);
+        get bodyStyles(): ControlElement;
+        set bodyStyles(value: ControlElement);
         private onPageChanged;
         private onSortChange;
         private renderHeader;
@@ -10804,7 +11062,7 @@ declare module "packages/carousel/src/carousel" {
         get swipe(): boolean;
         set swipe(value: boolean);
         get isArrow(): boolean;
-        disconnectCallback(): void;
+        disconnectedCallback(): void;
         private updateArrows;
         private updateSliderByArrows;
         private updateWrapperClass;
@@ -10826,17 +11084,13 @@ declare module "packages/carousel/src/carousel" {
 declare module "packages/carousel/src/index" {
     export { CarouselSlider } from "packages/carousel/src/carousel";
 }
-declare module "packages/moment/src/index" {
-    import Moment from 'moment';
-    var moment: typeof Moment;
-    export { moment };
-}
 declare module "packages/video/src/style/video.css" { }
 declare module "packages/video/src/video" {
-    import { Container, ControlElement, Control } from "@ijstech/components/base";
+    import { Container, ControlElement, Control, Border, IBorder } from "@ijstech/components/base";
     import "packages/video/src/style/video.css";
     export interface VideoElement extends ControlElement {
         url?: string;
+        isStreaming?: boolean;
     }
     global {
         namespace JSX {
@@ -10852,6 +11106,9 @@ declare module "packages/video/src/video" {
         private _url;
         get url(): string;
         set url(value: string);
+        get border(): Border;
+        set border(value: IBorder);
+        private getVideoTypeFromExtension;
         protected init(): void;
         static create(options?: VideoElement, parent?: Control): Promise<Video>;
     }
@@ -10900,7 +11157,6 @@ declare module "packages/schema-designer/src/uiSchema" {
         private pnlUISchemaBuilder;
         private uiSchema;
         schema: ISchemaDesignerData;
-        uuid: string;
         constructor(parent?: Container, options?: ControlElement);
         protected init(): void;
         refresh(): void;
@@ -10976,7 +11232,6 @@ declare module "packages/schema-designer/src/schemaDesigner" {
     export class SchemaDesigner extends Container {
         private txtSchema;
         private pnlSchemaBuilder;
-        private uuid;
         private schema;
         private pnlUISchema;
         private uiSchemaPanel;
@@ -10989,7 +11244,6 @@ declare module "packages/schema-designer/src/schemaDesigner" {
         private getJSON;
         private updateJsonData;
         private convertFieldNameToLabel;
-        private generateUUID;
         private generateFieldName;
         private createDataSchema;
         private renderEnum;
@@ -11142,6 +11396,7 @@ declare module "packages/form/src/styles/index.css" {
     export const cardHeader: string;
     export const cardBody: string;
     export const uploadStyle: string;
+    export const tokenInputStyle: string;
 }
 declare module "packages/form/src/types/jsonSchema4" {
     export type IJSONSchema4TypeName = 'string' | 'number' | 'integer' | 'boolean' | 'object' | 'array' | 'null' | 'any';
@@ -11379,7 +11634,7 @@ declare module "packages/form/src/types/index" {
     }
 }
 declare module "packages/form/src/form" {
-    import { Control, ControlElement } from "@ijstech/components/base";
+    import { Control, ControlElement, notifyMouseEventCallback } from "@ijstech/components/base";
     import { IDataSchema, IUISchema, ValidationResult } from "packages/form/src/types/index";
     import "packages/form/src/styles/index.css";
     export { IDataSchema, IUISchema };
@@ -11401,7 +11656,7 @@ declare module "packages/form/src/form" {
         backgroundColor?: string;
         fontColor?: string;
         hide?: boolean;
-        onClick?: () => void;
+        onClick?: notifyMouseEventCallback;
     }
     export interface IFormOptions {
         columnsPerRow?: number;
@@ -11440,15 +11695,19 @@ declare module "packages/form/src/form" {
         get uiSchema(): IUISchema;
         clearFormData(): void;
         setFormData(data: any): void;
+        private setCustomData;
         private setData;
         getFormData(isErrorShown?: boolean): Promise<any>;
         private getDataBySchema;
+        private isNumber;
         renderForm(): void;
         private renderFormByJSONSchema;
+        private replacePhrase;
         private renderFormByUISchema;
         private setupRules;
         private setupControlRule;
         private validateRule;
+        private validateAllRule;
         private getDataSchemaByScope;
         private renderGroup;
         private renderLabel;
@@ -11476,9 +11735,9 @@ declare module "packages/form/src/index" {
 }
 declare module "@ijstech/components" {
     export * as Styles from "packages/style/src/index";
+    export { application, EventBus, IEventBus, IHasDependencies, IModuleOptions, IModuleRoute, IModuleMenuItem, IRenderUIOptions, DataSchemaValidator, renderUI, FormatUtils, IFormatNumberOptions, IdUtils } from "packages/application/src/index";
     export { customModule, customElements, getCustomElements, Component, Control, ControlElement, Container, Observe, Unobserve, ClearObservers, isObservable, observable, LibPath, RequireJS, ISpace } from "@ijstech/components/base";
     export { Alert } from "packages/alert/src/index";
-    export { application, EventBus, IEventBus, IHasDependencies, IModuleOptions, IModuleRoute, IModuleMenuItem, IRenderUIOptions, DataSchemaValidator, renderUI } from "packages/application/src/index";
     export { Button } from "packages/button/src/index";
     export { CodeEditor, LanguageType, CodeDiffEditor } from "packages/code-editor/src/index";
     export { ComboBox, IComboItem } from "packages/combo-box/src/index";
