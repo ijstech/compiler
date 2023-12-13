@@ -553,7 +553,7 @@ if (!rootDir.endsWith('/'))
         await copyDependencies(scconfig.dependencies, true);
         if (scconfig.packages){
             scconfig.packages.forEach(async (name: string) => {
-                await storage.copyPackage(name, Path.join(distLibDir, name));
+                await storage.copyPackage(name, distLibDir);
             });
             delete scconfig.packages;
         };            

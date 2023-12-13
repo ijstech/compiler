@@ -194,19 +194,27 @@ export class Storage implements IStorage{
             this.copied[packName] = true;
             console.dir('#Copy dependence: ' + packName);
             let distFile: string = pack.plugin || pack.browser;
+            let targetPackDir = targetDir;
+            if (!targetPackDir.endsWith(packName))
+                targetPackDir = Path.join(targetDir, packName);
             if (distFile && distFile.endsWith('.js')){
-                await Fs.mkdir(targetDir, {recursive: true});
-                await Fs.copyFile(Path.join(path, distFile), Path.join(targetDir, 'index.js'));                                
+                await Fs.mkdir(targetPackDir, {recursive: true});
+                await Fs.copyFile(Path.join(path, distFile), Path.join(targetPackDir, 'index.js'));                                
             }
             else{
-                await Fs.cp(Path.join(path, 'dist'), targetDir, {recursive: true});
+                await Fs.cp(Path.join(path, 'dist'), targetPackDir, {recursive: true});
                 try{
-                    let distPath = Path.dirname(pack.main);
                     let scconfig = JSON.parse(await Fs.readFile(Path.join(path, 'dist', 'scconfig.json'), 'utf8'));
-                    pack.dependencies = {};
-                    scconfig.dependencies.forEach((name: string) => {
-                        pack.dependencies[name] = '*';
-                    });
+                    if (scconfig?.dependencies){
+                        pack.dependencies = {};
+                        scconfig.dependencies.forEach((name: string) => {
+                            pack.dependencies[name] = '*';
+                            if (targetDir != targetPackDir){
+                                this.copyPackage(name, Path.join(targetDir, name));
+                            };
+                        });
+                        
+                    };
                 }
                 catch(err){}
             }

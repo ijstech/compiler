@@ -182,19 +182,28 @@ class Storage {
             this.copied[packName] = true;
             console.dir('#Copy dependence: ' + packName);
             let distFile = pack.plugin || pack.browser;
+            let targetPackDir = targetDir;
+            if (!targetPackDir.endsWith(packName))
+                targetPackDir = path_1.default.join(targetDir, packName);
             if (distFile && distFile.endsWith('.js')) {
-                await fs_1.promises.mkdir(targetDir, { recursive: true });
-                await fs_1.promises.copyFile(path_1.default.join(path, distFile), path_1.default.join(targetDir, 'index.js'));
+                await fs_1.promises.mkdir(targetPackDir, { recursive: true });
+                await fs_1.promises.copyFile(path_1.default.join(path, distFile), path_1.default.join(targetPackDir, 'index.js'));
             }
             else {
-                await fs_1.promises.cp(path_1.default.join(path, 'dist'), targetDir, { recursive: true });
+                await fs_1.promises.cp(path_1.default.join(path, 'dist'), targetPackDir, { recursive: true });
                 try {
-                    let distPath = path_1.default.dirname(pack.main);
                     let scconfig = JSON.parse(await fs_1.promises.readFile(path_1.default.join(path, 'dist', 'scconfig.json'), 'utf8'));
-                    pack.dependencies = {};
-                    scconfig.dependencies.forEach((name) => {
-                        pack.dependencies[name] = '*';
-                    });
+                    if (scconfig?.dependencies) {
+                        pack.dependencies = {};
+                        scconfig.dependencies.forEach((name) => {
+                            pack.dependencies[name] = '*';
+                            if (targetDir != targetPackDir) {
+                                this.copyPackage(name, path_1.default.join(targetDir, name));
+                            }
+                            ;
+                        });
+                    }
+                    ;
                 }
                 catch (err) { }
             }
