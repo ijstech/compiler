@@ -868,14 +868,22 @@ export class Compiler {
                         if (this.dependencies.indexOf(module) < 0)
                             this.dependencies.push(module);
                         if (!this.packages[module]){
-                            let file = await fileImporter(module, true);
-                            if (file){
-                                result.push(module);
-                                let pack: Types.IPackage = {
-                                    dts: {'index.d.ts': file.content}
+                            if (this.packageImporter){
+                                let pack = await this.packageImporter(module)
+                                if (pack){
+                                    result.push(module);
+                                    this.addPackage(module, pack);
                                 };
-                                this.addPackage(module, pack);
-    
+                            }
+                            else {
+                                let file = await fileImporter(module, true);
+                                if (file){
+                                    result.push(module);
+                                    let pack: Types.IPackage = {
+                                        dts: {'index.d.ts': file.content}
+                                    };
+                                    this.addPackage(module, pack);        
+                                };
                             };
                         };   
                     };
@@ -1063,10 +1071,14 @@ export class Compiler {
     };
     fileExists(fileName: string): boolean {
         let result = this.files[fileName] != undefined || this.packageFiles[fileName] != undefined;
-        if (!result && fileName.endsWith('/index.d.ts')){
-            let packName = fileName.split('/').slice(0, -1).join('/');
-            result = this.packages[packName] != undefined;
-        };        
+        if (!result && fileName.endsWith('.d.ts')) {
+            let packName = fileName.split('/').slice(0,2).join('/');
+            let dtsFile = fileName.split('/').slice(2).join('/');
+            let pack = this.packages[packName];
+            if (pack && pack.dts && pack.dts[dtsFile])
+                result = true;
+            // result = this.packages[packName] != undefined;
+        };    
         if (!result && fileName.endsWith('.ts'))
             result = this.packages[fileName.slice(0, -3)] != undefined;
         this.resolvedFileName = '';
@@ -1122,14 +1134,37 @@ export class Compiler {
             return TS.createSourceFile(fileName, Lib, languageVersion);
         };
         let content = this.packageFiles[fileName] || this.files[fileName];
-        if (!content && fileName.endsWith('/index.d.ts')){
-            let packName = fileName.split('/').slice(0, -1).join('/');
-            let dts = '';
+        let packName = '';
+        let dtsFile = '';
+        let dtsDir = '';
+        if (!content && fileName.endsWith('/index.d.ts')) {
+            packName = fileName.split('/').slice(0, -1).join('/');
+            dtsFile = 'index.d.ts';
             let pack = this.packages[packName];
             if (pack && pack.dts && pack.dts['index.d.ts'])
-                dts = pack.dts['index.d.ts'];
-            if (this.packages[packName]){
-                content = dts
+                content = pack.dts['index.d.ts'];
+        };
+        if (!content && fileName.startsWith('@')){
+            packName = fileName.split('/').slice(0,2).join('/');// slice(0, -1).join('/');
+            dtsFile = fileName.split('/').slice(2).join('/');
+            if (!dtsFile){
+                if (packName.endsWith('.ts')){
+                    packName = packName.slice(0, -3);
+                    dtsFile = 'index.d.ts'; 
+                }
+                else            
+                    dtsFile = 'index.d.ts';    
+            };  
+            dtsDir = dtsFile.slice(0, -5);
+        };
+        if (!content){
+           let pack = this.packages[packName];
+            if (pack && pack.dts && pack.dts[dtsFile]){
+                content = pack.dts[dtsFile];
+            } 
+            else if (pack && pack.dts && pack.dts[dtsDir + '/index.d.ts']){
+                fileName = packName + '/' + dtsDir + '/index.d.ts';
+                content = pack.dts[dtsDir + '/index.d.ts'];
             }
             else {
                 for (let n in this.packages){
@@ -1174,15 +1209,30 @@ export class Compiler {
                         isExternalLibraryImport: false
                     });
                 }
-                else
+                else{
+                    let resolvedFileName = result.resolvedModule.resolvedFileName;
+                    if (resolvedFileName.startsWith('@') && resolvedFileName.endsWith('.ts') && resolvedFileName.split('/').length == 2){
+                        resolvedFileName = resolvedFileName.slice(0, -3) + '/index.d.ts';
+                        result.resolvedModule.resolvedFileName = resolvedFileName;
+                    };     
                     resolvedModules.push(result.resolvedModule);
+                }
             }
-            else
+            else{
+                let resolvedFileName = moduleName;
+                if (resolvedFileName.startsWith('.')){
+                    resolvedFileName = resolveAbsolutePath(containingFile, resolvedFileName);
+                    if (resolvedFileName.startsWith('@') && resolvedFileName.split('/').length == 2){ 
+                        let packName = containingFile.split('/').slice(0,2).join('/');
+                        resolvedFileName = packName + '/' + resolvedFileName.split('/').pop();
+                    };
+                };
                 resolvedModules.push(<any>{
-                    resolvedFileName: moduleName + '/index.d.ts',
+                    resolvedFileName: resolvedFileName + '/index.d.ts',
                     extension: '.ts',
                     isExternalLibraryImport: true
                 });
+            }
         };
         return resolvedModules;
     };

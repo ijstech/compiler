@@ -119,9 +119,29 @@ export async function getLocalPackageTypes(name: string, packName?: string): Pro
                     dependencies.push(name);
                 }
             };
-            let dts = await Fs.readFile(Path.join(name, pack.pluginTypes || pack.types || pack.typings || 'index.d.ts'), 'utf8');
+            let typesIndex = Path.join(name, pack.pluginTypes || pack.types || pack.typings || 'index.d.ts');
+            let typesDir = Path.dirname(typesIndex);
+            let dts: {[file: string]: string} = {};
+            dts['index.d.ts'] = await Fs.readFile(Path.join(name, pack.pluginTypes || pack.types || pack.typings || 'index.d.ts'), 'utf8');
+            async function readDir(dir: string){
+                let files = await Fs.readdir(dir);
+                for (let file of files) {
+                    let filepath = Path.join(dir, file);
+                    let stat = await Fs.stat(filepath);
+                    if (stat.isDirectory()) {
+                        await readDir(filepath);
+                    }
+                    else {
+                        if (file.endsWith('.d.ts')){
+                            let packFileName = filepath.slice(typesDir.length + 1);
+                            dts[packFileName] = await Fs.readFile(filepath, 'utf8');
+                        };
+                    };
+                };
+            };
+            await readDir(typesDir);
             return {
-                dts: {'index.d.ts': dts},
+                dts: dts,
                 dependencies: dependencies
             };
         }
