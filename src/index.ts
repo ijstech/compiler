@@ -868,7 +868,8 @@ export class Compiler {
                         if (this.dependencies.indexOf(module) < 0)
                             this.dependencies.push(module);
                         if (!this.packages[module]){
-                            if (this.packageImporter){
+                            let isSubmodule = module.split('/').length > 2;               
+                            if (!isSubmodule && this.packageImporter) {
                                 let pack = await this.packageImporter(module)
                                 if (pack){
                                     result.push(module);
@@ -1167,6 +1168,7 @@ export class Compiler {
                 content = pack.dts[dtsDir + '/index.d.ts'];
             }
             else {
+                packName = fileName.split('/').slice(0, -1).join('/');
                 for (let n in this.packages){
                     if (packName.endsWith('/' + n)){
                         let pack = this.packages[n];
