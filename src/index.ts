@@ -749,11 +749,7 @@ export class PackageManager{
                                 content: dts
                             }
                         }
-                        // console.dir('Add dependence: ' + fileName)
-                        if (fileName == '@ijstech/eth-contract' || fileName == '@ijstech/eth-wallet')
-                            await compiler.addPackage('bignumber.js');
-                        if (fileName == '@ijstech/eth-wallet')
-                            await compiler.addPackage('@ijstech/eth-contract');
+                        // console.dir('Add dependence: ' + fileName)                        
                         let result = await compiler.addPackage(fileName);
                         if (result)
                             return result;
@@ -870,11 +866,14 @@ export class Compiler {
                         if (!this.packages[module]){
                             let isSubmodule = module.split('/').length > 2;               
                             if (!isSubmodule && this.packageImporter) {
-                                let pack = await this.packageImporter(module)
-                                if (pack){
+                                let pack = await this.addPackage(module)
+                                if (pack)
                                     result.push(module);
-                                    this.addPackage(module, pack);
-                                };
+                                // let pack = await this.packageImporter(module)
+                                // if (pack){
+                                //     result.push(module);
+                                //     this.addPackage(module, pack);
+                                // };
                             }
                             else {
                                 let file = await fileImporter(module, true);
@@ -941,7 +940,11 @@ export class Compiler {
     };
     async addPackage(packName: string, pack?: Types.IPackage): Promise<{fileName: string, content: string} | undefined>{       
         if (!pack){
-            if (!this.packages[packName]){
+            if (!this.packages[packName]){     
+                if (packName == '@ijstech/eth-contract' || packName == '@ijstech/eth-wallet')
+                    await this.addPackage('bignumber.js');
+                if (packName == '@ijstech/eth-wallet')
+                    await this.addPackage('@ijstech/eth-contract');           
                 if (this.packageImporter){
                     // let pack = await storage.getPackageTypes(packName);
                     let pack = await this.packageImporter(packName);
@@ -962,7 +965,7 @@ export class Compiler {
                             content: dts
                         };
                     };
-                };
+                };                
             };
         } 
         else{
