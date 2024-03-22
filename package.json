@@ -22,7 +22,7 @@
         "@ijstech/eth-wallet": "^0.1.56",
         "@ijstech/plugin": "^0.1.8",
         "@ijstech/wallet": "^0.1.0",
-        "@openzeppelin/contracts": "4.9.3",
+        "@openzeppelin/contracts": "4.9.6",
         "@types/mocha": "9.0.0",
         "@types/node": "18.11",
         "mocha": "10.0.0",
