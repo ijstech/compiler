@@ -101,7 +101,7 @@ export function findComponentImportNodeIfNotExists(source: TS.SourceFile, classN
         if (node.kind == TS.SyntaxKind.ImportDeclaration){
             let importNode = node as TS.ImportDeclaration;
             let text = importNode.moduleSpecifier.getText();
-            if (text == "'@ijstech/components'" || text == '"@ijstech/components"'){
+            if (!className.startsWith('Scom') && (text == "'@ijstech/components'" || text == '"@ijstech/components"')){
                 let namedImports = importNode.importClause?.namedBindings as TS.NamedImports;
                 if (namedImports){
                     for (let j=0; j<namedImports.elements.length; j++){
@@ -115,10 +115,17 @@ export function findComponentImportNodeIfNotExists(source: TS.SourceFile, classN
                         };
                     };
                 };   
-            };
+            } else {
+                const nodeText = node.getText();
+                if (nodeText.includes(className)){
+                    return;
+                }
+            }
         }
-        else if (node.kind == TS.SyntaxKind.ClassDeclaration)
+        else if (node.kind == TS.SyntaxKind.ClassDeclaration) {
+            result = node.pos;
             break;
+        }
     };
     return result;
 };
@@ -191,6 +198,7 @@ export function renameMethod(source: TS.SourceFile, oldFunc: string, newFunc: st
     return result;
 };
 export function renameProperty(source: TS.SourceFile, className: string, oldName: string, newName: string): string | undefined{
+    if (!newName) return;
     let result = source.text;
     let classNode = findModuleClassNode(source);
     if (classNode){
@@ -228,7 +236,12 @@ export function addComponentProp(source: TS.SourceFile, className: string, id: s
         };
     };
     if (importPos){
-        result = insertTextAt(result, importPos, className + ', ');
+        if (className.startsWith('Scom')) {
+            const packageName = '@scom/scom' + className.substring(4).replace(/([A-Z])/g, '-$1').toLowerCase();
+            result = insertTextAt(result, importPos, `\nimport ${className} from '${packageName}';`);
+        } else {
+            result = insertTextAt(result, importPos, className + ', ');
+        }
     };
     return result;
 };
@@ -239,7 +252,16 @@ export function addEventHandler(source: TS.SourceFile, classNames: string[], fun
 }{
     let result = source.getFullText();
     let classNode = findModuleClassNode(source);
-    let imports = findComponentImports(source, classNames);
+    const controls = [];
+    const widgets = [];
+    for (let className of classNames){
+        if (className.startsWith('Scom')) {
+            widgets.push(className);
+        } else {
+            controls.push(className);
+        }
+    }
+    let imports = findComponentImports(source, controls);
     let line = 0;
     if (classNode){
         let node = findMethodNode(classNode, funcName);
@@ -256,11 +278,26 @@ export function addEventHandler(source: TS.SourceFile, classNames: string[], fun
             line = p.line + 2;
         }
     };
+    let controlLength = 0;
     if (imports.newPos && imports.classNames?.length > 0){
         imports.classNames.forEach(className => {
+            controlLength += className.length + 2;
             result = insertTextAt(result, imports.newPos, className + ', ');
         });
     };
+    let widgetLength = 0;
+    if (widgets.length > 0){
+        for (let i=0; i<widgets.length; i++){
+            let className = widgets[i];
+            let importPos = findComponentImportNodeIfNotExists(source, className);
+            if (importPos) {
+                const packageName = '@scom/scom' + className.substring(4).replace(/([A-Z])/g, '-$1').toLowerCase();
+                const importText = `\nimport ${className} from '${packageName}';`;
+                result = insertTextAt(result, importPos + controlLength + widgetLength, importText);
+                widgetLength += importText.length;
+            }
+        }
+    }
     return {
         lineNumber: line,
         columnNumber: 9,
