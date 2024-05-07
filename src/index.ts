@@ -1185,7 +1185,9 @@ export class Compiler {
             };
         };
         if (!content){
-            throw new Error('File not exists: ' + fileName);        }
+            console.error('File not exists: ' + fileName);
+            return;
+        }
 
         return TS.createSourceFile(fileName, content, languageVersion);
     };

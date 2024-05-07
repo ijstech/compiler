@@ -78,7 +78,7 @@ export declare class Compiler {
     renderUI(fileName: string, funcName?: string, component?: Parser.IComponent): string | undefined;
     fileExists(fileName: string): boolean;
     getDependencies(fileName: string, content: string, fileImporter?: FileImporter, result?: string[]): Promise<string[]>;
-    getSourceFile(fileName: string, languageVersion: TS.ScriptTarget, onError?: (message: string) => void): TS.SourceFile;
+    getSourceFile(fileName: string, languageVersion: TS.ScriptTarget, onError?: (message: string) => void): TS.SourceFile | undefined;
     readFile(fileName: string): string | undefined;
     resolveModuleNames(moduleNames: string[], containingFile: string): TS.ResolvedModule[];
 }
