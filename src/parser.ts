@@ -123,7 +123,7 @@ export function findComponentImportNodeIfNotExists(source: TS.SourceFile, classN
             }
         }
         else if (node.kind == TS.SyntaxKind.ClassDeclaration) {
-            result = node.pos;
+            if (!result) result = node.pos;
             break;
         }
     };
