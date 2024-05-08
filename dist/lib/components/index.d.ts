@@ -796,8 +796,7 @@ declare module "moment"{
 
 export default moment;
 
-}/// <reference types="node" />
-declare module "packages/style/src/colors" {
+}declare module "packages/style/src/colors" {
     export interface IColor {
         50: string;
         100: string;
@@ -3785,9 +3784,10 @@ declare module "packages/base/src/component" {
         protected _bottom: number | string;
         protected options: any;
         protected defaults: any;
-        protected deferReadyCallback: boolean;
+        protected _ready: boolean;
+        private _readyInit;
         protected _readyCallback: any[];
-        initializing: boolean;
+        protected isReadyCallbackQueued: boolean;
         initialized: boolean;
         protected attrs: any;
         protected _designProps: {
@@ -3821,7 +3821,7 @@ declare module "packages/base/src/component" {
     }
 }
 declare module "packages/base/src/style/base.css" {
-    import { BorderStylesSideType, IBorder, IBorderSideStyles, IOverflow, IBackground, IControlMediaQuery, DisplayType, IMediaQuery } from "@ijstech/components/base";
+    import { BorderStylesSideType, IBorder, IBorderSideStyles, IOverflow, IBackground, IControlMediaQuery, DisplayType } from "@ijstech/components/base";
     export const disabledStyle: string;
     export const containerStyle: string;
     export const getBorderSideStyleClass: (side: BorderStylesSideType, value: IBorderSideStyles) => string;
@@ -3832,7 +3832,6 @@ declare module "packages/base/src/style/base.css" {
     };
     export const getBackgroundStyleClass: (value: IBackground) => string;
     export const getSpacingValue: (value: string | number) => string;
-    export const getMediaQueryRule: (mediaQuery: IMediaQuery<any>) => string | undefined;
     interface IProps {
         display?: DisplayType;
     }
@@ -3890,7 +3889,7 @@ declare module "packages/tooltip/src/index" {
 }
 declare module "packages/base/src/control" {
     import { Component, IStack, IFont, ISpace, IOverflow, OverflowType, IAnchor, IBackground, ICustomProperties, CursorType } from "packages/base/src/component";
-    import { notifyEventCallback, notifyMouseEventCallback, notifyKeyboardEventCallback, notifyGestureEventCallback } from "@ijstech/components/base";
+    import { notifyEventCallback, notifyMouseEventCallback, notifyKeyboardEventCallback } from "@ijstech/components/base";
     export type DockStyle = 'none' | 'bottom' | 'center' | 'fill' | 'left' | 'right' | 'top';
     export type LineHeightType = string | number | 'normal' | 'initial' | 'inherit';
     export type DisplayType = 'inline-block' | 'block' | 'inline-flex' | 'flex' | 'inline' | 'initial' | 'inherit' | 'none' | '-webkit-box';
@@ -4042,9 +4041,9 @@ declare module "packages/base/src/control" {
         protected _onFocus: notifyEventCallback;
         protected _onKeyDown: notifyKeyboardEventCallback;
         protected _onKeyUp: notifyKeyboardEventCallback;
-        protected _onMouseDown: notifyGestureEventCallback;
-        protected _onMouseMove: notifyGestureEventCallback;
-        protected _onMouseUp: notifyGestureEventCallback;
+        protected _onMouseDown: notifyMouseEventCallback;
+        protected _onMouseMove: notifyMouseEventCallback;
+        protected _onMouseUp: notifyMouseEventCallback;
         protected _visible: boolean;
         protected _margin: SpaceValue;
         protected _padding: SpaceValue;
@@ -4111,9 +4110,9 @@ declare module "packages/base/src/control" {
         protected _handleFocus(event: Event, stopPropagation?: boolean): boolean;
         protected _handleKeyDown(event: KeyboardEvent, stopPropagation?: boolean): boolean | undefined;
         protected _handleKeyUp(event: KeyboardEvent, stopPropagation?: boolean): boolean | undefined;
-        protected _handleMouseDown(event: PointerEvent | MouseEvent | TouchEvent, stopPropagation?: boolean): boolean;
-        protected _handleMouseMove(event: PointerEvent | MouseEvent | TouchEvent, stopPropagation?: boolean): boolean;
-        protected _handleMouseUp(event: PointerEvent | MouseEvent | TouchEvent, stopPropagation?: boolean): boolean | undefined;
+        protected _handleMouseDown(event: MouseEvent, stopPropagation?: boolean): boolean;
+        protected _handleMouseMove(event: MouseEvent, stopPropagation?: boolean): boolean;
+        protected _handleMouseUp(event: MouseEvent, stopPropagation?: boolean): boolean | undefined;
         get maxWidth(): number | string;
         set maxWidth(value: number | string);
         get minWidth(): string | number;
@@ -4125,10 +4124,10 @@ declare module "packages/base/src/control" {
         set onContextMenu(callback: notifyMouseEventCallback);
         get onDblClick(): notifyMouseEventCallback;
         set onDblClick(callback: notifyMouseEventCallback);
-        get onMouseDown(): notifyGestureEventCallback;
-        set onMouseDown(callback: notifyGestureEventCallback);
-        get onMouseUp(): notifyGestureEventCallback;
-        set onMouseUp(callback: notifyGestureEventCallback);
+        get onMouseDown(): notifyMouseEventCallback;
+        set onMouseDown(callback: notifyMouseEventCallback);
+        get onMouseUp(): notifyMouseEventCallback;
+        set onMouseUp(callback: notifyMouseEventCallback);
         clearInnerHTML(): void;
         refresh(): void;
         get resizable(): boolean;
@@ -4245,7 +4244,6 @@ declare module "@ijstech/components/base" {
     export type notifyEventCallback = (target: Control, event: Event) => void;
     export type notifyMouseEventCallback = (target: Control, event: MouseEvent) => void;
     export type notifyKeyboardEventCallback = (target: Control, event: KeyboardEvent) => void;
-    export type notifyGestureEventCallback = (target: Control, event: PointerEvent | MouseEvent | TouchEvent) => void;
     export interface ControlElement {
         class?: string;
         contextMenu?: string;
@@ -4297,7 +4295,7 @@ declare module "@ijstech/components/base" {
     };
     export function customElements(tagName: string, properties?: ICustomProperties): (constructor: CustomElementConstructor) => void;
     export function customModule(target: any): void;
-    export function setAttributeToProperty<T extends Control>(element: T, propertyName: keyof T, defaultValue?: any): void;
+    export function setAttributeToProperty<T extends Control>(element: T, propertyName: keyof T): void;
 }
 declare module "packages/image/src/style/image.css" { }
 declare module "packages/image/src/image" {
@@ -4388,9 +4386,6 @@ declare module "packages/modal/src/style/modal.css" {
     export const getOverlayStyle: () => string;
     export const getWrapperStyle: () => string;
     export const getNoBackdropStyle: () => string;
-    export const getFixedWrapperStyle: (paddingLeft: string, paddingTop: string) => string;
-    export const getAbsoluteWrapperStyle: (left: string, top: string) => string;
-    export const getModalStyle: (left: string, top: string) => string;
     export const modalStyle: string;
     export const titleStyle: string;
     export const getModalMediaQueriesStyleClass: (mediaQueries: IModalMediaQuery[]) => string;
@@ -4398,7 +4393,7 @@ declare module "packages/modal/src/style/modal.css" {
 declare module "packages/modal/src/modal" {
     import { Control, ControlElement, Container, IBackground, IBorder, Background, Border, IMediaQuery, IControlMediaQueryProps, ISpace, Overflow, IOverflow, OverflowType } from "@ijstech/components/base";
     import { Icon, IconElement } from "packages/icon/src/index";
-    export type modalPopupPlacementType = 'center' | 'bottom' | 'bottomLeft' | 'bottomRight' | 'top' | 'topLeft' | 'topRight' | 'rightTop' | 'left' | 'right';
+    export type modalPopupPlacementType = 'center' | 'bottom' | 'bottomLeft' | 'bottomRight' | 'top' | 'topLeft' | 'topRight' | 'rightTop' | 'left';
     type eventCallback = (target: Control) => void;
     type ModalPositionType = "fixed" | "absolute";
     export interface IModalMediaQueryProps extends IControlMediaQueryProps {
@@ -4433,7 +4428,6 @@ declare module "packages/modal/src/modal" {
         }
     }
     export class Modal extends Container {
-        protected _visible: boolean;
         private wrapperDiv;
         private titleSpan;
         private modalDiv;
@@ -4469,7 +4463,6 @@ declare module "packages/modal/src/modal" {
         set closeOnBackdropClick(value: boolean);
         get showBackdrop(): boolean;
         set showBackdrop(value: boolean);
-        private updateNoBackdropMd;
         get item(): Control;
         set item(value: Control);
         get body(): Control;
@@ -4484,17 +4477,14 @@ declare module "packages/modal/src/modal" {
         set mediaQueries(value: IModalMediaQuery[]);
         private setChildFixed;
         private positionAtChildFixed;
-        private getWrapperParent;
         private positionAt;
         private positionAtFix;
         private positionAtAbsolute;
         private getWrapperFixCoords;
-        private getWrapperOffsets;
         private getWrapperAbsoluteCoords;
         protected _handleOnShow(event: Event): void;
         private handleModalMouseDown;
         private handleModalMouseUp;
-        private setInsideClick;
         private updateModal;
         refresh(): void;
         get background(): Background;
@@ -4511,8 +4501,8 @@ declare module "packages/modal/src/modal" {
         set boxShadow(value: string);
         get overflow(): Overflow;
         set overflow(value: OverflowType | IOverflow);
-        protected removeTargetStyle(target: HTMLElement, propertyName: string): void;
-        protected setTargetStyle(target: HTMLElement, propertyName: string, value: string): void;
+        protected removeTargetStyle<P extends keyof Modal>(target: HTMLElement, propertyName: P): void;
+        protected setTargetStyle<P extends keyof Modal>(target: HTMLElement, propertyName: P, value: string): void;
         protected init(): void;
         static create(options?: ModalElement, parent?: Container): Promise<Modal>;
     }
@@ -4523,7 +4513,7 @@ declare module "packages/modal/src/index" {
 declare module "packages/module/src/module" {
     import { Container, ContainerElement } from "@ijstech/components/base";
     import { IconElement } from "packages/icon/src/index";
-    import { Modal, ModalElement } from "packages/modal/src/index";
+    import { Modal } from "packages/modal/src/index";
     export interface ModuleElement extends ContainerElement {
         caption?: string;
     }
@@ -4557,7 +4547,7 @@ declare module "packages/module/src/module" {
         onShow(options?: any): void;
         onHide(): void;
         disconnectedCallback(): void;
-        openModal(options?: ModalElement): Modal;
+        openModal(options?: IOpenModalOptions): Modal;
         closeModal(): void;
     }
 }
@@ -4647,7 +4637,6 @@ declare module "packages/checkbox/src/index" {
 declare module "packages/application/src/globalEvent" {
     export class GlobalEvents {
         _leftMouseButtonDown: boolean;
-        private _initialTouchPos;
         constructor();
         abortEvent(event: Event): void;
         private _handleClick;
@@ -4658,6 +4647,9 @@ declare module "packages/application/src/globalEvent" {
         private _handleKeyDown;
         private _handleKeyUp;
         private _handleContextMenu;
+        private _handleTouchStart;
+        private _handleTouchEnd;
+        private _handleTouchMove;
         private _handleChange;
         private _handleMouseWheel;
         private _handleFocus;
@@ -4668,178 +4660,31 @@ declare module "packages/application/src/globalEvent" {
 declare module "packages/application/src/styles/index.css" {
     export const applicationStyle: string;
 }
-declare module "packages/ipfs/src/types" {
-    export enum CidCode {
-        DAG_PB = 112,
-        RAW = 85
-    }
-    export interface ICidData {
-        cid: string;
-        links?: ICidInfo[];
-        name?: string;
-        size: number;
-        type?: 'dir' | 'file';
-        code?: CidCode;
-        multihash?: any;
-        bytes?: Uint8Array;
-    }
+declare module "packages/ipfs/src/index" {
     export interface ICidInfo {
         cid: string;
         links?: ICidInfo[];
-        name?: string;
+        name: string;
         size: number;
         type?: 'dir' | 'file';
     }
-}
-declare module "packages/ipfs/src/utils" {
-    import { ICidData, ICidInfo } from "packages/ipfs/src/types";
-    export function parse(cid: string, bytes?: Uint8Array): ICidData;
-    export interface IHashChunk {
-        size: number;
-        dataSize: number;
-        cid: {
-            toString: () => string;
+    export function parse(cid: string): {
+        code: number;
+        version: number;
+        multihash: {
+            code: number;
+            size: number;
+            digest: Uint8Array;
+            bytes: Uint8Array;
         };
-    }
-    export function hashChunk(data: Buffer, version?: number): Promise<IHashChunk>;
-    export function hashChunks(chunks: IHashChunk[] | ICidInfo[], version?: number): Promise<ICidData>;
-    export function hashItems(items?: ICidInfo[], version?: number): Promise<ICidData>;
-    export function hashContent(content: string | Uint8Array, version?: number): Promise<ICidData>;
-    export function hashFile(file: File | Uint8Array, version?: number): Promise<ICidData>;
-    export function cidToHash(cid: string): string;
-}
-declare module "packages/ipfs/src/fileManager" {
-    import { ICidData, ICidInfo } from "packages/ipfs/src/types";
-    export interface ISignature {
-        pubKey: string;
-        timestamp: number;
-        sig: string;
-    }
-    export interface ISignerData {
-        action: string;
-        timestamp: number;
-        data?: any;
-    }
-    export interface ISigner {
-        sign(data: ISignerData, schema: object): Promise<ISignature>;
-    }
-    interface IFileManagerOptions {
-        transport?: IFileManagerTransport;
-        endpoint?: string;
-        signer?: ISigner;
-        rootCid?: string;
-    }
-    export interface IUploadEndpoints {
-        [cid: string]: {
-            exists?: boolean;
-            url: string;
-            method?: string;
-            headers?: {
-                [key: string]: string;
-            };
-        };
-    }
-    export type IGetUploadUrlResult = {
-        success: true;
-        data: IUploadEndpoints;
+        bytes: Uint8Array;
     };
-    export interface IRootInfo {
-        success: boolean;
-        data: {
-            cid: string;
-            used: number;
-            quota: number;
-        };
-    }
-    export interface IResult {
-        success: boolean;
-        data?: any;
-    }
-    export interface IFileManagerTransport {
-        applyUpdate(node: FileNode): Promise<IResult>;
-        getCidInfo(cid: string): Promise<ICidInfo | undefined>;
-        getRoot(): Promise<IRootInfo>;
-        getUploadUrl(cidInfo: ICidInfo): Promise<IGetUploadUrlResult | undefined>;
-    }
-    export interface IFileManagerTransporterOptions {
-        endpoint?: string;
-        signer?: ISigner;
-    }
-    export class FileManagerHttpTransport implements IFileManagerTransport {
-        private options;
-        private updated;
-        constructor(options?: IFileManagerTransporterOptions);
-        applyUpdate(node: FileNode): Promise<IResult>;
-        getCidInfo(cid: string): Promise<ICidInfo | undefined>;
-        getRoot(): Promise<IRootInfo>;
-        getUploadUrl(cidInfo: ICidInfo, isRoot?: boolean): Promise<IGetUploadUrlResult | undefined>;
-    }
-    export class FileNode {
-        private _name;
-        private _parent;
-        protected _items: FileNode[];
-        private _cidInfo;
-        private _isFile;
-        private _isFolder;
-        private _file;
-        private _fileContent;
-        private _isModified;
-        private _owner;
-        isRoot: boolean;
-        constructor(owner: FileManager, name: string, parent?: FileNode, cidInfo?: ICidData);
-        get cid(): string;
-        checkCid(): Promise<void>;
-        get fullPath(): string;
-        get isModified(): boolean;
-        modified(value?: boolean): false | undefined;
-        get name(): string;
-        set name(value: string);
-        get parent(): FileNode;
-        set parent(value: FileNode);
-        itemCount(): Promise<number>;
-        items(index: number): Promise<FileNode>;
-        addFile(name: string, file: File): Promise<FileNode>;
-        addFileContent(name: string, content: Uint8Array | string): Promise<FileNode>;
-        addItem(item: FileNode): Promise<void>;
-        removeItem(item: FileNode): void;
-        findItem(name: string): Promise<FileNode | undefined>;
-        get cidInfo(): ICidData | undefined;
-        isFile(): Promise<boolean>;
-        isFolder(): Promise<boolean>;
-        get file(): File | undefined;
-        set file(value: File | undefined);
-        get fileContent(): string | Uint8Array | undefined;
-        set fileContent(value: string | Uint8Array | undefined);
-        hash(): Promise<ICidData | undefined>;
-    }
-    export class FileManager {
-        private transporter;
-        private rootNode;
-        private options;
-        quota: number;
-        used: number;
-        constructor(options?: IFileManagerOptions);
-        addFileTo(folder: FileNode, filePath: string, file: File | Uint8Array): Promise<FileNode>;
-        addFile(filePath: string, file: File): Promise<FileNode | undefined>;
-        addFileContent(filePath: string, content: Uint8Array | string): Promise<FileNode | undefined>;
-        getCidInfo(cid: string): Promise<ICidInfo | undefined>;
-        private updateNode;
-        applyUpdates(): Promise<FileNode | undefined>;
-        delete(fileNode: FileNode): void;
-        addFolder(folder: FileNode, name: string): Promise<FileNode>;
-        updateFolderName(fileNode: FileNode, newName: string): Promise<void>;
-        getFileNode(path: string): Promise<FileNode | undefined>;
-        getRootNode(): Promise<FileNode | undefined>;
-        reset(): void;
-        setRootCid(cid: string): Promise<FileNode | undefined>;
-        move(fileNode: FileNode, newParent: FileNode): void;
-    }
-}
-declare module "packages/ipfs/src/index" {
-    import { ICidInfo } from "packages/ipfs/src/types";
-    export { CidCode, ICidData, ICidInfo } from "packages/ipfs/src/types";
-    export { cidToHash, hashContent, hashFile, hashItems, parse } from "packages/ipfs/src/utils";
-    export { FileManager, FileManagerHttpTransport, IFileManagerTransport, IFileManagerTransporterOptions, ISigner, ISignerData, ISignature, FileNode, IGetUploadUrlResult } from "packages/ipfs/src/fileManager";
+    export function hashItems(items?: ICidInfo[], version?: number): Promise<ICidInfo>;
+    export function hashContent(content: string, version?: number): Promise<ICidInfo>;
+    export function hashFile(file: File, version?: number): Promise<{
+        cid: string;
+        size: number;
+    }>;
     export interface IFile extends File {
         path?: string;
         cid?: {
@@ -5396,84 +5241,6 @@ declare module "packages/upload/src/upload" {
         static create(options?: UploadElement, parent?: Control): Promise<Upload>;
     }
 }
-declare module "packages/progress/src/style/progress.css" { }
-declare module "packages/progress/src/progress" {
-    import { Control, ControlElement, Types, IFont } from "@ijstech/components/base";
-    import "packages/progress/src/style/progress.css";
-    export type ProgressStatus = 'success' | 'exception' | 'active' | 'warning';
-    export type ProgressType = 'line' | 'circle';
-    type callbackType = (source: Control) => void;
-    export interface ProgressElement extends ControlElement {
-        percent?: number;
-        strokeWidth?: number;
-        strokeColor?: Types.Color;
-        loading?: boolean;
-        steps?: number;
-        type?: ProgressType;
-        format?: (percent: number) => string;
-        onRenderStart?: callbackType;
-        onRenderEnd?: callbackType;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-progress']: ProgressElement;
-            }
-        }
-    }
-    export class Progress extends Control {
-        private _percent;
-        private _status;
-        private _loading;
-        private _steps;
-        private _type;
-        private _strokeWidth;
-        private _strokeColor;
-        private _wrapperElm;
-        private _startElm;
-        private _barElm;
-        private _endElm;
-        private _textElm;
-        format: (percent: number) => string;
-        onRenderStart: callbackType;
-        onRenderEnd: callbackType;
-        constructor(parent?: Control, options?: any);
-        get percent(): number;
-        set percent(value: number);
-        get strokeColor(): Types.Color;
-        set strokeColor(value: Types.Color);
-        get loading(): boolean;
-        set loading(value: boolean);
-        get steps(): number;
-        set steps(value: number);
-        get type(): ProgressType;
-        set type(value: ProgressType);
-        get strokeWidth(): number;
-        set strokeWidth(value: number);
-        get font(): IFont;
-        set font(value: IFont);
-        private get relativeStrokeWidth();
-        private get radius();
-        private get trackPath();
-        private get perimeter();
-        private get rate();
-        private get strokeDashoffset();
-        private get trailPathStyle();
-        private get circlePathStyle();
-        private get stroke();
-        private get trackColor();
-        private get progressTextSize();
-        private renderLine;
-        private renderCircle;
-        private renderCircleInner;
-        private updateCircleInner;
-        protected init(): void;
-        static create(options?: ProgressElement, parent?: Control): Promise<Progress>;
-    }
-}
-declare module "packages/progress/src/index" {
-    export { Progress } from "packages/progress/src/progress";
-}
 declare module "packages/upload/src/style/upload-modal.css" { }
 declare module "packages/upload/src/upload-modal" {
     import { Control, ControlElement } from "@ijstech/components/base";
@@ -5542,25 +5309,20 @@ declare module "packages/upload/src/upload-modal" {
         get parentDir(): Partial<ICidInfo>;
         set parentDir(value: Partial<ICidInfo>);
         show(): Promise<void>;
-        private updateUI;
         hide(): void;
         private onBeforeDrop;
         private onBeforeUpload;
         private filteredFileListData;
         private numPages;
         private setCurrentPage;
-        private get isSmallWidth();
         private renderFilterBar;
         private renderFileList;
-        private formatBytes;
-        private getStatus;
         private getPagination;
         private renderPagination;
         private onChangeCurrentFilterStatus;
         private onClear;
         private onCancel;
         private onChangeFile;
-        private updateBtnCaption;
         private onRemove;
         private onRemoveFile;
         private getDirItems;
@@ -5925,9 +5687,7 @@ declare module "packages/radio/src/radio" {
         captionWidth?: number | string;
         value?: string;
     }
-    export type RadioGroupLayout = 'vertical' | 'horizontal';
     export interface RadioGroupElement extends ControlElement {
-        layout?: RadioGroupLayout;
         selectedValue?: string;
         radioItems?: RadioElement[];
         onChanged?: notifyEventCallback;
@@ -5960,7 +5720,6 @@ declare module "packages/radio/src/radio" {
     export class RadioGroup extends Control {
         private _selectedValue;
         private _radioItems;
-        private _layout;
         private _group;
         private name;
         onChanged: notifyEventCallback;
@@ -5969,8 +5728,6 @@ declare module "packages/radio/src/radio" {
         set selectedValue(value: string);
         get radioItems(): RadioElement[];
         set radioItems(value: RadioElement[]);
-        get layout(): RadioGroupLayout;
-        set layout(value: RadioGroupLayout);
         private renderUI;
         private appendItem;
         private _handleChange;
@@ -5981,7 +5738,7 @@ declare module "packages/radio/src/radio" {
     }
 }
 declare module "packages/radio/src/index" {
-    export { Radio, RadioElement, RadioGroup, RadioGroupElement, RadioGroupLayout } from "packages/radio/src/radio";
+    export { Radio, RadioElement, RadioGroup, RadioGroupElement } from "packages/radio/src/radio";
 }
 declare module "packages/color/src/utils" {
     export function stringToArr(color: string, isRgb: boolean): string[];
@@ -10271,7 +10028,6 @@ declare module "packages/markdown/src/markdown" {
         set padding(value: ISpace);
         private getRenderer;
         load(text: string): Promise<any>;
-        private preParse;
         beforeRender(text: string): Promise<void>;
         processText(text: string): Promise<string>;
         loadLib(): Promise<unknown>;
@@ -10304,8 +10060,6 @@ declare module "packages/markdown-editor/src/markdown-editor" {
         }[];
         placeholder?: string;
         onChanged?: notifyEventCallback;
-        onFocus?: notifyEventCallback;
-        onBlur?: notifyEventCallback;
     }
     global {
         namespace JSX {
@@ -10331,11 +10085,7 @@ declare module "packages/markdown-editor/src/markdown-editor" {
         private _widgetRules;
         private _hideModeSwitch;
         private _placeholder;
-        private autoFocus;
         onChanged: notifyEventCallback;
-        onFocus: notifyEventCallback;
-        onBlur: notifyEventCallback;
-        setFocus(): void;
         get mode(): 'wysiwyg' | 'markdown';
         set mode(value: 'wysiwyg' | 'markdown');
         get theme(): 'light' | 'dark';
@@ -10346,7 +10096,6 @@ declare module "packages/markdown-editor/src/markdown-editor" {
         set viewer(value: boolean);
         get value(): string;
         set value(value: string);
-        setValue(value: string): Promise<void>;
         get height(): string;
         set height(value: string);
         get toolbarItems(): any[];
@@ -10372,7 +10121,6 @@ declare module "packages/markdown-editor/src/markdown-editor" {
         static create(options?: MarkdownEditorElement, parent?: Container): Promise<MarkdownEditor>;
         constructor(parent?: Control, options?: MarkdownEditorElement);
         private loadPlugin;
-        private loadSyntaxHighlightPlugin;
         private loadPlugins;
         private addCSS;
         private initEditor;
@@ -10670,83 +10418,6 @@ declare module "packages/tree-view/src/treeView" {
 declare module "packages/tree-view/src/index" {
     export { TreeView, TreeViewElement, TreeNode, TreeNodeElement } from "packages/tree-view/src/treeView";
 }
-declare module "packages/popover/src/style/popover.css" {
-    export const getOverlayStyle: () => string;
-    export const getNoBackdropStyle: () => string;
-    export const getAbsoluteWrapperStyle: (left: string, top: string) => string;
-    export const popoverMainContentStyle: string;
-}
-declare module "packages/popover/src/popover" {
-    import { Control, ControlElement, Container, IBackground, IBorder, Background, Border, ISpace } from "@ijstech/components/base";
-    export type popoverPlacementType = 'center' | 'bottom' | 'bottomLeft' | 'bottomRight' | 'top' | 'topLeft' | 'topRight' | 'rightTop' | 'left' | 'right';
-    type eventCallback = (target: Control) => void;
-    type PopoverPositionType = "fixed" | "absolute";
-    export interface PopoverElement extends ControlElement {
-        placement?: popoverPlacementType;
-        closeOnScrollChildFixed?: boolean;
-        item?: Control;
-        onOpen?: eventCallback;
-        onClose?: eventCallback;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-popover']: PopoverElement;
-            }
-        }
-    }
-    export class Popover extends Container {
-        protected _visible: boolean;
-        private wrapperDiv;
-        private popoverDiv;
-        private bodyDiv;
-        private overlayDiv;
-        private _placement;
-        private _wrapperPositionAt;
-        private insideClick;
-        private boundHandlePopoverMouseDown;
-        private boundHandlePopoverMouseUp;
-        protected _onOpen: eventCallback;
-        onClose: eventCallback;
-        constructor(parent?: Control, options?: any);
-        get visible(): boolean;
-        set visible(value: boolean);
-        get onOpen(): any;
-        set onOpen(callback: any);
-        get placement(): popoverPlacementType;
-        set placement(value: popoverPlacementType);
-        get item(): Control;
-        set item(value: Control);
-        get position(): PopoverPositionType;
-        set position(value: PopoverPositionType);
-        _handleClick(event: MouseEvent): boolean;
-        private positionPopoverRelativeToParent;
-        private calculatePopoverWrapperCoordinates;
-        protected _handleOnShow(event: Event): void;
-        private handlePopoverMouseDown;
-        private handlePopoverMouseUp;
-        private setInsideClick;
-        private setPropertyValue;
-        refresh(): void;
-        get background(): Background;
-        set background(value: IBackground);
-        get width(): number | string;
-        set width(value: number | string);
-        get height(): number | string;
-        set height(value: number | string);
-        get border(): Border;
-        set border(value: IBorder);
-        get padding(): ISpace;
-        set padding(value: ISpace);
-        protected removeTargetStyle(target: HTMLElement, propertyName: string): void;
-        protected setTargetStyle(target: HTMLElement, propertyName: string, value: string): void;
-        protected init(): void;
-        static create(options?: PopoverElement, parent?: Container): Promise<Popover>;
-    }
-}
-declare module "packages/popover/src/index" {
-    export { Popover, PopoverElement, popoverPlacementType } from "packages/popover/src/popover";
-}
 declare module "packages/chart/src/chart" {
     import { Control, ControlElement } from "@ijstech/components/base";
     export interface EchartElement extends ControlElement {
@@ -10961,7 +10632,6 @@ declare module "packages/iframe/src/iframe" {
     import { Control, ControlElement } from "@ijstech/components/base";
     export interface IframeElement extends ControlElement {
         url?: string;
-        allowFullscreen?: boolean;
     }
     global {
         namespace JSX {
@@ -10972,7 +10642,6 @@ declare module "packages/iframe/src/iframe" {
     }
     export class Iframe extends Control {
         private _url;
-        private allowFullscreen;
         private iframeElm;
         constructor(parent?: Control, options?: any);
         reload(): Promise<void>;
@@ -11042,6 +10711,84 @@ declare module "packages/pagination/src/pagination" {
 }
 declare module "packages/pagination/src/index" {
     export { Pagination, PaginationElement } from "packages/pagination/src/pagination";
+}
+declare module "packages/progress/src/style/progress.css" { }
+declare module "packages/progress/src/progress" {
+    import { Control, ControlElement, Types, IFont } from "@ijstech/components/base";
+    import "packages/progress/src/style/progress.css";
+    export type ProgressStatus = 'success' | 'exception' | 'active' | 'warning';
+    export type ProgressType = 'line' | 'circle';
+    type callbackType = (source: Control) => void;
+    export interface ProgressElement extends ControlElement {
+        percent?: number;
+        strokeWidth?: number;
+        strokeColor?: Types.Color;
+        loading?: boolean;
+        steps?: number;
+        type?: ProgressType;
+        format?: (percent: number) => string;
+        onRenderStart?: callbackType;
+        onRenderEnd?: callbackType;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-progress']: ProgressElement;
+            }
+        }
+    }
+    export class Progress extends Control {
+        private _percent;
+        private _status;
+        private _loading;
+        private _steps;
+        private _type;
+        private _strokeWidth;
+        private _strokeColor;
+        private _wrapperElm;
+        private _startElm;
+        private _barElm;
+        private _endElm;
+        private _textElm;
+        format: (percent: number) => string;
+        onRenderStart: callbackType;
+        onRenderEnd: callbackType;
+        constructor(parent?: Control, options?: any);
+        get percent(): number;
+        set percent(value: number);
+        get strokeColor(): Types.Color;
+        set strokeColor(value: Types.Color);
+        get loading(): boolean;
+        set loading(value: boolean);
+        get steps(): number;
+        set steps(value: number);
+        get type(): ProgressType;
+        set type(value: ProgressType);
+        get strokeWidth(): number;
+        set strokeWidth(value: number);
+        get font(): IFont;
+        set font(value: IFont);
+        private get relativeStrokeWidth();
+        private get radius();
+        private get trackPath();
+        private get perimeter();
+        private get rate();
+        private get strokeDashoffset();
+        private get trailPathStyle();
+        private get circlePathStyle();
+        private get stroke();
+        private get trackColor();
+        private get progressTextSize();
+        private renderLine;
+        private renderCircle;
+        private renderCircleInner;
+        private updateCircleInner;
+        protected init(): void;
+        static create(options?: ProgressElement, parent?: Control): Promise<Progress>;
+    }
+}
+declare module "packages/progress/src/index" {
+    export { Progress } from "packages/progress/src/progress";
 }
 declare module "packages/table/src/style/table.css" {
     import { TableColumnElement } from "packages/table/src/tableColumn";
@@ -11246,19 +10993,12 @@ declare module "packages/table/src/index" {
     export { TableRow } from "packages/table/src/tableRow";
     export { TableCell } from "packages/table/src/tableCell";
 }
-declare module "packages/carousel/src/style/carousel.css" {
-    import { ICarouselMediaQuery } from "packages/carousel/src/carousel";
-    export const sliderStyle: string;
-    export const getCarouselMediaQueriesStyleClass: (mediaQueries: ICarouselMediaQuery[]) => string;
-}
+declare module "packages/carousel/src/style/carousel.css" { }
 declare module "packages/carousel/src/carousel" {
-    import { Control, ControlElement, ContainerElement, IMediaQuery, IControlMediaQueryProps } from "@ijstech/components/base";
+    import { Control, ControlElement, ContainerElement } from "@ijstech/components/base";
+    import "packages/carousel/src/style/carousel.css";
     type SwipeStartEventCallback = () => void;
     type SwipeEndEventCallback = (isSwiping: boolean) => void;
-    export interface ICarouselMediaQueryProps extends IControlMediaQueryProps {
-        indicators?: boolean;
-    }
-    export type ICarouselMediaQuery = IMediaQuery<ICarouselMediaQueryProps>;
     export interface CarouselItemElement extends ContainerElement {
         name?: string;
     }
@@ -11270,12 +11010,9 @@ declare module "packages/carousel/src/carousel" {
         items?: CarouselItemElement[];
         activeSlide?: number;
         type?: 'dot' | 'arrow';
-        indicators?: boolean;
         swipe?: boolean;
-        mediaQueries?: ICarouselMediaQuery[];
         onSwipeStart?: SwipeStartEventCallback;
         onSwipeEnd?: SwipeEndEventCallback;
-        onSlideChange?: (index: number) => void;
     }
     global {
         namespace JSX {
@@ -11300,17 +11037,13 @@ declare module "packages/carousel/src/carousel" {
         private wrapperSliderElm;
         private arrowPrev;
         private arrowNext;
-        private pos1;
-        private pos2;
+        private posX1;
+        private posX2;
         private threshold;
         private _swipe;
-        private _indicators;
-        private _mediaQueries;
         onSwipeStart: SwipeStartEventCallback;
         onSwipeEnd: SwipeEndEventCallback;
-        onSlideChange: (index: number) => void;
         private isSwiping;
-        private isHorizontalSwiping;
         constructor(parent?: Control, options?: any);
         get slidesToShow(): number;
         set slidesToShow(value: number);
@@ -11328,14 +11061,8 @@ declare module "packages/carousel/src/carousel" {
         set type(value: 'dot' | 'arrow');
         get swipe(): boolean;
         set swipe(value: boolean);
-        get mediaQueries(): ICarouselMediaQuery[];
-        set mediaQueries(value: ICarouselMediaQuery[]);
-        _handleMouseDown(event: PointerEvent | MouseEvent | TouchEvent, stopPropagation?: boolean): boolean;
-        _handleMouseMove(event: PointerEvent | MouseEvent | TouchEvent, stopPropagation?: boolean): boolean;
-        _handleMouseUp(event: PointerEvent | MouseEvent | TouchEvent, stopPropagation?: boolean): boolean;
-        get indicators(): boolean;
-        set indicators(value: boolean);
         get isArrow(): boolean;
+        disconnectedCallback(): void;
         private updateArrows;
         private updateSliderByArrows;
         private updateWrapperClass;
@@ -11375,15 +11102,12 @@ declare module "packages/video/src/video" {
     export class Video extends Container {
         private videoElm;
         private sourceElm;
-        private overlayElm;
         private player;
         private _url;
-        private _isPlayed;
         get url(): string;
         set url(value: string);
         get border(): Border;
         set border(value: IBorder);
-        getPlayer(): any;
         private getVideoTypeFromExtension;
         protected init(): void;
         static create(options?: VideoElement, parent?: Control): Promise<Video>;
@@ -12030,7 +11754,6 @@ declare module "@ijstech/components" {
     export { TreeView, TreeNode } from "packages/tree-view/src/index";
     export { Switch } from "packages/switch/src/index";
     export { Modal } from "packages/modal/src/index";
-    export { Popover } from "packages/popover/src/index";
     export { Checkbox } from "packages/checkbox/src/index";
     export { Datepicker } from "packages/datepicker/src/index";
     export { LineChart, BarChart, PieChart, ScatterChart, ScatterLineChart } from "packages/chart/src/index";
