@@ -38,6 +38,24 @@ describe('Parser', async function () {
             assert.strictEqual(result, (await Utils.getScript('modified/renameProperty.tsx')).content);
         };
     });
+    it('rename custom widget', async()=>{
+        let compiler = new Compiler()
+        await compiler.addFile(
+            'customForm.tsx',
+            (
+                await Utils.getScript('customForm.tsx')
+            ).content,
+            Utils.getScript
+        );
+        let source = compiler.getSource('customForm.tsx');
+        if (source){
+            let result = Parser.renameProperty(source, 'ScomTable', 'table1', 'table2') || '';
+            let expected = (await Utils.getScript('modified/renameWidget.tsx')).content;
+            const expectedCode = expected.replace(/\r\n/g, '\n');
+            const actualCode = result.replace(/\r\n/g, '\n');
+            assert.strictEqual(actualCode, expectedCode);
+        }
+    });
     it('renameMethod', async()=>{
         let compiler = new Compiler()
         await compiler.addFile(
