@@ -214,15 +214,22 @@ export class Storage implements IStorage{
             this.copied[packName] = true;
             console.dir('#Copy dependence: ' + packName);
             let distFile: string = pack.plugin || pack.browser;
+            let dtsFile: string = pack.pluginTypes || pack.types;
             let targetPackDir = targetDir;
             if (!targetPackDir.endsWith(packName))
-                targetPackDir = Path.join(targetDir, packName);
+                targetPackDir = Path.join(targetDir, packName);            
             if (distFile && distFile.endsWith('.js')){
                 await Fs.mkdir(targetPackDir, {recursive: true});
-                await Fs.copyFile(Path.join(path, distFile), Path.join(targetPackDir, 'index.js'));                                
+                await Fs.copyFile(Path.join(path, distFile), Path.join(targetPackDir, 'index.js'));    
+                if (dtsFile && dtsFile.endsWith('.d.ts')){
+                    await Fs.copyFile(Path.join(path, dtsFile), Path.join(targetPackDir, 'index.d.ts'));                                
+                }                            
             }
             else{
                 await Fs.cp(Path.join(path, 'dist'), targetPackDir, {recursive: true});
+                if (dtsFile && dtsFile.endsWith('.d.ts')){
+                    await Fs.copyFile(Path.join(path, dtsFile), Path.join(targetPackDir, 'index.d.ts'));                                
+                } 
                 try{
                     let scconfig = JSON.parse(await Fs.readFile(Path.join(path, 'dist', 'scconfig.json'), 'utf8'));
                     if (scconfig?.dependencies){

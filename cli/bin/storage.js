@@ -206,15 +206,22 @@ class Storage {
             this.copied[packName] = true;
             console.dir('#Copy dependence: ' + packName);
             let distFile = pack.plugin || pack.browser;
+            let dtsFile = pack.pluginTypes || pack.types;
             let targetPackDir = targetDir;
             if (!targetPackDir.endsWith(packName))
                 targetPackDir = path_1.default.join(targetDir, packName);
             if (distFile && distFile.endsWith('.js')) {
                 await fs_1.promises.mkdir(targetPackDir, { recursive: true });
                 await fs_1.promises.copyFile(path_1.default.join(path, distFile), path_1.default.join(targetPackDir, 'index.js'));
+                if (dtsFile && dtsFile.endsWith('.d.ts')) {
+                    await fs_1.promises.copyFile(path_1.default.join(path, dtsFile), path_1.default.join(targetPackDir, 'index.d.ts'));
+                }
             }
             else {
                 await fs_1.promises.cp(path_1.default.join(path, 'dist'), targetPackDir, { recursive: true });
+                if (dtsFile && dtsFile.endsWith('.d.ts')) {
+                    await fs_1.promises.copyFile(path_1.default.join(path, dtsFile), path_1.default.join(targetPackDir, 'index.d.ts'));
+                }
                 try {
                     let scconfig = JSON.parse(await fs_1.promises.readFile(path_1.default.join(path, 'dist', 'scconfig.json'), 'utf8'));
                     if (scconfig?.dependencies) {
