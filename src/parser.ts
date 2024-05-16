@@ -267,7 +267,7 @@ export function addEventHandler(source: TS.SourceFile, classNames: string[], fun
         let node = findMethodNode(classNode, funcName);
         if (node?.newPos){
             let pos = node.newPos;
-            params = params || `target: ${classNames[0]}`;
+            // params = params || `target: ${classNames[0]}`;
             result = insertTextAt(result, pos, `\n    ${funcName}(${params}){\n        \n    };`);
             let p = source.getLineAndCharacterOfPosition(pos);
             line = p.line + 3;
