@@ -199,12 +199,14 @@ class Storage {
         copyAssets(sourceDir, targetDir);
     }
     ;
-    async copyPackage(packName, targetDir) {
+    async copyPackage(packName, targetDir, packages) {
         let pack = await getLocalPackage(packName);
         if (pack && !this.copied[packName]) {
             let path = pack.path;
             this.copied[packName] = true;
             console.dir('#Copy dependence: ' + packName);
+            if (packages && packages.indexOf(packName) < 0)
+                packages.push(packName);
             let distFile = pack.plugin || pack.browser;
             let dtsFile = pack.pluginTypes || pack.types;
             let targetPackDir = targetDir;
@@ -229,7 +231,7 @@ class Storage {
                         scconfig.dependencies.forEach((name) => {
                             pack.dependencies[name] = '*';
                             if (targetDir != targetPackDir) {
-                                this.copyPackage(name, path_1.default.join(targetDir, name));
+                                this.copyPackage(name, path_1.default.join(targetDir, name), packages);
                             }
                             ;
                         });

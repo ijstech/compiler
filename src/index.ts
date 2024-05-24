@@ -273,12 +273,12 @@ export async function bundleWorker(storage: Types.IStorage, RootPath?: string){
                     await storage.writeFile(`dist/workers/${n}.js`, results[n]);
                 };
             };
-        };
-        await storage.writeFile('dist/scconfig.json', JSON.stringify(scConfig, null, 4));
+        };        
         for (let i = 0; i < deps.length; i++){
             let dep = deps[i];
             await storage.copyPackage(dep, `dist/libs/${dep}`);
         };
+        await storage.writeFile('dist/scconfig.json', JSON.stringify(scConfig, null, 4));
     };
 };
 export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
@@ -362,7 +362,8 @@ let rootDir = scripts[scripts.length-1].src.replace(/^[a-zA-Z]{3,5}:\\/{2}[a-zA-
 if (!rootDir.endsWith('/'))
     rootDir += '/';\n`;
     let scconfig = await storage.getSCConfig();    
-    if (scconfig) {        
+    if (scconfig) {   
+        scconfig.packages = scconfig.packages || [];     
         let moduleSourceDir = Path.join(scRootDir, scconfig.moduleDir || 'modules');
         let packages: {[name: string]: string} = {};
         for (let name in scconfig.modules) {
@@ -477,7 +478,7 @@ if (!rootDir.endsWith('/'))
         };
         //copy dependencies        
         let deps: string[] = [];
-        await storage.copyPackage('@ijstech/components', Path.join(distLibDir, '@ijstech/components'));
+        await storage.copyPackage('@ijstech/components', Path.join(distLibDir, '@ijstech/components'), scconfig.packages);
 
         async function copyDependencies(dependencies: any, all?: boolean){
             let items = [];
@@ -493,7 +494,7 @@ if (!rootDir.endsWith('/'))
                         if (scconfig.modules[name])
                             pack = scconfig.modules[name]
                         else
-                            pack = await storage.copyPackage(name, Path.join(distLibDir, name));
+                            pack = await storage.copyPackage(name, Path.join(distLibDir, name), scconfig.packages);
                         if (pack){       
                             let existsIdx = deps.indexOf(name);
                             if (existsIdx >= 0)
@@ -551,12 +552,16 @@ if (!rootDir.endsWith('/'))
         if (scconfig.assets)
             scconfig.dependencies[scconfig.assets] = '*';
         await copyDependencies(scconfig.dependencies, true);
-        if (scconfig.packages){
-            scconfig.packages.forEach(async (name: string) => {
-                await storage.copyPackage(name, distLibDir);
-            });
-            delete scconfig.packages;
-        };            
+        for (let i = 0; i < scconfig.packages.length; i++){
+            let name = scconfig.packages[i];
+            await storage.copyPackage(name, distLibDir, scconfig.packages);
+        }
+        // if (scconfig.packages){
+        //     scconfig.packages.forEach(async (name: string) => {
+        //         await storage.copyPackage(name, distLibDir, scconfig.packages);
+        //     });
+        //     delete scconfig.packages;
+        // };            
         scconfig.dependencies = {};
         deps.forEach((name)=>{
             if (name != '@ijstech/components' && !name.startsWith('@ijstech/components/'))

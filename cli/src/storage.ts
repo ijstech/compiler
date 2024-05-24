@@ -207,12 +207,14 @@ export class Storage implements IStorage{
     async copyAssets(sourceDir: string, targetDir: string): Promise<void>{
         copyAssets(sourceDir, targetDir);
     };
-    async copyPackage(packName: string, targetDir: string): Promise<any>{
+    async copyPackage(packName: string, targetDir: string, packages?: string[]): Promise<any>{
         let pack = await getLocalPackage(packName);
         if (pack && !this.copied[packName]){
             let path = pack.path;
             this.copied[packName] = true;
             console.dir('#Copy dependence: ' + packName);
+            if (packages && packages.indexOf(packName) < 0)
+                packages.push(packName);
             let distFile: string = pack.plugin || pack.browser;
             let dtsFile: string = pack.pluginTypes || pack.types;
             let targetPackDir = targetDir;
@@ -237,7 +239,7 @@ export class Storage implements IStorage{
                         scconfig.dependencies.forEach((name: string) => {
                             pack.dependencies[name] = '*';
                             if (targetDir != targetPackDir){
-                                this.copyPackage(name, Path.join(targetDir, name));
+                                this.copyPackage(name, Path.join(targetDir, name), packages);
                             };
                         });
                         

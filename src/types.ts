@@ -10,7 +10,7 @@ export interface IStorage{
     rootPath: string;
     cidToSri(value: string): Promise<string>;
     copyAssets(sourceDir: string, targetDir: string): Promise<void>;
-    copyPackage(packName: string, targetDir: string): Promise<any>;
+    copyPackage(packName: string, targetDir: string, packages?: string[]): Promise<any>;
     getSCConfig(): Promise<any>;
     getPackage(packName: string): Promise<any>;
     getPackageConfig(): Promise<any>;
