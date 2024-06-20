@@ -320,8 +320,8 @@ export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
             script = pack.script['index.js'];
         if (pack.dts && pack.dts['index.d.ts'])
             dts = pack.dts['index.d.ts'];
-        storage.copyAssets(Path.join(scRootDir, 'src'), distDir);            
-        storage.writeFile(Path.join(distDir, 'index.js'), script);
+        await storage.copyAssets(Path.join(scRootDir, 'src'), distDir);
+        await storage.writeFile(Path.join(distDir, 'index.js'), script);
         let dependencies: string[] = [];
         pack.dependencies?.forEach((item: string) => {
             let idx: number = 0;
@@ -344,13 +344,13 @@ export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
                 });
             };                
         });
-        storage.writeFile(Path.join(distDir, 'scconfig.json'), JSON.stringify({
+        await storage.writeFile(Path.join(distDir, 'scconfig.json'), JSON.stringify({
             name: packageConfig.name,
             type: "widget",
             version: packageConfig.version,                        
             dependencies:  dependencies
         },null,4));
-        storage.writeFile(Path.join(typesDir, 'index.d.ts'), dts);
+        await storage.writeFile(Path.join(typesDir, 'index.d.ts'), dts);
     };
 };
 export async function bundleDapp(storage: Types.IStorage, RootPath?: string){
