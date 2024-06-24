@@ -327,36 +327,40 @@ function getJSXElementProps(node: TS.JsxOpeningElement): {[name: string]: any}{
     let result: {[name: string]: any} = {};
     node.forEachChild((node) => {
         if (node.kind == TS.SyntaxKind.JsxAttributes){
-            node.forEachChild((node) => {
-                if (node.kind == TS.SyntaxKind.JsxAttribute){
-                    let attribute = node as TS.JsxAttribute;
-                    let name = attribute.name.getText();
-                    let value = attribute.initializer;
-                    if (value){
-                        let text = value.getText();
-                        if (text == 'true'){
-                            result[name] = true;
-                        } else if (text == 'false'){
-                            result[name] = false;
-                        } else {
-                            result[name] = text;
-                        };
-                    } else {
-                        result[name] = true;
-                    };
-                };
-            });
+            result = getJsxElementAttributes(node as TS.JsxAttributes, result);
         };
     });
     return result;
 };
-function getJsxElement(node: TS.JsxElement): IComponent{
-    let openingElement = node.openingElement;
-    let tagName = openingElement.tagName.getText();
-    let props: {[name: string]: any} = getJSXElementProps(openingElement);
+function getJsxElementAttributes(node: TS.JsxAttributes, result: {[name: string]: any}) {
+    node.forEachChild((node) => {
+        if (node.kind == TS.SyntaxKind.JsxAttribute){
+            let attribute = node as TS.JsxAttribute;
+            let name = attribute.name.getText();
+            let value = attribute.initializer;
+            if (value){
+                let text = value.getText();
+                if (text == 'true'){
+                    result[name] = true;
+                } else if (text == 'false'){
+                    result[name] = false;
+                } else {
+                    result[name] = text;
+                };
+            } else {
+                result[name] = true;
+            };
+        };
+    });
+    return result;
+}
+function getJsxElement(node: TS.JsxElement|TS.JsxSelfClosingElement): IComponent{
+    const isSelfClosing = node.kind === TS.SyntaxKind.JsxSelfClosingElement;
+    let tagName = isSelfClosing ? node.tagName.getText() : node.openingElement.tagName.getText();
+    let props: {[name: string]: any} = isSelfClosing ? getJsxElementAttributes(node.attributes, {}) : getJSXElementProps(node.openingElement);
     let items: IComponent[] = [];
     node.forEachChild((child) => {
-        if (child.kind == TS.SyntaxKind.JsxElement){
+        if (child.kind == TS.SyntaxKind.JsxElement || child.kind === TS.SyntaxKind.JsxSelfClosingElement){
             items.push(getJsxElement(child as TS.JsxElement));
         };
     });
@@ -378,13 +382,13 @@ export function parseUI(source: TS.SourceFile, funcName: string): IComponent | u
                         node.forEachChild((node) => {
                             if (node.kind == TS.SyntaxKind.ParenthesizedExpression){
                                 node.forEachChild((node) => {
-                                    if (node.kind == TS.SyntaxKind.JsxElement){
+                                    if (node.kind == TS.SyntaxKind.JsxElement || node.kind === TS.SyntaxKind.JsxSelfClosingElement){
                                         result = getJsxElement(node as TS.JsxElement);
                                         return;
                                     };
                                 })
                             }
-                            else if (node.kind == TS.SyntaxKind.JsxElement){
+                            else if (node.kind == TS.SyntaxKind.JsxElement || node.kind === TS.SyntaxKind.JsxSelfClosingElement){
                                 result = getJsxElement(node as TS.JsxElement);
                                 return;
                             };
@@ -424,7 +428,7 @@ function generateJsxScript(component?: IComponent, indent?: number): string{
         firstProp = false;
         let value = component.props[name];
         if (value === true){
-            result += '    ' + indentStr + name + '\n';;
+            result += '    ' + indentStr + name + '\n';
         } else {
             result += '    ' + indentStr + name + '=' + value + '\n';
         };
