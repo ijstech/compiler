@@ -323,6 +323,18 @@ export function locateMethod(source: TS.SourceFile, funcName: string): {
         columnNumber: 9
     };
 };
+export function locateError(source: TS.SourceFile, pos: number): {
+    lineNumber?: number,
+    columnNumber?: number
+}{
+    let lineNumber = 0;
+    let p = source.getLineAndCharacterOfPosition(pos);
+    lineNumber = p.line - 2;
+    return {
+        lineNumber: lineNumber,
+        columnNumber: 9
+    };
+};
 function getJSXElementProps(node: TS.JsxOpeningElement): {[name: string]: any}{
     let result: {[name: string]: any} = {};
     node.forEachChild((node) => {

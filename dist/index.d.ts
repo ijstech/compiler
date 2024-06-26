@@ -7200,6 +7200,10 @@ declare module "@ijstech/compiler/parser" {
         lineNumber?: number;
         columnNumber?: number;
     };
+    export function locateError(source: TS.SourceFile, pos: number): {
+        lineNumber?: number;
+        columnNumber?: number;
+    };
     export function parseUI(source: TS.SourceFile, funcName: string): IComponent | undefined;
     export function renderUI(source: TS.SourceFile, funcName: string, component?: IComponent): string;
 }
@@ -7369,6 +7373,7 @@ declare module "@ijstech/compiler" {
     import Path from "@ijstech/compiler/path";
     export { Parser, Path };
     import * as Types from "@ijstech/compiler/types";
+    import { ICompilerError } from "@ijstech/compiler/types";
     export { Types };
     export enum EPackageType {
         contract = "contract",
@@ -7435,6 +7440,10 @@ declare module "@ijstech/compiler" {
             columnNumber?: number;
         };
         locateMethod(fileName: string, funcName: string): {
+            lineNumber?: number;
+            columnNumber?: number;
+        };
+        locateError(error: ICompilerError): {
             lineNumber?: number;
             columnNumber?: number;
         };

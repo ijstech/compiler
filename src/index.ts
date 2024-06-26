@@ -5,11 +5,12 @@
 *-----------------------------------------------------------*/
 import Lib from './lib';
 import * as Parser from './parser';
-import TS from "./lib/typescript";
+import TS, { Type } from "./lib/typescript";
 import Path from './path';
 export {Parser, Path};
 import * as Sol from './solCompile';
 import * as Types from './types';
+import { ICompilerError } from './types';
 export {Types};
 
 let isNode = false;    
@@ -353,6 +354,7 @@ export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
         await storage.writeFile(Path.join(typesDir, 'index.d.ts'), dts);
     };
 };
+
 export async function bundleDapp(storage: Types.IStorage, RootPath?: string){
     RootPath = RootPath || storage.rootPath;
     let scRootDir = RootPath;
@@ -709,7 +711,7 @@ export class PackageManager{
             if (result.errors && result.errors.length > 0){
                 console.error('Failed to build package: ' + name)
                 console.error(JSON.stringify(result.errors, null, 4));
-                throw new Error('Failed to build package: ' + name);
+                throw new Error(JSON.stringify(result.errors, null, 4));
             }
         };
         return true;
@@ -1040,6 +1042,16 @@ export class Compiler {
             return result;
         }
         else   
+            return {};
+    };
+    locateError(error: ICompilerError): {lineNumber?: number, columnNumber?: number,}{
+        const fileName = error.file;
+        const source = this.getSource(fileName);
+        if (source){
+            let result = Parser.locateError(source, error.start);
+            return result;
+        }
+        else
             return {};
     };
     renameMethod(fileName: string, fromFuncName:string, toFuncName:string): string | undefined{
