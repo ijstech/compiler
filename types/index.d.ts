@@ -3,6 +3,7 @@ import TS from "./lib/typescript";
 import Path from './path';
 export { Parser, Path };
 import * as Types from './types';
+import { ICompilerError } from './types';
 export { Types };
 export declare enum EPackageType {
     contract = "contract",
@@ -69,6 +70,10 @@ export declare class Compiler {
         columnNumber?: number;
     };
     locateMethod(fileName: string, funcName: string): {
+        lineNumber?: number;
+        columnNumber?: number;
+    };
+    locateError(error: ICompilerError): {
         lineNumber?: number;
         columnNumber?: number;
     };
