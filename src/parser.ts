@@ -328,8 +328,9 @@ export function locateError(source: TS.SourceFile, pos: number): {
     columnNumber?: number
 }{
     let lineNumber = 0;
+    const isTsx = source.getSourceFile()?.fileName?.endsWith('.tsx');
     let p = source.getLineAndCharacterOfPosition(pos);
-    lineNumber = p.line - 2;
+    lineNumber = p.line - (isTsx ? 2 : 0);
     return {
         lineNumber: lineNumber,
         columnNumber: 9
