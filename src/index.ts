@@ -710,7 +710,7 @@ export class PackageManager{
             let result = await this.buildPackage(name);
             if (result.errors && result.errors.length > 0){
                 console.error('Failed to build package: ' + name)
-                console.error(JSON.stringify(result.errors, null, 4));
+                // console.error(JSON.stringify(result.errors, null, 4));
                 throw new Error(JSON.stringify(result.errors, null, 4));
             }
         };
@@ -742,8 +742,9 @@ export class PackageManager{
                                 // console.dir('Add dependence: ' + fileName)
                                 let p = await this.buildPackage(fileName);    
                                 if (p.errors && p.errors.length > 0){
-                                    console.dir(p.errors)
-                                    throw new Error('Failed to build package: ' + fileName); 
+                                    // console.dir(p.errors)
+                                    // throw new Error('Failed to build package: ' + fileName);
+                                    throw new Error(JSON.stringify(p.errors, null, 4));
                                 };
                             };
                             compiler.addPackage(fileName, this._packages[fileName]);
