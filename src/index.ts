@@ -399,7 +399,7 @@ if (!rootDir.endsWith('/'))
             packageManager.addPackage(name, pack);
         };
 
-        await packageManager.buildAll();
+        await packageManager.buildAll(storage);
 
         for (let name in packages) {
             let pack = packageManager.packages(name);
@@ -705,9 +705,9 @@ export class PackageManager{
         if (!this._packages[name])
             this._packages[name] = pack
     };
-    async buildAll(): Promise<boolean>{
+    async buildAll(storage?: Types.IStorage): Promise<boolean>{
         for (let name in this._packages){
-            let result = await this.buildPackage(name);
+            let result = await this.buildPackage(name, storage);
             if (result.errors && result.errors.length > 0){
                 console.error('Failed to build package: ' + name)
                 console.error(JSON.stringify(result.errors, null, 4));
@@ -716,10 +716,11 @@ export class PackageManager{
         };
         return true;
     };
-    async buildPackage(name: string): Promise<Types.IPackage>{        
+    async buildPackage(name: string, storage?: Types.IStorage): Promise<Types.IPackage>{
         let pack = this._packages[name];        
         if (!pack.dts && pack.files){
             // console.dir('#Build package: ' + name);
+            if (storage?.onCompile) storage.onCompile(name);
             let indexFile: string = '';
             if (pack.indexFile)
                 indexFile = pack.indexFile;
@@ -784,6 +785,7 @@ export class PackageManager{
                         return null;
                     }
                 });
+                if (storage?.onCompile) storage.onCompile(name);
                 let result = await compiler.compile(true);
                 pack.dts = result.dts;
                 pack.script = result.script;

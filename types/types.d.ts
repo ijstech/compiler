@@ -27,6 +27,7 @@ export interface IStorage {
     readFile(fileName: string): Promise<string>;
     rename(oldPath: string, newPath: string): Promise<void>;
     writeFile(fileName: string, content: string): Promise<void>;
+    onCompile?(fileName: string): Promise<void>;
 }
 export interface ICompilerError {
     file: string;

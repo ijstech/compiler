@@ -33,8 +33,8 @@ export declare class PackageManager {
         tsconfig?: any;
     });
     addPackage(name: string, pack: Types.IPackage): void;
-    buildAll(): Promise<boolean>;
-    buildPackage(name: string): Promise<Types.IPackage>;
+    buildAll(storage?: Types.IStorage): Promise<boolean>;
+    buildPackage(name: string, storage?: Types.IStorage): Promise<Types.IPackage>;
     packages(name: string): Types.IPackage;
 }
 export declare class Compiler {

@@ -7254,6 +7254,7 @@ declare module "@ijstech/compiler/types" {
         readFile(fileName: string): Promise<string>;
         rename(oldPath: string, newPath: string): Promise<void>;
         writeFile(fileName: string, content: string): Promise<void>;
+        onCompile?(fileName: string): Promise<void>;
     }
     export interface ICompilerError {
         file: string;
@@ -7403,8 +7404,8 @@ declare module "@ijstech/compiler" {
             tsconfig?: any;
         });
         addPackage(name: string, pack: Types.IPackage): void;
-        buildAll(): Promise<boolean>;
-        buildPackage(name: string): Promise<Types.IPackage>;
+        buildAll(storage?: Types.IStorage): Promise<boolean>;
+        buildPackage(name: string, storage?: Types.IStorage): Promise<Types.IPackage>;
         packages(name: string): Types.IPackage;
     }
     export class Compiler {
