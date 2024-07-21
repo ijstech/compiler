@@ -3,7 +3,7 @@ import { hello } from './hello';
 
 class DemoForm extends Module{
     panel1: Panel;
-    button1Click(target: Button){
+    button1Click(undefined){
         
     };
     hello(){
