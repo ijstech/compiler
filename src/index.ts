@@ -365,6 +365,11 @@ if (!rootDir.endsWith('/'))
     rootDir += '/';\n`;
     let scconfig = await storage.getSCConfig();    
     if (scconfig) {   
+        if (scconfig.sampleData) {
+            let sampleDir = Path.join(scRootDir, scconfig.sampleData);
+            let sampleFiles = await storage.getFiles(sampleDir);
+            bundleJS += `application.dev={paths: ${JSON.stringify(Object.keys(sampleFiles))}};\n`;
+        }
         scconfig.packages = scconfig.packages || [];     
         let moduleSourceDir = Path.join(scRootDir, scconfig.moduleDir || 'modules');
         let packages: {[name: string]: string} = {};
