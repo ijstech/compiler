@@ -164,7 +164,7 @@ export async function getLocalScripts(path: string): Promise<{ [filePath: string
             }
         }
         else {
-            if (file.name.endsWith('.ts') || file.name.endsWith('.tsx')){
+            if (file.name.endsWith('.ts') || file.name.endsWith('.tsx') || file.name.endsWith('.json')){
                 result[file.name] = await Fs.readFile(Path.join(path, file.name), 'utf8')
             }
         }

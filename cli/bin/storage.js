@@ -143,7 +143,7 @@ async function getLocalScripts(path) {
             }
         }
         else {
-            if (file.name.endsWith('.ts') || file.name.endsWith('.tsx')) {
+            if (file.name.endsWith('.ts') || file.name.endsWith('.tsx') || file.name.endsWith('.json')) {
                 result[file.name] = await fs_1.promises.readFile(path_1.default.join(path, file.name), 'utf8');
             }
         }
