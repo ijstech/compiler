@@ -77,6 +77,10 @@ export declare class Compiler {
         lineNumber?: number;
         columnNumber?: number;
     };
+    locateControl(fileName: string, control: Parser.IComponent): {
+        lineNumber?: number;
+        columnNumber?: number;
+    };
     renameMethod(fileName: string, fromFuncName: string, toFuncName: string): string | undefined;
     renameComponent(fileName: string, className: string, fromId: string, toId: string): string | undefined;
     parseUI(fileName: string, funcName?: string): Parser.IComponent | undefined;

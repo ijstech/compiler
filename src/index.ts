@@ -1057,6 +1057,15 @@ export class Compiler {
         else
             return {};
     };
+    locateControl(fileName: string, control: Parser.IComponent): {lineNumber?: number, columnNumber?: number}{
+        const source = this.getSource(fileName);
+        if (source){
+            let result = Parser.locateControl(source, control);
+            return result;
+        }
+        else   
+            return {};
+    };
     renameMethod(fileName: string, fromFuncName:string, toFuncName:string): string | undefined{
         const source = this.getSource(fileName);
         if (source){

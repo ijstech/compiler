@@ -336,6 +336,76 @@ export function locateError(source: TS.SourceFile, pos: number): {
         columnNumber: 9
     };
 };
+export function locateControl(source: TS.SourceFile, control: IComponent): {
+    lineNumber?: number,
+    columnNumber?: number
+}{
+    let lineNumber = 0;
+    let findedNode: TS.Node | undefined;
+    let sourceFile = source.getSourceFile();
+    sourceFile.statements.forEach((node) => {
+        if (node.kind == TS.SyntaxKind.ClassDeclaration){
+            let renderNode = findMethodNode(node as TS.ClassDeclaration, 'render');
+            if (renderNode?.node){
+                renderNode.node.body?.statements?.forEach((node) => {
+                    if (node.kind == TS.SyntaxKind.ReturnStatement){
+                        node.forEachChild((node) => {
+                            if (node.kind == TS.SyntaxKind.ParenthesizedExpression){
+                                node.forEachChild((node) => {
+                                    if (node.kind == TS.SyntaxKind.JsxElement || node.kind === TS.SyntaxKind.JsxSelfClosingElement){
+                                        findedNode = getJsxElementNode(node as TS.JsxElement, control);
+                                        if (findedNode?.pos !== undefined) {
+                                            const p = source.getLineAndCharacterOfPosition(findedNode.pos);
+                                            lineNumber = p.line;
+                                            return;
+                                        }
+                                    };
+                                })
+                            }
+                            else if (node.kind == TS.SyntaxKind.JsxElement || node.kind === TS.SyntaxKind.JsxSelfClosingElement){
+                                findedNode = getJsxElementNode(node as TS.JsxElement, control);
+                                if (findedNode?.pos !== undefined) {
+                                    const p = source.getLineAndCharacterOfPosition(findedNode.pos);
+                                    lineNumber = p.line;
+                                    return;
+                                }
+                            }
+                        });
+                        if (findedNode != undefined)
+                            return;
+                    };
+                });
+            }            
+            if (findedNode != undefined)
+                return;
+        };
+    });
+    return {
+        lineNumber: lineNumber,
+        columnNumber: 9
+    };
+};
+function getJsxElementNode(node: TS.JsxElement|TS.JsxSelfClosingElement, control: IComponent){
+    let result: TS.Node | undefined;
+    const isSelfClosing = node.kind === TS.SyntaxKind.JsxSelfClosingElement;
+    const tagName = isSelfClosing ? node.tagName.getText() : node.openingElement.tagName.getText();
+    const props: {[name: string]: any} = (isSelfClosing ? getJsxElementAttributes(node.attributes, {}) : getJSXElementProps(node.openingElement)) || {};
+    const controlProps = control.props || {};
+    const sameProps = Object.keys(props).every(prop => prop in controlProps && controlProps[prop] == props[prop]);
+    if (sameProps && tagName == control.name) {
+        result = node;
+        return result;
+    }
+    node.forEachChild((child) => {
+        if (child.kind == TS.SyntaxKind.JsxElement || child.kind === TS.SyntaxKind.JsxSelfClosingElement){
+            result = getJsxElementNode(child as TS.JsxElement, control);
+            if (result) return result;
+        };
+
+    });
+    if (result != undefined)
+        return result;
+};
 function getJSXElementProps(node: TS.JsxOpeningElement): {[name: string]: any}{
     let result: {[name: string]: any} = {};
     node.forEachChild((node) => {
