@@ -36,5 +36,9 @@ export declare function locateError(source: TS.SourceFile, pos: number): {
     lineNumber?: number;
     columnNumber?: number;
 };
+export declare function locateControl(source: TS.SourceFile, control: IComponent): {
+    lineNumber?: number;
+    columnNumber?: number;
+};
 export declare function parseUI(source: TS.SourceFile, funcName: string): IComponent | undefined;
 export declare function renderUI(source: TS.SourceFile, funcName: string, component?: IComponent): string;
