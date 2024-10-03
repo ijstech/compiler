@@ -104,6 +104,7 @@ export async function bundleLib(storage: Types.IStorage, RootPath?: string){
         let packageManager = new PackageManager({
             packageImporter: async (packName: string) => {
                 let pack = await storage.getPackageTypes(packName);
+                packageManager.setImportedPackage(packName, pack);
                 return pack;
             },
             tsconfig: {
@@ -152,6 +153,7 @@ export async function bundleDist(bundleType: string, storage: Types.IStorage, Ro
         let packageManager = new PackageManager({
             packageImporter: async (packName: string) => {
                 let pack = await storage.getPackageTypes(packName);
+                packageManager.setImportedPackage(packName, pack);
                 return pack;
             }
         });       
@@ -227,6 +229,7 @@ export async function bundleWorker(storage: Types.IStorage, RootPath?: string){
                     let packageManager = new PackageManager({
                         packageImporter: async (packName: string) => {
                             let pack = await storage.getPackageTypes(packName);
+                            packageManager.setImportedPackage(packName, pack);
                             return pack;
                         },
                         tsconfig: {
@@ -291,6 +294,7 @@ export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
         let packageManager = new PackageManager({
             packageImporter: async (packName: string) => {
                 let pack = await storage.getPackageTypes(packName);
+                packageManager.setImportedPackage(packName, pack);
                 packs[packName] = pack;
                 return pack;
             }
@@ -374,6 +378,7 @@ if (!rootDir.endsWith('/'))
         let packageManager = new PackageManager({
             packageImporter: async (packName: string) => {
                 let pack = await storage.getPackageTypes(packName);
+                packageManager.setImportedPackage(packName, pack);
                 return pack;
             }
         });
@@ -696,10 +701,18 @@ export class PackageManager{
     private packageImporter: PackageImporter | undefined;
     private tsconfig: any;
     private _packages: {[name: string]: Types.IPackage}={};
+    private _importedPackages: {[name: string]: Types.IPackage}={};
 
     constructor(options?: {packageImporter?: PackageImporter, tsconfig?: any}){
         this.packageImporter = options?.packageImporter;
         this.tsconfig = options?.tsconfig;
+    };
+    getImportedPackage(name: string):Types.IPackage{
+        return this._importedPackages[name];
+    };
+    setImportedPackage(name: string, pack: Types.IPackage){
+        if (pack)
+            this._importedPackages[name] = pack;
     };
     addPackage(name: string, pack: Types.IPackage){        
         if (!this._packages[name])
@@ -729,7 +742,7 @@ export class PackageManager{
             else if (pack.files['index.tsx'])
                 indexFile = 'index.tsx';
             if (indexFile){
-                let compiler = new Compiler({packageImporter: this.packageImporter, tsconfig: this.tsconfig});
+                let compiler = new Compiler({packageManager: this, packageImporter: this.packageImporter, tsconfig: this.tsconfig});
                 for (let n in this._packages){
                     if (this._packages[n].dts)
                         compiler.addPackage(n, this._packages[n])
@@ -811,10 +824,12 @@ export class Compiler {
     private resolvedFileName: string;
     public dependencies: string[] = [];
     private host: TS.CompilerHost;
+    private packageManager: PackageManager | undefined;
 
     private packageImporter: PackageImporter | undefined;
-    constructor(options?: {packageImporter?: PackageImporter, tsconfig?: any}) {
+    constructor(options?: {packageManager?: PackageManager, packageImporter?: PackageImporter, tsconfig?: any}) {
         this.packageImporter = options?.packageImporter;
+        this.packageManager = options?.packageManager;
         this.scriptOptions = options?.tsconfig || {
             allowJs: false,
             alwaysStrict: true,
@@ -1166,6 +1181,8 @@ export class Compiler {
         if (fileName == 'lib.d.ts') {            
             return TS.createSourceFile(fileName, Lib, languageVersion);
         };
+        if (fileName.split('@').length > 2)
+            fileName = '@' + fileName.split('@').pop();
         let content = this.packageFiles[fileName] || this.files[fileName];
         let packName = '';
         let dtsFile = '';
@@ -1191,7 +1208,9 @@ export class Compiler {
             dtsDir = dtsFile.slice(0, -5);
         };
         if (!content){
-           let pack = this.packages[packName];
+            let pack = this.packages[packName];
+            if (!pack && this.packageManager)
+                pack = this.packageManager.getImportedPackage(packName);
             if (pack && pack.dts && pack.dts[dtsFile]){
                 content = pack.dts[dtsFile];
             } 

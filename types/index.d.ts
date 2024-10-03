@@ -28,10 +28,13 @@ export declare class PackageManager {
     private packageImporter;
     private tsconfig;
     private _packages;
+    private _importedPackages;
     constructor(options?: {
         packageImporter?: PackageImporter;
         tsconfig?: any;
     });
+    getImportedPackage(name: string): Types.IPackage;
+    setImportedPackage(name: string, pack: Types.IPackage): void;
     addPackage(name: string, pack: Types.IPackage): void;
     buildAll(storage?: Types.IStorage): Promise<boolean>;
     buildPackage(name: string, storage?: Types.IStorage): Promise<Types.IPackage>;
@@ -48,8 +51,10 @@ export declare class Compiler {
     private resolvedFileName;
     dependencies: string[];
     private host;
+    private packageManager;
     private packageImporter;
     constructor(options?: {
+        packageManager?: PackageManager;
         packageImporter?: PackageImporter;
         tsconfig?: any;
     });
