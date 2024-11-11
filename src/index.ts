@@ -345,10 +345,12 @@ export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
             }
         });
         let scconfig = await storage.getSCConfig();    
+        let distDir = Path.join(scRootDir, 'dist');
         if (scconfig) {
             let moduleSourceDir = Path.join(scRootDir, scconfig.moduleDir || 'modules');
             for (let name in scconfig.modules) {
                 let path = Path.join(moduleSourceDir, scconfig.modules[name].path);
+                await storage.copyAssets(path, distDir);
                 let pack = {files: await storage.getFiles(path)};
                 for (let n in pack.files){
                     if (n == 'index.ts' || n == 'index.tsx')
@@ -356,7 +358,7 @@ export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
                     else
                         pack.files[n] = `///<amd-module name='${name}/${n}'/> \n` + pack.files[n];
                 };
-                packageManager.addPackage(name, pack);
+                packageManager.addPackage(name, pack);                
                 modules[name] = pack;
             };
         };        
@@ -379,7 +381,7 @@ export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
         };
         
         let dependencies: string[] = [];
-        let distDir = Path.join(scRootDir, 'dist');
+        
         pack.dependencies?.forEach((item: string) => {            
             let dep = packages[item];
             if (dep && dependencies.indexOf(item) < 0){   
