@@ -122,7 +122,7 @@ export async function bundleLib(storage: Types.IStorage, RootPath?: string){
             }
         });
         packageManager.addPackage('@ijstech/eth-contract', await storage.getPackageTypes('@ijstech/eth-contract'));            
-        let pack:Types.IPackage = { files: await storage.getFiles(Path.join(RootPath, 'src'))};
+        let pack:Types.IPackage = {files: await storage.getFiles(Path.join(RootPath, 'src'))};
         packageManager.addPackage(packageConfig.name, pack);
         await packageManager.buildAll();
 
@@ -157,7 +157,7 @@ export async function bundleDist(bundleType: string, storage: Types.IStorage, Ro
                 return pack;
             }
         });       
-        let pack:Types.IPackage = { files: await storage.getFiles(Path.join(RootPath, 'src'))};
+        let pack:Types.IPackage = {files: await storage.getFiles(Path.join(RootPath, 'src'))};
         for (let n in pack.files){
             if (n == 'index.ts' || n == 'index.tsx')
                 pack.files[n] = `///<amd-module name='${packageConfig.name}'/> \n` + pack.files[n];
@@ -285,30 +285,91 @@ export async function bundleWorker(storage: Types.IStorage, RootPath?: string){
         await storage.writeFile('dist/scconfig.json', JSON.stringify(scConfig, null, 4));
     };
 };
+function sortPackages(packages: {[name: string]: Types.IPackage}): string[] {
+    const sorted: string[] = [];
+    const visited: Set<string> = new Set();
+    const tempMark: Set<string> = new Set();    
+    
+    function visit(name: string, pkg: Types.IPackage) {
+        if (tempMark.has(name)) {
+            throw new Error(`Circular dependency detected: ${name}`);
+        }
+        if (!visited.has(name)) {
+            tempMark.add(name);
+            for (const dep of pkg.dependencies || []) {
+                const dependency = packages[dep];
+                if (dependency) {
+                    visit(dep, dependency);
+                }
+            }
+            tempMark.delete(name);
+            visited.add(name);
+            sorted.push(name);
+        }
+    };
+    for (let name in packages) {
+        visit(name, packages[name]);
+    }
+    return sorted;
+};
 export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
     RootPath = RootPath || storage.rootPath;
-    let scRootDir = RootPath;
     let packageConfig = await storage.getPackageConfig();
     if (packageConfig){
-        let packs: {[packName: string]: Types.IPackage} = {};
+        let scRootDir = RootPath;
+        let packages: {[packName: string]: Types.IPackage} = {};        
+        let modules: {[packName: string]: Types.IPackage} = {};
+        let importingPacks: string[] = [];
         let packageManager = new PackageManager({
             packageImporter: async (packName: string) => {
-                let pack = await storage.getPackageTypes(packName);
-                packageManager.setImportedPackage(packName, pack);
-                packs[packName] = pack;
-                return pack;
+                let pack: Types.IPackage;
+                if (importingPacks.includes(packName)){
+                    importingPacks.push(packName);
+                    throw new Error('Circular dependency detected: ' + JSON.stringify(importingPacks).replaceAll(',', ' -> '));
+                };
+                importingPacks.push(packName);
+                pack = packageManager.packages(packName);
+                if (pack){
+                    if (!pack.dts)
+                        await packageManager.buildPackage(packName, storage);
+                    pack = packageManager.packages(packName);
+                    importingPacks = [];
+                    return pack;
+                }
+                else{
+                    pack = await storage.getPackageTypes(packName);
+                    packageManager.setImportedPackage(packName, pack);
+                    packages[packName] = pack;
+                    return pack;
+                };
             }
         });
-        // packageManager.addPackage('@ijstech/components', await storage.getPackageTypes('@ijstech/components'));            
-        let pack:Types.IPackage = { files: await storage.getFiles(Path.join(scRootDir, 'src'))};
+        let scconfig = await storage.getSCConfig();    
+        if (scconfig) {
+            let moduleSourceDir = Path.join(scRootDir, scconfig.moduleDir || 'modules');
+            for (let name in scconfig.modules) {
+                let path = Path.join(moduleSourceDir, scconfig.modules[name].path);
+                let pack = {files: await storage.getFiles(path)};
+                for (let n in pack.files){
+                    if (n == 'index.ts' || n == 'index.tsx')
+                        pack.files[n] = `///<amd-module name='${name}'/> \n` + pack.files[n];
+                    else
+                        pack.files[n] = `///<amd-module name='${name}/${n}'/> \n` + pack.files[n];
+                };
+                packageManager.addPackage(name, pack);
+                modules[name] = pack;
+            };
+        };        
+        let pack:Types.IPackage = {files: await storage.getFiles(Path.join(scRootDir, 'src'))};
         for (let n in pack.files){
             if (n == 'index.ts' || n == 'index.tsx')
                 pack.files[n] = `///<amd-module name='${packageConfig.name}'/> \n` + pack.files[n];
             else
                 pack.files[n] = `///<amd-module name='${packageConfig.name}/${n}'/> \n` + pack.files[n];
         };
-        packageManager.addPackage(packageConfig.name, pack);
-        await packageManager.buildAll();
+        packageManager.addPackage(packageConfig.name, pack);   
+        packages[packageConfig.name] = pack;
+        await packageManager.buildAll();    
 
         pack = packageManager.packages(packageConfig.name);
         if (pack.errors && pack.errors.length > 0) {
@@ -316,24 +377,14 @@ export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
             console.error(JSON.stringify(pack.errors, null, 4));
             return;
         };
-
-        let distDir = Path.join(scRootDir, 'dist');
-        let typesDir = Path.join(scRootDir, 'pluginTypes');
-        let script = '';
-        let dts = '';
-        if (pack.script && pack.script['index.js'])
-            script = pack.script['index.js'];
-        if (pack.dts && pack.dts['index.d.ts'])
-            dts = pack.dts['index.d.ts'];
-        await storage.copyAssets(Path.join(scRootDir, 'src'), distDir);
-        await storage.writeFile(Path.join(distDir, 'index.js'), script);
+        
         let dependencies: string[] = [];
-        pack.dependencies?.forEach((item: string) => {
-            let idx: number = 0;
-            if (dependencies.indexOf(item) < 0){
-                idx = dependencies.push(item);
-                let dep = packs[item];
-                dep?.dependencies?.forEach((depItem: string) => {
+        let distDir = Path.join(scRootDir, 'dist');
+        pack.dependencies?.forEach((item: string) => {            
+            let dep = packages[item];
+            if (dep && dependencies.indexOf(item) < 0){   
+                let idx = dependencies.push(item);
+                dep.dependencies?.forEach((depItem: string) => {
                     if (depItem.startsWith('@scom/')){
                         let depIdx = dependencies.indexOf(depItem);
                         if (depIdx < 0){
@@ -347,8 +398,48 @@ export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
                         };
                     }
                 });
-            };                
+            };          
         });
+
+        let typesDir = Path.join(scRootDir, 'pluginTypes');
+        let script = '';
+        let dts = '';
+        if (scconfig.bundleLibs?.before){
+            for (let i = 0; i < scconfig.bundleLibs.before.length; i++){
+                let libPath = scconfig.bundleLibs.before[i];
+                let fullPath = Path.join(scRootDir, libPath);
+                let content = await storage.readFile(fullPath);
+                if (content){
+                    script += content;
+                };
+            };
+        };
+        let sortedModules = sortPackages(modules);
+        for (let i = 0; i < sortedModules.length; i++){
+            let module = modules[sortedModules[i]];
+            if (module.script && module.script['index.js'])
+                script += module.script['index.js'];
+            if (module.dts && module.dts['index.d.ts'])
+                dts += module.dts['index.d.ts'];
+        }
+        if (pack.script && pack.script['index.js'])
+            script += pack.script['index.js'];
+        if (pack.dts && pack.dts['index.d.ts'])
+            dts += pack.dts['index.d.ts'];
+
+        if (scconfig.bundleLibs?.after){
+            for (let i = 0; i < scconfig.bundleLibs.after.length; i++){
+                let libPath = scconfig.bundleLibs.after[i];
+                let fullPath = Path.join(scRootDir, libPath);
+                let content = await storage.readFile(fullPath);
+                if (content){
+                    script += content;
+                };
+            };
+        };
+        await storage.copyAssets(Path.join(scRootDir, 'src'), distDir);
+        await storage.writeFile(Path.join(distDir, 'index.js'), script);
+
         await storage.writeFile(Path.join(distDir, 'scconfig.json'), JSON.stringify({
             name: packageConfig.name,
             type: "widget",
@@ -356,7 +447,7 @@ export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
             dependencies:  dependencies
         },null,4));
         await storage.writeFile(Path.join(typesDir, 'index.d.ts'), dts);
-    };
+    }    
 };
 
 export async function bundleDapp(storage: Types.IStorage, RootPath?: string){
@@ -394,7 +485,7 @@ if (!rootDir.endsWith('/'))
         };
         
         for (let name in packages){
-            let pack = { files: await storage.getFiles(packages[name]) };
+            let pack = {name, files: await storage.getFiles(packages[name]) };
             for (let n in pack.files){
                 if (n == 'index.ts' || n == 'index.tsx')
                     pack.files[n] = `///<amd-module name='${name}'/> \n` + pack.files[n];
