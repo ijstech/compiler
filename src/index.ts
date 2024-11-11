@@ -404,7 +404,7 @@ export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
         let typesDir = Path.join(scRootDir, 'pluginTypes');
         let script = '';
         let dts = '';
-        if (scconfig.bundleLibs?.before){
+        if (scconfig?.bundleLibs?.before){
             for (let i = 0; i < scconfig.bundleLibs.before.length; i++){
                 let libPath = scconfig.bundleLibs.before[i];
                 let fullPath = Path.join(scRootDir, libPath);
@@ -427,7 +427,7 @@ export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
         if (pack.dts && pack.dts['index.d.ts'])
             dts += pack.dts['index.d.ts'];
 
-        if (scconfig.bundleLibs?.after){
+        if (scconfig?.bundleLibs?.after){
             for (let i = 0; i < scconfig.bundleLibs.after.length; i++){
                 let libPath = scconfig.bundleLibs.after[i];
                 let fullPath = Path.join(scRootDir, libPath);
