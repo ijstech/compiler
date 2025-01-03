@@ -385,27 +385,14 @@ export default function(name: string, abiPath: string, abi: Item[], linkReferenc
     }
     const addDeployer = function(abi: Item[], linkReferences: LinkReferences): void {
         let item = abi.find(e=>e.type=='constructor');
-        let hasLinkReferences = linkReferences && Object.keys(linkReferences).length;
-        if (item) {
-            let input = (item.inputs && item.inputs.length > 0) ? `[${toSolidityInput(item)}]` : "[]";
-            if (hasLinkReferences) {
-                addLine(1, `deploy(${inputs(item.name, item)}${item.inputs && item.inputs.length == 0 ? '':', '}libraries: ILibraries, ${((item.stateMutability=='payable') ? 'options?: number|BigNumber|TransactionOptions' : 'options?: TransactionOptions')}): Promise<string>{`);
-                addLine(2, `return this.__deploy(${input}, {...options, libraries, linkReferences:Bin.linkReferences});`);
-            } else {
-                addLine(1, `deploy(${inputs(item.name, item)}${payable(item)}): Promise<string>{`);
-                addLine(2, `return this.__deploy(${input}, options);`);
-            }
-            addLine(1, `}`);
-        } else {
-            if (hasLinkReferences) {
-                addLine(1, `deploy(libraries: ILibraries, options?: TransactionOptions): Promise<string>{`);
-                addLine(2, `return this.__deploy([], {...options, libraries, linkReferences:Bin.linkReferences});`);
-            } else {
-                addLine(1, `deploy(options?: TransactionOptions): Promise<string>{`);
-                addLine(2, `return this.__deploy([], options);`);
-            }
-            addLine(1, `}`);
+        let argOptions = item ? `${inputs(item.name, item)}${payable(item)}` : "options?: TransactionOptions";
+        let input = (item?.inputs && item?.inputs.length > 0) ? `[${toSolidityInput(item)}]` : "[]";
+        if (hasLinkReferences) {
+            argOptions = argOptions.replace("TransactionOptions","DeployOptions");
         }
+        addLine(1, `deploy(${argOptions}): Promise<string>{`);
+        addLine(2, `return this.__deploy(${input}, options);`);
+        addLine(1, `}`);
     }
     const addParamsInterface = function(item: Item): void {
         let name = item.name;
@@ -433,30 +420,31 @@ export default function(name: string, abiPath: string, abi: Item[], linkReferenc
         } 
     }
     const hasAbi = options.outputAbi && abi && abi.length;
-    addLine(0, `import {IWallet, Contract as _Contract, Transaction, TransactionReceipt, BigNumber, Event, IBatchRequestObj, TransactionOptions} from "@ijstech/eth-contract";`);
+    const hasLinkReferences = linkReferences && Object.keys(linkReferences).length;
+    addLine(0, `import {IWallet, Contract as _Contract, Transaction, TransactionReceipt, BigNumber, Event, IBatchRequestObj, TransactionOptions${hasLinkReferences?", DeployOptions as _DeployOptions":""}} from "@ijstech/eth-contract";`);
     addLine(0, `import Bin from "${abiPath}${name}.json";`);
     if (abi)
     for (let i = 0; i < abi.length; i++) {
         if (abi[i].type != 'function' && abi[i].type != 'constructor') continue;
         addParamsInterface(abi[i]);
     }
-    if (linkReferences && Object.keys(linkReferences).length) {
-        let l = "export type ILibraries = {"
+    if (hasLinkReferences) {
+        let l = "export interface DeployOptions extends _DeployOptions {libraries:{"
         for (let file in linkReferences) {
-            l += "\"" + file + "\": {";
+            l += "\"" + file + "\":{";
             for (let contract in linkReferences[file]) {
-                l += "\"" + contract + "\": string; ";
+                l += "\"" + contract + "\":string;";
             }
-            l += "}; ";
+            l += "};";
         }
-        l += "}";
+        l += "}}";
         addLine(0, l);
     }
     addLine(0, `export class ${name} extends _Contract{`);
     if (hasAbi)
         addLine(1, `static _abi: any = Bin.abi;`);
     addLine(1, `constructor(wallet: IWallet, address?: string){`);
-    addLine(2, `super(wallet, address, ${hasAbi ? "Bin.abi" : "undefined"}, ${options.outputBytecode ? "Bin.bytecode" : "undefined"});`);
+    addLine(2, `super(wallet, address, ${hasAbi ? "Bin.abi" : "undefined"}, ${options.outputBytecode ? ("Bin.bytecode" + (hasLinkReferences ? ", Bin.linkReferences" : "")) : "undefined"});`);
     addLine(2, `this.assign()`);
     addLine(1, `}`);
     if (abi && options.outputBytecode)
