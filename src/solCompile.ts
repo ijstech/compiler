@@ -25,7 +25,7 @@ interface Input {
 };
 
 async function importFile(storage: Types.IStorage, fileName: string, sources: Types.ISource): Promise<string[]>{
-    let content = await storage.readFile("node_modules/" + fileName);
+    let content = await storage.readFile(fileName);
     let dependencies: string[] = [];
     sources[fileName] = {content: content};
     let importRegex = /^\s*import(\s+{[^}]+}\s+from)?\s+(?:"([^"]+)"|'([^']+)')./gm;
@@ -272,6 +272,7 @@ async function callCodeGen(storage: Types.IStorage, outputDir: string, path: str
             hasTxData
         }
         let code = codeGen(name, relPath, abi, linkReferences, options);
+ 
         await storage.writeFile(outputDir + '/' + path + name +  '.ts', code);
 
         return `export { ${name} } from \'./${path + name}\';\n`;

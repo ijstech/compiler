@@ -27,7 +27,7 @@ export async function flatten(sources: Types.ISource, file: string): Promise<str
                     result += await flattenDependencies(sources, importFilePath);
                 };
             };
-            result += source.content.replace(licenseRegex, '');;
+            result += (source?.content || '').replace(licenseRegex, '');;
         };
         return result;
     };
