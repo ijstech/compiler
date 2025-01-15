@@ -1,0 +1,38 @@
+{
+  "name": "@scom/scom-tact",
+  "version": "0.1.0",
+  "main": "lib/index.js",
+  "plugin": "dist/index.js",
+  "pluginTypes": "pluginTypes/index.d.ts",
+  "types": "types/index.d.ts",
+  "typings": "types/index.d.ts",
+  "dependencies": {
+    "@ijstech/eth-contract": "^0.1.10"
+  },
+  "devDependencies": {
+    "@ijstech/cli": "^0.1.26",
+    "@ijstech/compiler": "^0.1.22",
+    "@ijstech/tact": "https://github.com/ijstech/tact.git",
+    "@tact-lang/deployer": "^0.2.0",
+    "@ton/ton": "^15.1.0",
+    "@ijstech/eth-wallet": "^0.1.35",
+    "@tact-lang/ton-jest": "^0.0.4",
+    "@ton/sandbox": "latest",
+    "@ton/test-utils": "^0.5.0",
+    "@types/jest": "^29.5.12",
+    "@types/node": "18.8.4",
+    "jest": "^29.3.1",
+    "ts-jest": "^29.0.3",
+    "ts-node": "10.9.1",
+    "typescript": "4.8.4"
+  },
+  "scripts": {
+    "build": "rm -rf lib && rm -rf dist && rm -rf types && npm run build:contracts && npm run build:lib && npm run build:dist",
+    "build:contracts": "rm -rf src/contracts && tact --config ./tact.config.json",
+    "build:deployer": "rm -rf deployer && npx @ijstech/cli bundle deployer",
+    "build:dist": "npx @ijstech/compiler",
+    "build:lib": "tsc",
+    "deployer": "npx @ijstech/cli serve 8080 deployer",
+    "test": "jest"
+  }
+}

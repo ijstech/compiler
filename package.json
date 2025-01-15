@@ -1,47 +1,49 @@
 {
-    "name": "@ijstech/compiler",
-    "version": "0.1.94",
-    "main": "lib/index.js",
-    "types": "types/index.d.ts",
-    "pluginTypes": "dist/index.d.ts",
-    "author": "https://ijs.network",
-    "license": "AGPL-3.0",
-    "engines": {
-        "node": ">=18.0.0"
-    },
-    "bin": {
-        "compiler": "cli/bin/bundle.js"
-    },
-    "dependencies": {
-        "solc": "^0.8.19",
-        "bignumber.js": "9.1.1"
-    },
-    "devDependencies": {
-        "@ijstech/components": "^0.1.55",
-        "@ijstech/eth-contract": "^0.1.18",
-        "@ijstech/eth-wallet": "^0.1.56",
-        "@ijstech/plugin": "^0.1.8",
-        "@ijstech/wallet": "^0.1.0",
-        "@openzeppelin/contracts": "4.9.6",
-        "@types/mocha": "9.0.0",
-        "@types/node": "18.11",
-        "mocha": "10.0.0",
-        "ts-node": "10.9.1",
-        "typescript": "5.0.4"
-    },
-    "scripts": {
-        "build": "rm -rf dist && rm -rf pluginTypes && rm -rf lib && rm -rf types && npm run build:lib && npm run build:types && npm run build:dist && npm run build:cli",
-        "build:cli": "cd cli && tsc && cd ..",
-        "build:dist": "rm -rf types && rm -rf bundle && rm -rf dist && tsc && node tools/bundleDist && tsc --P tsconfig.bundle.json && node tools/copyDist",
-        "build:lib": "tsc --P tsconfig.lib.json ",
-        "build:types": "rm -rf bundle && node tools/buildLib.js && tsc --P tsconfig.types.json && rm -rf bundle && rm -rf src/lib.ts && node tools/bundleLib.js",
-        "build:test": "rm -rf bundle && tsc --P tsconfig.test.json && node tools/bundleTest.js && rm -rf bundle",
-        "cp:typescript": "cp -f node_modules/typescript/lib/typescript.js src/lib/typescript.js && cp -f node_modules/typescript/lib/typescript.d.ts src/lib/typescript.d.ts",
-        "test": "NODE_OPTIONS=--max-old-space-size=4096 mocha --exit --require ts-node/register test/*.spec.ts",
-        "test:parser": "mocha --exit --require ts-node/register test/parser.spec.ts",
-        "test:compiler": "mocha --exit --require ts-node/register test/compiler.spec.ts",
-        "test:path": "mocha --exit --require ts-node/register test/path.spec.ts",
-        "test:bundle": "mocha --exit --require ts-node/register test/bundle.spec.ts",
-        "test:solidity": "rm -rf test/solidity/src && mocha --exit --require ts-node/register test/solidity.spec.ts && tsc -p test/solidity --noEmit && if diff -r test/solidity/expected test/solidity/src ; then echo \"results are the same as expcted\" ; else echo \"results are different than the expected\"; fi"
-    }
+  "name": "@ijstech/compiler",
+  "version": "0.1.94",
+  "main": "lib/index.js",
+  "types": "types/index.d.ts",
+  "pluginTypes": "dist/index.d.ts",
+  "author": "https://ijs.network",
+  "license": "AGPL-3.0",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "bin": {
+    "compiler": "cli/bin/bundle.js"
+  },
+  "dependencies": {
+    "@ijstech/tact": "https://github.com/ijstech/tact.git",
+    "bignumber.js": "9.1.1",
+    "solc": "^0.8.19"
+  },
+  "devDependencies": {
+    "@ijstech/components": "^0.1.55",
+    "@ijstech/eth-contract": "^0.1.18",
+    "@ijstech/eth-wallet": "^0.1.56",
+    "@ijstech/plugin": "^0.1.8",
+    "@ijstech/wallet": "^0.1.0",
+    "@openzeppelin/contracts": "4.9.6",
+    "@types/mocha": "9.0.0",
+    "@types/node": "18.11",
+    "mocha": "10.0.0",
+    "ts-node": "10.9.1",
+    "typescript": "5.0.4"
+  },
+  "scripts": {
+    "build": "rm -rf dist && rm -rf pluginTypes && rm -rf lib && rm -rf types && npm run build:lib && npm run build:types && npm run build:dist && npm run build:cli",
+    "build:cli": "cd cli && tsc && cd ..",
+    "build:dist": "rm -rf types && rm -rf bundle && rm -rf dist && tsc && node tools/bundleDist && tsc --P tsconfig.bundle.json && node tools/copyDist",
+    "build:lib": "tsc --P tsconfig.lib.json ",
+    "build:types": "rm -rf bundle && node tools/buildLib.js && tsc --P tsconfig.types.json && rm -rf bundle && rm -rf src/lib.ts && node tools/bundleLib.js",
+    "build:test": "rm -rf bundle && tsc --P tsconfig.test.json && node tools/bundleTest.js && rm -rf bundle",
+    "cp:tact": "npx mkdirp src/lib/tact-compiler && cp -f node_modules/@ijstech/tact/bundle/index.js src/lib/tact-compiler/index.js && cp -f node_modules/@ijstech/tact/bundle/index.d.ts src/lib/tact-compiler/index.d.ts",
+    "cp:typescript": "cp -f node_modules/typescript/lib/typescript.js src/lib/typescript.js && cp -f node_modules/typescript/lib/typescript.d.ts src/lib/typescript.d.ts",
+    "test": "NODE_OPTIONS=--max-old-space-size=4096 mocha --exit --require ts-node/register test/*.spec.ts",
+    "test:parser": "mocha --exit --require ts-node/register test/parser.spec.ts",
+    "test:compiler": "mocha --exit --require ts-node/register test/compiler.spec.ts",
+    "test:path": "mocha --exit --require ts-node/register test/path.spec.ts",
+    "test:bundle": "mocha --exit --require ts-node/register test/bundle.spec.ts",
+    "test:solidity": "rm -rf test/solidity/src && mocha --exit --require ts-node/register test/solidity.spec.ts && tsc -p test/solidity --noEmit && if diff -r test/solidity/expected test/solidity/src ; then echo \"results are the same as expcted\" ; else echo \"results are different than the expected\"; fi"
+  }
 }

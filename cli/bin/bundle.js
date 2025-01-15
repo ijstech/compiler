@@ -113,7 +113,13 @@ async function main() {
                 await (0, compiler_1.bundleSdk)(storage);
                 break;
             case 'contract':
-                await (0, compiler_1.bundleContract)(storage, new solc_1.Solc());
+                const isTact = !!scconfig?.tact || await storage.isFileExists('tact.config.json');
+                if (isTact) {
+                    await (0, compiler_1.bundleTactContract)(storage);
+                }
+                else {
+                    await (0, compiler_1.bundleContract)(storage, new solc_1.Solc());
+                }
                 break;
             case 'widget':
                 await (0, compiler_1.bundleWidget)(storage);
@@ -127,8 +133,12 @@ async function main() {
         }
     }
     else {
-        if (await storage.isFileExists('solconfig.json'))
+        if (await storage.isFileExists('solconfig.json')) {
             await (0, compiler_1.bundleContract)(storage, new solc_1.Solc());
+        }
+        else if (await storage.isFileExists('tact.config.json')) {
+            await (0, compiler_1.bundleTactContract)(storage);
+        }
         else
             await (0, compiler_1.bundleWidget)(storage);
     }

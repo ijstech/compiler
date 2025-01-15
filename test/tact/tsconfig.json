@@ -1,0 +1,20 @@
+{ 
+    "compilerOptions": {
+        "target": "ES2020",
+        "module": "commonjs",
+        "esModuleInterop": true,
+        "removeComments": true,
+        "declaration": true,
+        "declarationDir": "types",
+        "outDir": "lib",
+        "baseUrl": "."
+    },
+    "include": [
+      "src/**/*"
+    ],
+    "exclude": [
+      "**/**.spec.ts",
+      "node_modules",
+      "test"
+    ]
+  }

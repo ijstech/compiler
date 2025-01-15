@@ -9,6 +9,7 @@ import TS, { Type } from "./lib/typescript";
 import Path from './path';
 export {Parser, Path};
 import * as Sol from './solCompile';
+import * as Tact from './tactCompile';
 import * as Types from './types';
 import { ICompilerError } from './types';
 export {Types};
@@ -89,6 +90,25 @@ export async function bundleContract(storage: Types.IStorage, solc: Types.ISolc,
         "outputDir": "src/contracts",
         "outputObjects": "bytecode"
     }, RootPath);
+    await bundleDist('contract', storage, RootPath);
+    await bundleLib(storage, RootPath);
+};
+export async function bundleTactContract(storage: Types.IStorage, RootPath?: string){
+    RootPath = RootPath || storage.rootPath;
+    let scconfig = await storage.getSCConfig();
+    let options = scconfig?.tact;
+    if (!options){
+        const isExist = await storage.isFileExists('tact.config.json');
+        if (!isExist) {
+            console.error('tact.config.json not found');
+            return;
+        }
+        let config = await storage.readFile('tact.config.json');
+        if (config)
+            options = JSON.parse(config);
+    };
+
+    await Tact.compileTactContract(storage, options);
     await bundleDist('contract', storage, RootPath);
     await bundleLib(storage, RootPath);
 };
@@ -190,12 +210,12 @@ export async function bundleDist(bundleType: string, storage: Types.IStorage, Ro
             version: packageConfig.version,                        
             dependencies: pack.dependencies
         },null,4));
-        await storage.writeFile(Path.join(distDir, 'scconfig.json'), JSON.stringify({
-            name: packageConfig.name,
-            type: bundleType,
-            version: packageConfig.version,                        
-            dependencies: pack.dependencies
-        },null,4));
+        // await storage.writeFile(Path.join(distDir, 'scconfig.json'), JSON.stringify({
+        //     name: packageConfig.name,
+        //     type: bundleType,
+        //     version: packageConfig.version,                        
+        //     dependencies: pack.dependencies
+        // },null,4));
     };
 };
 const WorkerDefaultPackages = [

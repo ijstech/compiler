@@ -33,6 +33,7 @@ const path_1 = __importDefault(require("path"));
 const SolcjsPath = path_1.default.resolve(__dirname, 'solcjs');
 if (!fs.existsSync(SolcjsPath))
     fs.mkdirSync(SolcjsPath);
+const DEFAULT_VERSION = '0.8.19';
 function request(url) {
     return new Promise(function (resolve, reject) {
         https.get(url, function (res) {
@@ -57,7 +58,7 @@ function getCache(version) {
 }
 async function downloadSolc(version) {
     try {
-        version = version || '0.8.19';
+        version = version || DEFAULT_VERSION;
         let data = await request("https://solc-bin.ethereum.org/bin/list.json");
         let list = JSON.parse(data.body);
         if (list) {
@@ -98,7 +99,7 @@ class Solc {
         this.solc = {};
     }
     async compile(source, version) {
-        version = version || '0.8.19';
+        version = version || DEFAULT_VERSION;
         let solc = this.solc[version] || await getSolc(version);
         this.solc[version] = solc;
         return solc.compile(source);

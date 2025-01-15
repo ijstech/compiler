@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import Path from 'path';
-import {  bundleContract, bundleDapp, bundleWidget, bundleSdk, bundleWorker} from '@ijstech/compiler';
+import {  bundleContract, bundleDapp, bundleWidget, bundleSdk, bundleWorker, bundleTactContract} from '@ijstech/compiler';
 import { promises as Fs, createReadStream} from 'fs';
 import {Storage} from './storage';
 import {Solc} from './solc';
@@ -115,7 +115,12 @@ async function main() {
                 await bundleSdk(storage);
                 break;
             case 'contract':
-                await bundleContract(storage, new Solc());
+                const isTact = !!scconfig?.tact || await storage.isFileExists('tact.config.json');
+                if (isTact) {
+                    await bundleTactContract(storage);
+                } else {
+                    await bundleContract(storage, new Solc());
+                }
                 break;
             case 'widget':
                 await bundleWidget(storage);
@@ -129,8 +134,12 @@ async function main() {
         }
     }
     else{
-        if (await storage.isFileExists('solconfig.json'))
+        if (await storage.isFileExists('solconfig.json')) {
             await bundleContract(storage, new Solc());
+        }
+        else if (await storage.isFileExists('tact.config.json')) {
+            await bundleTactContract(storage);
+        }
         else
             await bundleWidget(storage);
     };
