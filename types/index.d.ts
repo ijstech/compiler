@@ -12,6 +12,7 @@ export declare enum EPackageType {
     worker = "worker"
 }
 export declare function bundleContract(storage: Types.IStorage, solc: Types.ISolc, RootPath?: string): Promise<void>;
+export declare function bundleTactContract(storage: Types.IStorage, RootPath?: string): Promise<void>;
 export declare function bundleSdk(storage: Types.IStorage, RootPath?: string): Promise<void>;
 export declare function bundleLib(storage: Types.IStorage, RootPath?: string): Promise<void>;
 export declare function bundleDist(bundleType: string, storage: Types.IStorage, RootPath?: string): Promise<void>;

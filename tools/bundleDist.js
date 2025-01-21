@@ -40,6 +40,7 @@ async function writeFile(fileName, content) {
 async function bundle(){    
     await mkdir(Path.resolve(__dirname, '../bundle'));
     await copyFile(Path.resolve(__dirname, '../src/lib/typescript.d.ts'), Path.resolve(__dirname, '../bundle/lib/typescript.d.ts'));
+    await copyDir(Path.resolve(__dirname, '../src/lib/tact-compiler'), Path.resolve(__dirname, '../bundle/lib/tact-compiler'));
 
     let content = await readFile(Path.resolve(__dirname, '../src/index.ts'));
     await writeFile(Path.resolve(__dirname, '../bundle/index.ts'), `
@@ -74,6 +75,12 @@ ${content}
 content = await readFile(Path.resolve(__dirname, '../src/solCompile.ts'));
 await writeFile(Path.resolve(__dirname, '../bundle/solCompile.ts'), `
 ///<amd-module name='@ijstech/compiler/solCompile'/>
+${content}
+`);
+
+content = await readFile(Path.resolve(__dirname, '../src/tactCompile.ts'));
+await writeFile(Path.resolve(__dirname, '../bundle/tactCompile.ts'), `
+///<amd-module name='@ijstech/compiler/tactCompile'/>
 ${content}
 `);
 

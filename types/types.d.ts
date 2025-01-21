@@ -70,3 +70,4 @@ export interface ISource {
         content: string;
     };
 }
+export type NetworkEnvironment = 'TESTNET' | 'MAINNET' | 'SANDBOX';

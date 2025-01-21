@@ -3697,7 +3697,7 @@ declare module "packages/base/src/observable" {
     export function Observe(target: any, callback?: ObserverCallback, options?: ObserverOptions): any;
     export function Unobserve(target: any, observer: ObserverCallback): void;
     export function ClearObservers(target: any): void;
-    export function observable(propName?: string): (target: any, propertyName: string) => void;
+    export function observable(propName?: string, isArray?: boolean): (target: any, propertyName: string) => void;
     export function initObservables(target: any): void;
     export function Observables(target: any, propertyName?: string): any;
 }
@@ -3864,6 +3864,7 @@ declare module "packages/tooltip/src/tooltip" {
         color?: string;
         placement?: PlacementType;
         trigger?: TriggerType;
+        duration?: number;
         maxWidth?: string;
     }
     export class Tooltip {
@@ -3873,6 +3874,8 @@ declare module "packages/tooltip/src/tooltip" {
         private _color;
         private _maxWidth;
         private _trigger;
+        private _duration;
+        private _designMode;
         private timeout;
         private tooltipElm;
         constructor(source: Control);
@@ -3888,8 +3891,13 @@ declare module "packages/tooltip/src/tooltip" {
         set content(value: string);
         get placement(): PlacementType;
         set placement(value: PlacementType);
+        get duration(): number;
+        set duration(value: number);
+        get isSmallScreen(): boolean;
         get maxWidth(): string;
         set maxWidth(value: string);
+        get designMode(): boolean;
+        set designMode(value: boolean);
         private show;
         close(): void;
         private onHandleClick;
@@ -3900,9 +3908,783 @@ declare module "packages/tooltip/src/tooltip" {
 declare module "packages/tooltip/src/index" {
     export { Tooltip, ITooltip } from "packages/tooltip/src/tooltip";
 }
+declare module "packages/base/src/i18n" {
+    export type Locales = keyof typeof languages;
+    export type Translations = {
+        [locale in Locales]?: {
+            [key: string]: string;
+        };
+    };
+    export class I18n {
+        private translations;
+        init(translations: Translations): void;
+        get(key: string, params?: {
+            [key: string]: string;
+        }, skipApp?: boolean): string;
+        has(key: string): boolean;
+    }
+    export const languages: {
+        aa: {
+            name: string;
+            native: string;
+        };
+        ab: {
+            name: string;
+            native: string;
+        };
+        af: {
+            name: string;
+            native: string;
+        };
+        ak: {
+            name: string;
+            native: string;
+        };
+        am: {
+            name: string;
+            native: string;
+        };
+        an: {
+            name: string;
+            native: string;
+        };
+        ar: {
+            name: string;
+            native: string;
+            rtl: number;
+        };
+        as: {
+            name: string;
+            native: string;
+        };
+        av: {
+            name: string;
+            native: string;
+        };
+        ay: {
+            name: string;
+            native: string;
+        };
+        az: {
+            name: string;
+            native: string;
+        };
+        ba: {
+            name: string;
+            native: string;
+        };
+        be: {
+            name: string;
+            native: string;
+        };
+        bg: {
+            name: string;
+            native: string;
+        };
+        bh: {
+            name: string;
+            native: string;
+        };
+        bi: {
+            name: string;
+            native: string;
+        };
+        bm: {
+            name: string;
+            native: string;
+        };
+        bn: {
+            name: string;
+            native: string;
+        };
+        bo: {
+            name: string;
+            native: string;
+        };
+        br: {
+            name: string;
+            native: string;
+        };
+        bs: {
+            name: string;
+            native: string;
+        };
+        ca: {
+            name: string;
+            native: string;
+        };
+        ce: {
+            name: string;
+            native: string;
+        };
+        ch: {
+            name: string;
+            native: string;
+        };
+        co: {
+            name: string;
+            native: string;
+        };
+        cr: {
+            name: string;
+            native: string;
+        };
+        cs: {
+            name: string;
+            native: string;
+        };
+        cu: {
+            name: string;
+            native: string;
+        };
+        cv: {
+            name: string;
+            native: string;
+        };
+        cy: {
+            name: string;
+            native: string;
+        };
+        da: {
+            name: string;
+            native: string;
+        };
+        de: {
+            name: string;
+            native: string;
+        };
+        dv: {
+            name: string;
+            native: string;
+            rtl: number;
+        };
+        dz: {
+            name: string;
+            native: string;
+        };
+        ee: {
+            name: string;
+            native: string;
+        };
+        el: {
+            name: string;
+            native: string;
+        };
+        en: {
+            name: string;
+            native: string;
+        };
+        eo: {
+            name: string;
+            native: string;
+        };
+        es: {
+            name: string;
+            native: string;
+        };
+        et: {
+            name: string;
+            native: string;
+        };
+        eu: {
+            name: string;
+            native: string;
+        };
+        fa: {
+            name: string;
+            native: string;
+            rtl: number;
+        };
+        ff: {
+            name: string;
+            native: string;
+        };
+        fi: {
+            name: string;
+            native: string;
+        };
+        fj: {
+            name: string;
+            native: string;
+        };
+        fo: {
+            name: string;
+            native: string;
+        };
+        fr: {
+            name: string;
+            native: string;
+        };
+        fy: {
+            name: string;
+            native: string;
+        };
+        ga: {
+            name: string;
+            native: string;
+        };
+        gd: {
+            name: string;
+            native: string;
+        };
+        gl: {
+            name: string;
+            native: string;
+        };
+        gn: {
+            name: string;
+            native: string;
+        };
+        gu: {
+            name: string;
+            native: string;
+        };
+        gv: {
+            name: string;
+            native: string;
+        };
+        ha: {
+            name: string;
+            native: string;
+            rtl: number;
+        };
+        he: {
+            name: string;
+            native: string;
+            rtl: number;
+        };
+        hi: {
+            name: string;
+            native: string;
+        };
+        ho: {
+            name: string;
+            native: string;
+        };
+        hr: {
+            name: string;
+            native: string;
+        };
+        ht: {
+            name: string;
+            native: string;
+        };
+        hu: {
+            name: string;
+            native: string;
+        };
+        hy: {
+            name: string;
+            native: string;
+        };
+        hz: {
+            name: string;
+            native: string;
+        };
+        ia: {
+            name: string;
+            native: string;
+        };
+        id: {
+            name: string;
+            native: string;
+        };
+        ie: {
+            name: string;
+            native: string;
+        };
+        ig: {
+            name: string;
+            native: string;
+        };
+        ii: {
+            name: string;
+            native: string;
+        };
+        ik: {
+            name: string;
+            native: string;
+        };
+        io: {
+            name: string;
+            native: string;
+        };
+        is: {
+            name: string;
+            native: string;
+        };
+        it: {
+            name: string;
+            native: string;
+        };
+        iu: {
+            name: string;
+            native: string;
+        };
+        ja: {
+            name: string;
+            native: string;
+        };
+        jv: {
+            name: string;
+            native: string;
+        };
+        ka: {
+            name: string;
+            native: string;
+        };
+        kg: {
+            name: string;
+            native: string;
+        };
+        ki: {
+            name: string;
+            native: string;
+        };
+        kj: {
+            name: string;
+            native: string;
+        };
+        kk: {
+            name: string;
+            native: string;
+        };
+        kl: {
+            name: string;
+            native: string;
+        };
+        km: {
+            name: string;
+            native: string;
+        };
+        kn: {
+            name: string;
+            native: string;
+        };
+        ko: {
+            name: string;
+            native: string;
+        };
+        kr: {
+            name: string;
+            native: string;
+        };
+        ks: {
+            name: string;
+            native: string;
+            rtl: number;
+        };
+        ku: {
+            name: string;
+            native: string;
+            rtl: number;
+        };
+        kv: {
+            name: string;
+            native: string;
+        };
+        kw: {
+            name: string;
+            native: string;
+        };
+        ky: {
+            name: string;
+            native: string;
+        };
+        la: {
+            name: string;
+            native: string;
+        };
+        lb: {
+            name: string;
+            native: string;
+        };
+        lg: {
+            name: string;
+            native: string;
+        };
+        li: {
+            name: string;
+            native: string;
+        };
+        ln: {
+            name: string;
+            native: string;
+        };
+        lo: {
+            name: string;
+            native: string;
+        };
+        lt: {
+            name: string;
+            native: string;
+        };
+        lu: {
+            name: string;
+            native: string;
+        };
+        lv: {
+            name: string;
+            native: string;
+        };
+        mg: {
+            name: string;
+            native: string;
+        };
+        mh: {
+            name: string;
+            native: string;
+        };
+        mi: {
+            name: string;
+            native: string;
+        };
+        mk: {
+            name: string;
+            native: string;
+        };
+        ml: {
+            name: string;
+            native: string;
+        };
+        mn: {
+            name: string;
+            native: string;
+        };
+        mo: {
+            name: string;
+            native: string;
+        };
+        mr: {
+            name: string;
+            native: string;
+        };
+        ms: {
+            name: string;
+            native: string;
+        };
+        mt: {
+            name: string;
+            native: string;
+        };
+        my: {
+            name: string;
+            native: string;
+        };
+        na: {
+            name: string;
+            native: string;
+        };
+        nb: {
+            name: string;
+            native: string;
+        };
+        nd: {
+            name: string;
+            native: string;
+        };
+        ne: {
+            name: string;
+            native: string;
+        };
+        ng: {
+            name: string;
+            native: string;
+        };
+        nl: {
+            name: string;
+            native: string;
+        };
+        nn: {
+            name: string;
+            native: string;
+        };
+        no: {
+            name: string;
+            native: string;
+        };
+        nr: {
+            name: string;
+            native: string;
+        };
+        nv: {
+            name: string;
+            native: string;
+        };
+        ny: {
+            name: string;
+            native: string;
+        };
+        oc: {
+            name: string;
+            native: string;
+        };
+        oj: {
+            name: string;
+            native: string;
+        };
+        om: {
+            name: string;
+            native: string;
+        };
+        or: {
+            name: string;
+            native: string;
+        };
+        os: {
+            name: string;
+            native: string;
+        };
+        pa: {
+            name: string;
+            native: string;
+        };
+        pi: {
+            name: string;
+            native: string;
+        };
+        pl: {
+            name: string;
+            native: string;
+        };
+        ps: {
+            name: string;
+            native: string;
+            rtl: number;
+        };
+        pt: {
+            name: string;
+            native: string;
+        };
+        qu: {
+            name: string;
+            native: string;
+        };
+        rm: {
+            name: string;
+            native: string;
+        };
+        rn: {
+            name: string;
+            native: string;
+        };
+        ro: {
+            name: string;
+            native: string;
+        };
+        ru: {
+            name: string;
+            native: string;
+        };
+        rw: {
+            name: string;
+            native: string;
+        };
+        sa: {
+            name: string;
+            native: string;
+        };
+        sc: {
+            name: string;
+            native: string;
+        };
+        sd: {
+            name: string;
+            native: string;
+        };
+        se: {
+            name: string;
+            native: string;
+        };
+        sg: {
+            name: string;
+            native: string;
+        };
+        sh: {
+            name: string;
+            native: string;
+        };
+        si: {
+            name: string;
+            native: string;
+        };
+        sk: {
+            name: string;
+            native: string;
+        };
+        sl: {
+            name: string;
+            native: string;
+        };
+        sm: {
+            name: string;
+            native: string;
+        };
+        sn: {
+            name: string;
+            native: string;
+        };
+        so: {
+            name: string;
+            native: string;
+        };
+        sq: {
+            name: string;
+            native: string;
+        };
+        sr: {
+            name: string;
+            native: string;
+        };
+        ss: {
+            name: string;
+            native: string;
+        };
+        st: {
+            name: string;
+            native: string;
+        };
+        su: {
+            name: string;
+            native: string;
+        };
+        sv: {
+            name: string;
+            native: string;
+        };
+        sw: {
+            name: string;
+            native: string;
+        };
+        ta: {
+            name: string;
+            native: string;
+        };
+        te: {
+            name: string;
+            native: string;
+        };
+        tg: {
+            name: string;
+            native: string;
+        };
+        th: {
+            name: string;
+            native: string;
+        };
+        ti: {
+            name: string;
+            native: string;
+        };
+        tk: {
+            name: string;
+            native: string;
+        };
+        tl: {
+            name: string;
+            native: string;
+        };
+        tn: {
+            name: string;
+            native: string;
+        };
+        to: {
+            name: string;
+            native: string;
+        };
+        tr: {
+            name: string;
+            native: string;
+        };
+        ts: {
+            name: string;
+            native: string;
+        };
+        tt: {
+            name: string;
+            native: string;
+        };
+        tw: {
+            name: string;
+            native: string;
+        };
+        ty: {
+            name: string;
+            native: string;
+        };
+        ug: {
+            name: string;
+            native: string;
+        };
+        uk: {
+            name: string;
+            native: string;
+        };
+        ur: {
+            name: string;
+            native: string;
+            rtl: number;
+        };
+        uz: {
+            name: string;
+            native: string;
+        };
+        ve: {
+            name: string;
+            native: string;
+        };
+        vi: {
+            name: string;
+            native: string;
+        };
+        vo: {
+            name: string;
+            native: string;
+        };
+        wa: {
+            name: string;
+            native: string;
+        };
+        wo: {
+            name: string;
+            native: string;
+        };
+        xh: {
+            name: string;
+            native: string;
+        };
+        yi: {
+            name: string;
+            native: string;
+            rtl: number;
+        };
+        yo: {
+            name: string;
+            native: string;
+        };
+        za: {
+            name: string;
+            native: string;
+        };
+        "zh-hans": {
+            name: string;
+            native: string;
+        };
+        "zh-hant": {
+            name: string;
+            native: string;
+        };
+        zu: {
+            name: string;
+            native: string;
+        };
+    };
+}
 declare module "packages/base/src/control" {
     import { Component, IStack, IFont, ISpace, IOverflow, OverflowType, IAnchor, IBackground, ICustomProperties, CursorType } from "packages/base/src/component";
     import { notifyEventCallback, notifyMouseEventCallback, notifyKeyboardEventCallback, notifyGestureEventCallback } from "@ijstech/components/base";
+    import { Module } from "packages/module/src/index";
+    import { I18n } from "packages/base/src/i18n";
     export type DockStyle = 'none' | 'bottom' | 'center' | 'fill' | 'left' | 'right' | 'top';
     export type LineHeightType = string | number | 'normal' | 'initial' | 'inherit';
     export type DisplayType = 'inline-block' | 'block' | 'inline-flex' | 'flex' | 'inline' | 'initial' | 'inherit' | 'none' | '-webkit-box' | 'grid' | 'inline-grid';
@@ -4058,6 +4840,7 @@ declare module "packages/base/src/control" {
     }
     export class Control extends Component {
         protected _controls: Control[];
+        protected _parentModule: Module | null;
         protected _enabled: boolean;
         protected _onClick: notifyMouseEventCallback;
         protected _onContextMenu: notifyMouseEventCallback;
@@ -4068,6 +4851,7 @@ declare module "packages/base/src/control" {
         protected _onMouseDown: notifyGestureEventCallback;
         protected _onMouseMove: notifyGestureEventCallback;
         protected _onMouseUp: notifyGestureEventCallback;
+        protected _onObserverChanged: (target: Control, event?: Event) => void;
         protected _visible: boolean;
         protected _margin: SpaceValue;
         protected _padding: SpaceValue;
@@ -4100,6 +4884,7 @@ declare module "packages/base/src/control" {
         tag: any;
         protected static create(options?: any, parent?: Container, defaults?: any): Promise<Control>;
         constructor(parent?: Control, options?: any, defaults?: any);
+        get parentModule(): Module | null;
         _setDesignPropValue(prop: string, value: string | number | boolean | object, breakpointProp?: any): void;
         _getCustomProperties(): ICustomProperties;
         private getMarginStyle;
@@ -4155,6 +4940,8 @@ declare module "packages/base/src/control" {
         set onMouseDown(callback: notifyGestureEventCallback);
         get onMouseUp(): notifyGestureEventCallback;
         set onMouseUp(callback: notifyGestureEventCallback);
+        set onObserverChanged(callback: (target: Control, event?: Event) => void);
+        get onObserverChanged(): (target: Control, event?: Event) => void;
         clearInnerHTML(): void;
         refresh(): void;
         get resizable(): boolean;
@@ -4218,6 +5005,7 @@ declare module "packages/base/src/control" {
         set mediaQueries(value: any[]);
         protected removeStyle<P extends keyof Control>(propertyName: P): void;
         protected setStyle<P extends keyof Control>(propertyName: P, value: string): void;
+        updateLocale(i18n: I18n): void;
     }
     export class ContainerResizer {
         private target;
@@ -4242,6 +5030,7 @@ declare module "packages/base/src/control" {
         protected init(): void;
         protected refreshControls(): void;
         refresh(skipRefreshControls?: boolean): void;
+        updateLocale(i18n: I18n): void;
     }
 }
 declare module "packages/base/src/types" {
@@ -4258,6 +5047,7 @@ declare module "@ijstech/components/base" {
     import { IStack, IFont, ISpace, IOverflow, OverflowType, IAnchor, IBackground, ICustomProperties, CursorType } from "packages/base/src/component";
     import { Control, Container, DockStyle, LineHeightType, IBorder, IGrid, DisplayType, PositionType, IControlMediaQuery } from "packages/base/src/control";
     import { ITooltip } from "packages/tooltip/src/index";
+    export { Locales, I18n } from "packages/base/src/i18n";
     export { Control, Container };
     export * as Types from "packages/base/src/types";
     export { getControlMediaQueriesStyle, getBackground, getSpacingValue } from "packages/base/src/style/base.css";
@@ -4326,6 +5116,63 @@ declare module "@ijstech/components/base" {
     export function customModule(target: any): void;
     export function setAttributeToProperty<T extends Control>(element: T, propertyName: keyof T, defaultValue?: any): void;
 }
+declare module "packages/checkbox/src/style/checkbox.css" { }
+declare module "packages/checkbox/src/checkbox" {
+    import { ControlElement, Control, notifyEventCallback } from "@ijstech/components/base";
+    import "packages/checkbox/src/style/checkbox.css";
+    export interface CheckboxElement extends ControlElement {
+        checked?: boolean;
+        indeterminate?: boolean;
+        caption?: string;
+        captionWidth?: number | string;
+        readOnly?: boolean;
+        onChanged?: notifyEventCallback;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-checkbox']: CheckboxElement;
+            }
+        }
+    }
+    export class Checkbox extends Control {
+        private _caption;
+        private _captionWidth;
+        private _indeterminate;
+        private _checked;
+        private _readOnly;
+        private wrapperElm;
+        private inputSpanElm;
+        private captionSpanElm;
+        private inputElm;
+        private checkmarklElm;
+        onChanged: notifyEventCallback;
+        constructor(parent?: Control, options?: any);
+        get caption(): string;
+        set caption(value: string);
+        get captionWidth(): number | string;
+        set captionWidth(value: number | string);
+        get height(): number;
+        set height(value: number | string);
+        get indeterminate(): boolean;
+        set indeterminate(value: boolean);
+        get checked(): boolean;
+        set checked(value: boolean);
+        get value(): any;
+        set value(data: any);
+        get enabled(): boolean;
+        set enabled(value: boolean);
+        get readOnly(): boolean;
+        set readOnly(value: boolean);
+        private _handleChange;
+        private addClass;
+        protected init(): void;
+        static create(options?: CheckboxElement, parent?: Control): Promise<Checkbox>;
+    }
+}
+declare module "packages/checkbox/src/index" {
+    export { Checkbox, CheckboxElement } from "packages/checkbox/src/checkbox";
+}
 declare module "packages/image/src/style/image.css" { }
 declare module "packages/image/src/image" {
     import { Control, ControlElement, IBorder, Border } from "@ijstech/components/base";
@@ -4351,6 +5198,7 @@ declare module "packages/image/src/image" {
         private _fallbackUrl;
         private _objectFit;
         private _borderValue;
+        private _usedFallback;
         constructor(parent?: Control, options?: any);
         get fallbackUrl(): string;
         set fallbackUrl(value: string);
@@ -4412,6 +5260,356 @@ declare module "packages/icon/src/icon" {
 declare module "packages/icon/src/index" {
     export { IconName, Icon, IconElement } from "packages/icon/src/icon";
 }
+declare module "packages/combo-box/src/style/combo-box.css" {
+    export let ItemListStyle: string;
+}
+declare module "packages/combo-box/src/combo-box-item" {
+    import { Control, ControlElement } from "@ijstech/components/base";
+    export interface ComboBoxItemElement extends ControlElement {
+        value?: string;
+        label?: string;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ["i-combo-box-item"]: ComboBoxItemElement;
+            }
+        }
+    }
+    export class ComboBoxItem extends Control {
+        private _value;
+        private _label;
+        get value(): string;
+        set value(data: string);
+        get label(): string;
+        set label(data: string);
+        init(): void;
+        static create(options?: ComboBoxItemElement, parent?: Control): Promise<ComboBoxItem>;
+    }
+}
+declare module "packages/combo-box/src/combo-box" {
+    import { Control, ControlElement, notifyEventCallback, IBorder, Border, IFont, IBackground, Background } from "@ijstech/components/base";
+    import { Icon, IconElement } from "packages/icon/src/index";
+    import "packages/combo-box/src/style/combo-box.css";
+    export interface IComboItem {
+        value: string;
+        label: string;
+        isNew?: boolean;
+        description?: string;
+        icon?: string;
+    }
+    type ModeType = 'single' | 'multiple' | 'tags';
+    export interface ComboBoxElement extends ControlElement {
+        value?: string;
+        selectedItem?: IComboItem;
+        selectedItems?: IComboItem[];
+        items?: IComboItem[];
+        icon?: IconElement;
+        mode?: ModeType;
+        readOnly?: boolean;
+        placeholder?: string;
+        onChanged?: notifyEventCallback;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ["i-combo-box"]: ComboBoxElement;
+            }
+        }
+    }
+    export class ComboBox extends Control {
+        private _value;
+        private _selectedItem;
+        private _selectedItems;
+        private _caption;
+        private _captionWidth;
+        private _items;
+        private _icon;
+        private _mode;
+        private _readOnly;
+        private _searchStr;
+        private newItem;
+        private isListShown;
+        private captionSpanElm;
+        private labelElm;
+        private inputWrapElm;
+        private inputElm;
+        private iconElm;
+        private listElm;
+        private callback;
+        onChanged: notifyEventCallback;
+        constructor(parent?: Control, options?: any);
+        get value(): string | undefined;
+        set value(value: string | undefined);
+        get selectedItem(): IComboItem | undefined;
+        set selectedItem(value: IComboItem | undefined);
+        get selectedItems(): IComboItem[] | undefined;
+        set selectedItems(value: IComboItem[] | undefined);
+        get caption(): string;
+        set caption(value: string);
+        get captionWidth(): number | string;
+        set captionWidth(value: number | string);
+        get items(): IComboItem[];
+        set items(items: IComboItem[]);
+        get icon(): Icon;
+        set icon(value: Icon);
+        get searchStr(): string;
+        set searchStr(str: string);
+        get placeholder(): string;
+        set placeholder(value: string);
+        get mode(): ModeType;
+        set mode(value: ModeType);
+        get isMulti(): boolean;
+        set border(value: IBorder);
+        get border(): Border;
+        get enabled(): boolean;
+        set enabled(value: boolean);
+        get readOnly(): boolean;
+        set readOnly(value: boolean);
+        get background(): Background;
+        set background(value: IBackground);
+        get font(): IFont;
+        set font(value: IFont);
+        private isValueValid;
+        private getItemIndex;
+        private openList;
+        calculatePositon(): void;
+        private closeList;
+        private toggleList;
+        private escapeRegExp;
+        private renderItems;
+        private add;
+        private handleRemove;
+        private onItemClick;
+        clear(): void;
+        protected init(): void;
+        disconnectedCallback(): void;
+        static create(options?: ComboBoxElement, parent?: Control): Promise<ComboBox>;
+    }
+}
+declare module "packages/combo-box/src/index" {
+    export { ComboBox, ComboBoxElement, IComboItem } from "packages/combo-box/src/combo-box";
+    export { ComboBoxItem, ComboBoxItemElement } from "packages/combo-box/src/combo-box-item";
+}
+declare module "packages/datepicker/src/style/datepicker.css" { }
+declare module "packages/datepicker/src/datepicker" {
+    import { ControlElement, Control, notifyEventCallback, IBorder, Border } from "@ijstech/components/base";
+    import "packages/datepicker/src/style/datepicker.css";
+    import Moment from 'moment';
+    type actionCallback = (target: Datepicker) => void;
+    type dateType = 'date' | 'dateTime' | 'time';
+    export interface DatepickerElement extends ControlElement {
+        caption?: string;
+        captionWidth?: number | string;
+        value?: Moment.Moment;
+        minDate?: Moment.Moment;
+        placeholder?: string;
+        type?: dateType;
+        dateTimeFormat?: string;
+        onChanged?: notifyEventCallback;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-datepicker']: DatepickerElement;
+            }
+        }
+    }
+    export class Datepicker extends Control {
+        private _value?;
+        private _caption;
+        private _captionWidth;
+        private _iconWidth;
+        private _dateTimeFormat;
+        private _type;
+        private _placeholder;
+        private _minDate;
+        private callback;
+        private captionSpanElm;
+        private labelElm;
+        private inputElm;
+        private toggleElm;
+        private toggleIconElm;
+        private datepickerElm;
+        onChanged: notifyEventCallback;
+        onBlur: actionCallback;
+        constructor(parent?: Control, options?: any);
+        _handleClick(event: MouseEvent): boolean;
+        get caption(): string;
+        set caption(value: string);
+        get captionWidth(): number;
+        set captionWidth(value: number | string);
+        get height(): number;
+        set height(value: number | string);
+        get width(): number;
+        set width(value: number | string);
+        set border(value: IBorder);
+        get border(): Border;
+        get value(): Moment.Moment | undefined;
+        set value(value: Moment.Moment | undefined);
+        set minDate(value: Moment.Moment | undefined);
+        get defaultDateTimeFormat(): string;
+        get dateTimeFormat(): string;
+        set dateTimeFormat(format: string);
+        get datepickerFormat(): string;
+        get maxLength(): number;
+        get enabled(): boolean;
+        set enabled(value: boolean);
+        get placeholder(): string;
+        set placeholder(value: string);
+        get type(): dateType;
+        set type(value: dateType);
+        set designMode(value: boolean);
+        private get formatString();
+        private emitChange;
+        private _onDatePickerChange;
+        private _onBlur;
+        private updateValue;
+        private clear;
+        protected init(): void;
+        protected _handleBlur(event: Event, stopPropagation?: boolean): boolean;
+        static create(options?: DatepickerElement, parent?: Control): Promise<Datepicker>;
+    }
+}
+declare module "packages/datepicker/src/index" {
+    export { Datepicker, DatepickerElement } from "packages/datepicker/src/datepicker";
+}
+declare module "packages/range/src/style/range.css" { }
+declare module "packages/range/src/range" {
+    import { Control, ControlElement, notifyEventCallback, Types } from "@ijstech/components/base";
+    import "packages/range/src/style/range.css";
+    type tooltipFormatterCallback = (value: number) => string;
+    export interface RangeElement extends ControlElement {
+        caption?: string;
+        captionWidth?: number | string;
+        value?: number;
+        min?: number;
+        max?: number;
+        step?: number;
+        stepDots?: boolean | number;
+        tooltipFormatter?: tooltipFormatterCallback;
+        tooltipVisible?: boolean;
+        trackColor?: Types.Color;
+        onChanged?: notifyEventCallback;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-range']: RangeElement;
+            }
+        }
+    }
+    export class Range extends Control {
+        private _value;
+        private _caption;
+        private _captionWidth;
+        private _tooltipVisible;
+        private _trackColor;
+        private tooltipFormatter;
+        private captionSpanElm;
+        private labelElm;
+        private inputElm;
+        private inputContainerElm;
+        private tooltipElm;
+        onChanged: notifyEventCallback;
+        onKeyUp: notifyEventCallback;
+        private callback;
+        constructor(parent?: Control, options?: any);
+        get caption(): string;
+        set caption(value: string);
+        get captionWidth(): number;
+        set captionWidth(value: number | string);
+        get value(): number;
+        set value(value: number);
+        get width(): number;
+        set width(value: number | string);
+        get enabled(): boolean;
+        set enabled(value: boolean);
+        set designMode(value: boolean);
+        get tooltipVisible(): boolean;
+        set tooltipVisible(value: boolean);
+        get trackColor(): Types.Color;
+        set trackColor(value: Types.Color);
+        private onSliderChange;
+        private onUpdateTooltip;
+        protected init(): void;
+        static create(options?: RangeElement, parent?: Control): Promise<Range>;
+    }
+}
+declare module "packages/range/src/index" {
+    export { Range, RangeElement } from "packages/range/src/range";
+}
+declare module "packages/radio/src/radio.css" {
+    export const captionStyle: string;
+}
+declare module "packages/radio/src/radio" {
+    import { Control, ControlElement, notifyEventCallback, IFont } from "@ijstech/components/base";
+    export interface RadioElement extends ControlElement {
+        caption?: string;
+        captionWidth?: number | string;
+        value?: string;
+    }
+    export type RadioGroupLayout = 'vertical' | 'horizontal';
+    export interface RadioGroupElement extends ControlElement {
+        layout?: RadioGroupLayout;
+        selectedValue?: string;
+        radioItems?: RadioElement[];
+        onChanged?: notifyEventCallback;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-radio-group']: RadioGroupElement;
+                ['i-radio']: RadioElement;
+            }
+        }
+    }
+    export class Radio extends Control {
+        private _value;
+        private _caption;
+        private _captionWidth;
+        private labelElm;
+        private inputElm;
+        private captionSpanElm;
+        constructor(parent?: Control, options?: any);
+        get value(): string;
+        set value(value: string);
+        get caption(): string;
+        set caption(value: string);
+        get captionWidth(): number | string;
+        set captionWidth(value: number | string);
+        set font(value: IFont);
+        get font(): IFont;
+        _handleClick(event: MouseEvent): boolean;
+        protected init(): void;
+        static create(options?: RadioElement, parent?: Control): Promise<Radio>;
+    }
+    export class RadioGroup extends Control {
+        private _selectedValue;
+        private _radioItems;
+        private _layout;
+        private _group;
+        private name;
+        onChanged: notifyEventCallback;
+        constructor(parent?: Control, options?: any);
+        get selectedValue(): string;
+        set selectedValue(value: string);
+        get radioItems(): RadioElement[];
+        set radioItems(value: RadioElement[]);
+        get layout(): RadioGroupLayout;
+        set layout(value: RadioGroupLayout);
+        private renderUI;
+        private appendItem;
+        private _handleChange;
+        add(options: RadioElement): Radio;
+        delete(index: number): void;
+        protected init(): void;
+        static create(options?: RadioGroupElement, parent?: Control): Promise<RadioGroup>;
+    }
+}
+declare module "packages/radio/src/index" {
+    export { Radio, RadioElement, RadioGroup, RadioGroupElement, RadioGroupLayout } from "packages/radio/src/radio";
+}
 declare module "packages/modal/src/style/modal.css" {
     import { IModalMediaQuery } from "packages/modal/src/modal";
     export const getOverlayStyle: () => string;
@@ -4428,7 +5626,7 @@ declare module "packages/modal/src/style/modal.css" {
 declare module "packages/modal/src/modal" {
     import { Control, ControlElement, Container, IBackground, IBorder, Background, Border, IMediaQuery, IControlMediaQueryProps, ISpace, Overflow, IOverflow, OverflowType } from "@ijstech/components/base";
     import { Icon, IconElement } from "packages/icon/src/index";
-    export type modalPopupPlacementType = 'center' | 'bottom' | 'bottomLeft' | 'bottomRight' | 'top' | 'topLeft' | 'topRight' | 'rightTop' | 'left' | 'right';
+    export type ModalPopupPlacementType = 'center' | 'bottom' | 'bottomLeft' | 'bottomRight' | 'top' | 'topLeft' | 'topRight' | 'rightTop' | 'left' | 'right';
     type eventCallback = (target: Control) => void;
     type ModalPositionType = "fixed" | "absolute";
     export interface IModalMediaQueryProps extends IControlMediaQueryProps {
@@ -4441,7 +5639,7 @@ declare module "packages/modal/src/modal" {
         title?: string;
         showBackdrop?: boolean;
         closeIcon?: IconElement;
-        popupPlacement?: modalPopupPlacementType;
+        popupPlacement?: ModalPopupPlacementType;
         closeOnBackdropClick?: boolean;
         isChildFixed?: boolean;
         closeOnScrollChildFixed?: boolean;
@@ -4486,8 +5684,8 @@ declare module "packages/modal/src/modal" {
         set onOpen(callback: any);
         get title(): string;
         set title(value: string);
-        get popupPlacement(): modalPopupPlacementType;
-        set popupPlacement(value: modalPopupPlacementType);
+        get popupPlacement(): ModalPopupPlacementType;
+        set popupPlacement(value: ModalPopupPlacementType);
         get closeIcon(): Icon | null;
         set closeIcon(elm: Icon | null);
         get closeOnBackdropClick(): boolean;
@@ -4543,443 +5741,7 @@ declare module "packages/modal/src/modal" {
     }
 }
 declare module "packages/modal/src/index" {
-    export { Modal, ModalElement, modalPopupPlacementType } from "packages/modal/src/modal";
-}
-declare module "packages/module/src/module" {
-    import { Container, ContainerElement } from "@ijstech/components/base";
-    import { IconElement } from "packages/icon/src/index";
-    import { Modal, ModalElement } from "packages/modal/src/index";
-    export interface ModuleElement extends ContainerElement {
-        caption?: string;
-    }
-    global {
-        var Render: any;
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-module']: ModuleElement;
-            }
-        }
-    }
-    export interface IOpenModalOptions {
-        title?: string;
-        showBackdrop?: boolean;
-        closeIcon?: IconElement;
-        width?: number | string;
-        zIndex?: number;
-    }
-    export class Module extends Container {
-        private $renderElms;
-        private $render;
-        private modulesUrlRegex;
-        private static _modalMap;
-        currentModuleDir: string;
-        static create(options?: ModuleElement, parent?: Container, defaults?: ModuleElement): Promise<Module>;
-        constructor(parent?: Container, options?: any, defaults?: any);
-        init(): void;
-        flattenArray(arr: any[]): any;
-        _render(...params: any[]): HTMLElement;
-        render(): void;
-        onLoad(): void;
-        onShow(options?: any): void;
-        onHide(): void;
-        disconnectedCallback(): void;
-        openModal(options?: ModalElement): Modal;
-        closeModal(): void;
-    }
-}
-declare module "packages/module/src/index" {
-    export { Module, ModuleElement, IOpenModalOptions } from "packages/module/src/module";
-}
-declare module "packages/application/src/event-bus" {
-    export interface Registry {
-        unregister: () => void;
-    }
-    export interface Callable {
-        [key: string]: Function;
-    }
-    export interface Subscriber {
-        [key: string]: Callable;
-    }
-    export interface IEventBus {
-        dispatch<T>(event: string, arg?: T): void;
-        register(sender: any, event: string, callback: Function): Registry;
-    }
-    export class EventBus implements IEventBus {
-        private subscribers;
-        private static nextId;
-        private static instance?;
-        private constructor();
-        static getInstance(): EventBus;
-        dispatch<T>(event: string, arg?: T): void;
-        register(sender: any, event: string, callback: Function): Registry;
-        private getNextId;
-    }
-}
-declare module "packages/checkbox/src/style/checkbox.css" { }
-declare module "packages/checkbox/src/checkbox" {
-    import { ControlElement, Control, notifyEventCallback } from "@ijstech/components/base";
-    import "packages/checkbox/src/style/checkbox.css";
-    export interface CheckboxElement extends ControlElement {
-        checked?: boolean;
-        indeterminate?: boolean;
-        caption?: string;
-        captionWidth?: number | string;
-        readOnly?: boolean;
-        onChanged?: notifyEventCallback;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-checkbox']: CheckboxElement;
-            }
-        }
-    }
-    export class Checkbox extends Control {
-        private _caption;
-        private _captionWidth;
-        private _indeterminate;
-        private _checked;
-        private _readOnly;
-        private wrapperElm;
-        private inputSpanElm;
-        private captionSpanElm;
-        private inputElm;
-        private checkmarklElm;
-        onChanged: notifyEventCallback;
-        constructor(parent?: Control, options?: any);
-        get caption(): string;
-        set caption(value: string);
-        get captionWidth(): number | string;
-        set captionWidth(value: number | string);
-        get height(): number;
-        set height(value: number | string);
-        get indeterminate(): boolean;
-        set indeterminate(value: boolean);
-        get checked(): boolean;
-        set checked(value: boolean);
-        get value(): any;
-        set value(data: any);
-        get readOnly(): boolean;
-        set readOnly(value: boolean);
-        private _handleChange;
-        private addClass;
-        protected init(): void;
-        static create(options?: CheckboxElement, parent?: Control): Promise<Checkbox>;
-    }
-}
-declare module "packages/checkbox/src/index" {
-    export { Checkbox, CheckboxElement } from "packages/checkbox/src/checkbox";
-}
-declare module "packages/application/src/globalEvent" {
-    export class GlobalEvents {
-        _leftMouseButtonDown: boolean;
-        private _initialTouchPos;
-        constructor();
-        abortEvent(event: Event): void;
-        private _handleClick;
-        private _handleMouseDown;
-        private _handleMouseMove;
-        private _handleMouseUp;
-        private _handleDblClick;
-        private _handleKeyDown;
-        private _handleKeyUp;
-        private _handleContextMenu;
-        private _handleChange;
-        private _handleMouseWheel;
-        private _handleFocus;
-        private _handleBlur;
-        private bindEvents;
-    }
-}
-declare module "packages/application/src/styles/index.css" {
-    export const applicationStyle: string;
-}
-declare module "packages/ipfs/src/types" {
-    export enum CidCode {
-        DAG_PB = 112,
-        RAW = 85
-    }
-    export interface ICidData {
-        cid: string;
-        links?: ICidInfo[];
-        name?: string;
-        size: number;
-        type?: 'dir' | 'file';
-        code?: CidCode;
-        multihash?: any;
-        bytes?: Uint8Array;
-    }
-    export interface ICidInfo {
-        cid: string;
-        links?: ICidInfo[];
-        name?: string;
-        size: number;
-        type?: 'dir' | 'file';
-    }
-}
-declare module "packages/ipfs/src/utils" {
-    import { ICidData, ICidInfo } from "packages/ipfs/src/types";
-    export function parse(cid: string, bytes?: Uint8Array): ICidData;
-    export interface IHashChunk {
-        size: number;
-        dataSize: number;
-        cid: {
-            toString: () => string;
-        };
-    }
-    export function hashChunk(data: Buffer, version?: number): Promise<IHashChunk>;
-    export function hashChunks(chunks: IHashChunk[] | ICidInfo[], version?: number): Promise<ICidData>;
-    export function hashItems(items?: ICidInfo[], version?: number): Promise<ICidData>;
-    export function hashContent(content: string | Uint8Array, version?: number): Promise<ICidData>;
-    export function hashFile(file: File | Uint8Array, version?: number): Promise<ICidData>;
-    export function cidToHash(cid: string): string;
-}
-declare module "packages/ipfs/src/fileManager" {
-    import { ICidData, ICidInfo } from "packages/ipfs/src/types";
-    export interface ISignature {
-        pubKey: string;
-        timestamp: number;
-        sig: string;
-    }
-    export interface ISignerData {
-        action: string;
-        timestamp: number;
-        data?: any;
-    }
-    export interface ISigner {
-        sign(data: ISignerData, schema: object): Promise<ISignature>;
-    }
-    interface IFileManagerOptions {
-        transport?: IFileManagerTransport;
-        endpoint?: string;
-        signer?: ISigner;
-        rootCid?: string;
-    }
-    export interface IUploadEndpoints {
-        [cid: string]: {
-            exists?: boolean;
-            url: string;
-            method?: string;
-            headers?: {
-                [key: string]: string;
-            };
-        };
-    }
-    export type IGetUploadUrlResult = {
-        success: true;
-        data: IUploadEndpoints;
-    };
-    export interface IRootInfo {
-        success: boolean;
-        data: {
-            cid: string;
-            used: number;
-            quota: number;
-        };
-    }
-    export interface IResult {
-        success: boolean;
-        data?: any;
-    }
-    export interface IFileManagerTransport {
-        applyUpdate(node: FileNode): Promise<IResult>;
-        getCidInfo(cid: string): Promise<ICidInfo | undefined>;
-        getRoot(): Promise<IRootInfo>;
-        getUploadUrl(cidInfo: ICidInfo): Promise<IGetUploadUrlResult | undefined>;
-    }
-    export interface IFileManagerTransporterOptions {
-        endpoint?: string;
-        signer?: ISigner;
-    }
-    export class FileManagerHttpTransport implements IFileManagerTransport {
-        private options;
-        private updated;
-        constructor(options?: IFileManagerTransporterOptions);
-        applyUpdate(node: FileNode): Promise<IResult>;
-        getCidInfo(cid: string): Promise<ICidInfo | undefined>;
-        getRoot(): Promise<IRootInfo>;
-        getUploadUrl(cidInfo: ICidInfo, isRoot?: boolean): Promise<IGetUploadUrlResult | undefined>;
-    }
-    export class FileNode {
-        private _name;
-        private _parent;
-        protected _items: FileNode[];
-        private _cidInfo;
-        private _isFile;
-        private _isFolder;
-        private _file;
-        private _fileContent;
-        private _isModified;
-        private _owner;
-        isRoot: boolean;
-        constructor(owner: FileManager, name: string, parent?: FileNode, cidInfo?: ICidData);
-        get cid(): string;
-        checkCid(): Promise<void>;
-        get fullPath(): string;
-        get isModified(): boolean;
-        modified(value?: boolean): false | undefined;
-        get name(): string;
-        set name(value: string);
-        get parent(): FileNode;
-        set parent(value: FileNode);
-        itemCount(): Promise<number>;
-        items(index: number): Promise<FileNode>;
-        addFile(name: string, file: File): Promise<FileNode>;
-        addFileContent(name: string, content: Uint8Array | string): Promise<FileNode>;
-        addItem(item: FileNode): Promise<void>;
-        removeItem(item: FileNode): void;
-        findItem(name: string): Promise<FileNode | undefined>;
-        get cidInfo(): ICidData | undefined;
-        isFile(): Promise<boolean>;
-        isFolder(): Promise<boolean>;
-        get file(): File | undefined;
-        set file(value: File | undefined);
-        get fileContent(): string | Uint8Array | undefined;
-        set fileContent(value: string | Uint8Array | undefined);
-        hash(): Promise<ICidData | undefined>;
-    }
-    export class FileManager {
-        private transporter;
-        private rootNode;
-        private options;
-        quota: number;
-        used: number;
-        constructor(options?: IFileManagerOptions);
-        addFileTo(folder: FileNode, filePath: string, file: File | Uint8Array): Promise<FileNode>;
-        addFile(filePath: string, file: File): Promise<FileNode | undefined>;
-        addFileContent(filePath: string, content: Uint8Array | string): Promise<FileNode | undefined>;
-        getCidInfo(cid: string): Promise<ICidInfo | undefined>;
-        private updateNode;
-        applyUpdates(): Promise<FileNode | undefined>;
-        delete(fileNode: FileNode): void;
-        addFolder(folder: FileNode, name: string): Promise<FileNode>;
-        updateFolderName(fileNode: FileNode, newName: string): Promise<void>;
-        getFileNode(path: string): Promise<FileNode | undefined>;
-        getRootNode(): Promise<FileNode | undefined>;
-        reset(): void;
-        setRootCid(cid: string): Promise<FileNode | undefined>;
-        move(fileNode: FileNode, newParent: FileNode): void;
-    }
-}
-declare module "packages/ipfs/src/index" {
-    import { ICidInfo } from "packages/ipfs/src/types";
-    export { CidCode, ICidData, ICidInfo } from "packages/ipfs/src/types";
-    export { cidToHash, hashContent, hashFile, hashItems, parse } from "packages/ipfs/src/utils";
-    export { FileManager, FileManagerHttpTransport, IFileManagerTransport, IFileManagerTransporterOptions, ISigner, ISignerData, ISignature, FileNode, IGetUploadUrlResult } from "packages/ipfs/src/fileManager";
-    export interface IFile extends File {
-        path?: string;
-        cid?: {
-            cid: string;
-            size: number;
-        };
-    }
-    export function hashFiles(files: IFile[], version?: number): Promise<ICidInfo>;
-    export function cidToSri(cid: string): Promise<string>;
-}
-declare module "packages/link/src/style/link.css" { }
-declare module "packages/link/src/link" {
-    import { Control, ControlElement } from "@ijstech/components/base";
-    import "packages/link/src/style/link.css";
-    type TagertType = '_self' | '_blank' | '_parent' | '_top';
-    export interface LinkElement extends ControlElement {
-        href?: string;
-        target?: TagertType;
-    }
-    export class Link extends Control {
-        private _href;
-        private _target;
-        private _linkElm;
-        constructor(parent?: Control, options?: any);
-        get href(): string;
-        set href(value: string);
-        get target(): TagertType;
-        set target(value: TagertType);
-        append(children: Control | HTMLElement): void;
-        _handleClick(event: MouseEvent, stopPropagation?: boolean): boolean;
-        protected addChildControl(control: Control): void;
-        protected removeChildControl(control: Control): void;
-        protected init(): void;
-        static create(options?: LinkElement, parent?: Control): Promise<Link>;
-    }
-}
-declare module "packages/link/src/index" {
-    export { Link, LinkElement } from "packages/link/src/link";
-}
-declare module "packages/text/src/style/text.css" { }
-declare module "packages/text/src/text" {
-    import { Control, ControlElement, DisplayType } from "@ijstech/components/base";
-    import "packages/text/src/style/text.css";
-    type WordBreakType = 'normal' | 'break-all' | 'keep-all' | 'break-word' | 'inherit' | 'initial' | 'revert' | 'unset';
-    type OverflowWrapType = 'normal' | 'break-word' | 'anywhere' | 'inherit' | 'initial' | 'revert' | 'unset';
-    export type TextOverflowType = 'clip' | 'ellipsis' | 'initial' | 'inherit';
-    export interface TextElement extends ControlElement {
-        wordBreak?: WordBreakType;
-        overflowWrap?: OverflowWrapType;
-        textOverflow?: TextOverflowType;
-        lineClamp?: number;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-text']: TextElement;
-            }
-        }
-    }
-    export class Text extends Control {
-        constructor(parent?: Control, options?: any);
-        get wordBreak(): WordBreakType;
-        set wordBreak(value: WordBreakType);
-        get overflowWrap(): OverflowWrapType;
-        set overflowWrap(value: OverflowWrapType);
-        get textOverflow(): TextOverflowType;
-        set textOverflow(value: TextOverflowType);
-        get lineClamp(): number;
-        set lineClamp(value: number);
-        get display(): DisplayType;
-        set display(value: DisplayType);
-        protected init(): void;
-        static create(options?: TextElement, parent?: Control): Promise<Text>;
-    }
-}
-declare module "packages/text/src/index" {
-    export { Text, TextElement, TextOverflowType } from "packages/text/src/text";
-}
-declare module "packages/label/src/style/label.css" { }
-declare module "packages/label/src/label" {
-    import { Control } from "@ijstech/components/base";
-    import { Link, LinkElement } from "packages/link/src/index";
-    import { Text, TextElement } from "packages/text/src/index";
-    import "packages/label/src/style/label.css";
-    export interface LabelElement extends TextElement {
-        caption?: string;
-        link?: LinkElement;
-        textDecoration?: string;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-label']: LabelElement;
-            }
-        }
-    }
-    export class Label extends Text {
-        private captionSpan;
-        private _link;
-        constructor(parent?: Control, options?: any);
-        get caption(): string;
-        set caption(value: string);
-        get link(): Link;
-        set link(value: Link);
-        set height(value: number);
-        set width(value: number);
-        get textDecoration(): string;
-        set textDecoration(value: string);
-        protected init(): void;
-        static create(options?: LabelElement, parent?: Control): Promise<Label>;
-    }
-}
-declare module "packages/label/src/index" {
-    export { Label, LabelElement } from "packages/label/src/label";
+    export { Modal, ModalElement, ModalPopupPlacementType } from "packages/modal/src/modal";
 }
 declare module "packages/layout/src/interfaces" {
     export interface IHover {
@@ -5186,26 +5948,28 @@ declare module "packages/layout/src/grid" {
         templateColumns?: string[];
         templateRows?: string[];
         templateAreas?: string[][];
+        justifyContent?: GridLayoutJustifyContentType;
         display?: DisplayType;
         gap?: IGap;
         background?: IBackground;
     }
     export type IGridLayoutMediaQuery = IMediaQuery<IGridLayoutMediaQueryProps>;
     export type GridLayoutHorizontalAlignmentType = "stretch" | "start" | "end" | "center";
+    export type GridLayoutJustifyContentType = "start" | "center" | "end" | "space-between" | "space-around" | "space-evenly";
     export type GridLayoutVerticalAlignmentType = "stretch" | "start" | "end" | "center" | "baseline";
     export interface GridLayoutElement extends ControlElement {
-        templateColumns?: string[];
-        templateRows?: string[];
-        templateAreas?: string[][];
-        display?: DisplayType;
         autoColumnSize?: string;
+        autoFillInHoles?: boolean;
         autoRowSize?: string;
         columnsPerRow?: number;
         gap?: IGap;
         horizontalAlignment?: GridLayoutHorizontalAlignmentType;
-        verticalAlignment?: GridLayoutVerticalAlignmentType;
-        autoFillInHoles?: boolean;
+        justifyContent?: GridLayoutJustifyContentType;
         mediaQueries?: IGridLayoutMediaQuery[];
+        templateAreas?: string[][];
+        templateColumns?: string[];
+        templateRows?: string[];
+        verticalAlignment?: GridLayoutVerticalAlignmentType;
     }
     export const gridSchemaProps: any;
     export const gridProps: any;
@@ -5222,6 +5986,7 @@ declare module "packages/layout/src/grid" {
         private _autoFillInHoles;
         private _mediaQueries;
         private _styleClassMap;
+        private _justifyContent;
         constructor(parent?: Control, options?: any);
         static create(options?: GridLayoutElement, parent?: Container): Promise<GridLayout>;
         get templateColumns(): string[];
@@ -5240,6 +6005,10 @@ declare module "packages/layout/src/grid" {
         set gap(value: IGap);
         get horizontalAlignment(): GridLayoutHorizontalAlignmentType;
         set horizontalAlignment(value: GridLayoutHorizontalAlignmentType);
+        protected removeStyle<P extends keyof GridLayout>(propertyName: P): void;
+        protected setStyle<P extends keyof GridLayout>(propertyName: P, value: string): void;
+        get justifyContent(): GridLayoutJustifyContentType;
+        set justifyContent(value: GridLayoutJustifyContentType);
         get verticalAlignment(): GridLayoutVerticalAlignmentType;
         set verticalAlignment(value: GridLayoutVerticalAlignmentType);
         get autoFillInHoles(): boolean;
@@ -5293,6 +6062,639 @@ declare module "packages/layout/src/index" {
     export { Panel, PanelElement } from "packages/layout/src/panel";
     export { CardLayout, CardLayoutElement } from "packages/layout/src/card";
     export { IGridLayoutMediaQuery, GridLayout, GridLayoutElement } from "packages/layout/src/grid";
+}
+declare module "packages/color/src/utils" {
+    export function stringToArr(color: string, isRgb: boolean): string[];
+    export function hslaToHex(h: number, s: number, l: number, a: number): string;
+    export function rgbToHex(rgba: string[]): string;
+    export function hslaToRgba(h: number, s: number, l: number): {
+        r: number;
+        g: number;
+        b: number;
+    };
+    export function rgbaToHsla(r: number, g: number, b: number): {
+        h: number;
+        s: number;
+        l: number;
+    };
+    export function getUnitValues(h: number, s: number, l: number, a: number): {
+        hex: string;
+        isValid: boolean;
+        r: number;
+        g: number;
+        b: number;
+        h: number;
+        s: number;
+        l: number;
+        a: number;
+    };
+    export function convertColor(color: string): any;
+    export function isRgbValid(value: string): boolean;
+    export function isHValid(value: string): boolean;
+    export function isPercentValid(value: string): boolean;
+    export function customRound(value: number, threshold: number): number;
+    export function hsvToHsl(h: number, s: number, v: number): {
+        h: number;
+        s: number;
+        l: number;
+    };
+    export function hslToHsv(h: number, s: number, l: number): {
+        h: number;
+        s: number;
+        v: number;
+    };
+}
+declare module "packages/color/src/style/color.css" { }
+declare module "packages/color/src/color" {
+    import { ControlElement, Control, notifyEventCallback } from "@ijstech/components/base";
+    import "packages/color/src/style/color.css";
+    export interface ColorPickerElement extends ControlElement {
+        value?: string;
+        caption?: string;
+        captionWidth?: number | string;
+        onChanged?: notifyEventCallback;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-color']: ColorPickerElement;
+            }
+        }
+    }
+    export class ColorPicker extends Control {
+        private wrapperElm;
+        private inputSpanElm;
+        private captionSpanElm;
+        private mdColorPicker;
+        private colorPalette;
+        private colorSlider;
+        private pnlShown;
+        private pnlWrap;
+        private pnlInput;
+        private colorSelected;
+        private _caption;
+        private _captionWidth;
+        private _format;
+        private inputMap;
+        private currentH;
+        private currentColor;
+        private currentPalette;
+        private isMousePressed;
+        private isValueChanged;
+        onChanged: notifyEventCallback;
+        onClosed: () => void;
+        constructor(parent?: Control, options?: any);
+        get value(): string;
+        set value(color: string);
+        get caption(): string;
+        set caption(value: string);
+        get captionWidth(): number | string;
+        set captionWidth(value: number | string);
+        get height(): number;
+        set height(value: number | string);
+        protected init(): Promise<void>;
+        private onOpenPicker;
+        private onClosePicker;
+        private createInputGroup;
+        private createPreview;
+        protected _handleMouseDown(event: MouseEvent): boolean;
+        private handleMouseMove;
+        private handleMouseUp;
+        private createPicker;
+        private activeEyeDropper;
+        private onPaletteChanged;
+        private onSliderChanged;
+        private onToggleFormat;
+        private updateIconPointer;
+        private onColorSelected;
+        private updateColor;
+        private updateCurrentColor;
+        private updateHex;
+        private updateUI;
+        private initUI;
+        private setPalette;
+        private onInputChanged;
+        static create(options?: ColorPickerElement, parent?: Control): Promise<ColorPicker>;
+    }
+}
+declare module "packages/color/src/index" {
+    export { ColorPicker, ColorPickerElement } from "packages/color/src/color";
+}
+declare module "packages/input/src/style/input.css" { }
+declare module "packages/input/src/input" {
+    import { Control, ControlElement, notifyEventCallback, IBorder, Border, IBackground, Background, IFont } from "@ijstech/components/base";
+    import { Checkbox, CheckboxElement } from "packages/checkbox/src/index";
+    import { ComboBox, ComboBoxElement } from "packages/combo-box/src/index";
+    import { Datepicker, DatepickerElement } from "packages/datepicker/src/index";
+    import { Range, RangeElement } from "packages/range/src/index";
+    import { Radio, RadioElement } from "packages/radio/src/index";
+    import { ColorPicker } from "packages/color/src/index";
+    import "packages/input/src/style/input.css";
+    export type InputType = 'checkbox' | 'radio' | 'range' | 'date' | 'time' | 'dateTime' | 'password' | 'combobox' | 'number' | 'textarea' | 'text' | 'color';
+    type InputControlType = Checkbox | ComboBox | Datepicker | Range | Radio | ColorPicker;
+    type actionCallback = (target: Input) => void;
+    type ResizeType = "none" | "auto" | "both" | "horizontal" | "vertical" | "initial" | "inherit" | "auto-grow";
+    export interface InputElement extends ControlElement, CheckboxElement, ComboBoxElement, DatepickerElement, RangeElement, RadioElement {
+        caption?: string;
+        captionWidth?: number | string;
+        inputType?: InputType;
+        value?: any;
+        placeholder?: string;
+        readOnly?: boolean;
+        showClearButton?: boolean;
+        rows?: number;
+        multiline?: boolean;
+        resize?: ResizeType;
+        maxLength?: number;
+        onChanged?: notifyEventCallback;
+        onKeyDown?: notifyEventCallback;
+        onKeyUp?: notifyEventCallback;
+        onBlur?: actionCallback;
+        onFocus?: actionCallback;
+        onClearClick?: actionCallback;
+        onClosed?: () => void;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-input']: InputElement;
+            }
+        }
+    }
+    export class Input extends Control {
+        private _value;
+        private _caption;
+        private _captionWidth;
+        private _inputType;
+        private _placeholder;
+        private _readOnly;
+        private _showClearButton;
+        private _clearBtnWidth;
+        private _rows;
+        private _multiline;
+        private _resize;
+        private _maxLength;
+        private captionSpanElm;
+        private labelElm;
+        private inputElm;
+        private _inputControl;
+        private clearIconElm;
+        private _onClosed;
+        onKeyDown: notifyEventCallback;
+        onKeyUp: notifyEventCallback;
+        onChanged: notifyEventCallback;
+        onBlur: actionCallback;
+        onFocus: actionCallback;
+        onClearClick: actionCallback;
+        constructor(parent?: Control, options?: any);
+        set onObserverChanged(callback: (target: Control, event?: Event) => void);
+        get onObserverChanged(): (target: Control, event?: Event) => void;
+        set checked(value: boolean);
+        get checked(): boolean;
+        set selectedItem(value: any);
+        get selectedItem(): any;
+        get caption(): string;
+        set caption(value: string);
+        get captionWidth(): number | string;
+        set captionWidth(value: number | string);
+        get height(): number;
+        set height(value: number | string);
+        get value(): any;
+        set value(value: any);
+        get width(): number | string;
+        set width(value: number | string);
+        get readOnly(): boolean;
+        set readOnly(value: boolean);
+        get inputType(): InputType;
+        set inputType(type: InputType);
+        get inputControl(): InputControlType;
+        get enabled(): boolean;
+        set enabled(value: boolean);
+        set placeholder(value: string);
+        get rows(): number;
+        set rows(value: number);
+        get multiline(): boolean;
+        set multiline(value: boolean);
+        get resize(): ResizeType;
+        set resize(value: ResizeType);
+        set border(value: IBorder);
+        get border(): Border;
+        set maxLength(value: number);
+        get maxLength(): number;
+        get background(): Background;
+        set background(value: IBackground);
+        get font(): IFont;
+        set font(value: IFont);
+        set onClosed(callback: () => void);
+        get onClosed(): () => void;
+        private _createInputElement;
+        private _inputCallback;
+        private _handleChange;
+        private _handleInputKeyDown;
+        private _handleInputKeyUp;
+        protected _handleBlur(event: Event, stopPropagation?: boolean): boolean;
+        private _handleOnFocus;
+        private _clearValue;
+        focus(): void;
+        protected init(): void;
+        static create(options?: InputElement, parent?: Control): Promise<Input>;
+    }
+}
+declare module "packages/input/src/index" {
+    export { Input, InputElement } from "packages/input/src/input";
+}
+declare module "packages/switch/src/style/switch.css" { }
+declare module "packages/switch/src/switch" {
+    import { Control, ControlElement, notifyEventCallback } from "@ijstech/components/base";
+    import "packages/switch/src/style/switch.css";
+    export interface SwitchElement extends ControlElement {
+        checkedThumbColor?: string;
+        uncheckedThumbColor?: string;
+        checkedThumbText?: string;
+        uncheckedThumbText?: string;
+        checkedTrackColor?: string;
+        uncheckedTrackColor?: string;
+        checkedText?: string;
+        uncheckedText?: string;
+        checked?: boolean;
+        onChanged?: notifyEventCallback;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ["i-switch"]: SwitchElement;
+            }
+        }
+    }
+    export class Switch extends Control {
+        private wrapperElm;
+        private switchBaseElm;
+        private inputElm;
+        private thumbElm;
+        private rippleElm;
+        private trackElm;
+        private _checked;
+        private _checkedThumbColor;
+        private _uncheckedThumbColor;
+        private _checkedTrackColor;
+        private _uncheckedTrackColor;
+        private _checkedText;
+        private _uncheckedText;
+        private _checkedThumbText;
+        private _uncheckedThumbText;
+        onChanged: notifyEventCallback;
+        constructor(parent?: Control, options?: any);
+        get checked(): boolean;
+        set checked(value: boolean);
+        get checkedThumbColor(): string;
+        set checkedThumbColor(value: string);
+        get uncheckedThumbColor(): string;
+        set uncheckedThumbColor(value: string);
+        get checkedTrackColor(): string;
+        set checkedTrackColor(value: string);
+        get uncheckedTrackColor(): string;
+        set uncheckedTrackColor(value: string);
+        get checkedText(): string;
+        set checkedText(value: string);
+        get uncheckedText(): string;
+        set uncheckedText(value: string);
+        get checkedThumbText(): string;
+        set checkedThumbText(value: string);
+        get uncheckedThumbText(): string;
+        set uncheckedThumbText(value: string);
+        protected setAttributeToProperty<P extends keyof Switch>(propertyName: P): void;
+        _handleClick(event: MouseEvent): boolean;
+        init(): void;
+        static create(options?: SwitchElement, parent?: Control): Promise<Switch>;
+    }
+}
+declare module "packages/switch/src/index" {
+    export { Switch, SwitchElement } from "packages/switch/src/switch";
+}
+declare module "packages/link/src/style/link.css" { }
+declare module "packages/link/src/link" {
+    import { Control, ControlElement } from "@ijstech/components/base";
+    import "packages/link/src/style/link.css";
+    type TagertType = '_self' | '_blank' | '_parent' | '_top';
+    export interface LinkElement extends ControlElement {
+        href?: string;
+        target?: TagertType;
+    }
+    export class Link extends Control {
+        private _href;
+        private _target;
+        private _linkElm;
+        constructor(parent?: Control, options?: any);
+        get href(): string;
+        set href(value: string);
+        get target(): TagertType;
+        set target(value: TagertType);
+        append(children: Control | HTMLElement): void;
+        _handleClick(event: MouseEvent, stopPropagation?: boolean): boolean;
+        protected addChildControl(control: Control): void;
+        protected removeChildControl(control: Control): void;
+        protected init(): void;
+        static create(options?: LinkElement, parent?: Control): Promise<Link>;
+    }
+}
+declare module "packages/link/src/index" {
+    export { Link, LinkElement } from "packages/link/src/link";
+}
+declare module "packages/text/src/style/text.css" { }
+declare module "packages/text/src/text" {
+    import { Control, ControlElement, DisplayType } from "@ijstech/components/base";
+    import "packages/text/src/style/text.css";
+    type WordBreakType = 'normal' | 'break-all' | 'keep-all' | 'break-word' | 'inherit' | 'initial' | 'revert' | 'unset';
+    type OverflowWrapType = 'normal' | 'break-word' | 'anywhere' | 'inherit' | 'initial' | 'revert' | 'unset';
+    export type TextOverflowType = 'clip' | 'ellipsis' | 'initial' | 'inherit';
+    export interface TextElement extends ControlElement {
+        wordBreak?: WordBreakType;
+        overflowWrap?: OverflowWrapType;
+        textOverflow?: TextOverflowType;
+        lineClamp?: number;
+    }
+    export const textDataSchema: {
+        wordBreak: {
+            type: string;
+            enum: string[];
+            default: string;
+        };
+        overflowWrap: {
+            type: string;
+            enum: string[];
+            default: string;
+        };
+        textOverflow: {
+            type: string;
+            enum: string[];
+        };
+        lineClamp: {
+            type: string;
+        };
+    };
+    export const textPropsConfig: {
+        wordBreak: {
+            type: string;
+            default: string;
+        };
+        overflowWrap: {
+            type: string;
+            default: string;
+        };
+        textOverflow: {
+            type: string;
+        };
+        lineClamp: {
+            type: string;
+        };
+    };
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-text']: TextElement;
+            }
+        }
+    }
+    export class Text extends Control {
+        constructor(parent?: Control, options?: any);
+        get wordBreak(): WordBreakType;
+        set wordBreak(value: WordBreakType);
+        get overflowWrap(): OverflowWrapType;
+        set overflowWrap(value: OverflowWrapType);
+        get textOverflow(): TextOverflowType;
+        set textOverflow(value: TextOverflowType);
+        get lineClamp(): number;
+        set lineClamp(value: number);
+        get display(): DisplayType;
+        set display(value: DisplayType);
+        protected init(): void;
+        static create(options?: TextElement, parent?: Control): Promise<Text>;
+    }
+}
+declare module "packages/text/src/index" {
+    export { Text, TextElement, TextOverflowType } from "packages/text/src/text";
+}
+declare module "packages/label/src/style/label.css" { }
+declare module "packages/label/src/label" {
+    import { Control, I18n } from "@ijstech/components/base";
+    import { Link, LinkElement } from "packages/link/src/index";
+    import { Text, TextElement } from "packages/text/src/index";
+    import "packages/label/src/style/label.css";
+    type TextDecorationType = 'none' | 'underline' | 'overline' | 'line-through';
+    export interface LabelElement extends TextElement {
+        caption?: string;
+        link?: LinkElement;
+        textDecoration?: TextDecorationType;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-label']: LabelElement;
+            }
+        }
+    }
+    export class Label extends Text {
+        private captionSpan;
+        private _link;
+        private _caption;
+        constructor(parent?: Control, options?: any);
+        updateLocale(i18n: I18n): void;
+        get caption(): string;
+        set caption(value: string);
+        get link(): Link;
+        set link(value: Link);
+        set height(value: number);
+        set width(value: number);
+        get textDecoration(): TextDecorationType;
+        set textDecoration(value: TextDecorationType);
+        protected init(): void;
+        static create(options?: LabelElement, parent?: Control): Promise<Label>;
+    }
+}
+declare module "packages/label/src/index" {
+    export { Label, LabelElement } from "packages/label/src/label";
+}
+declare module "packages/ipfs/src/types" {
+    export enum CidCode {
+        DAG_PB = 112,
+        RAW = 85
+    }
+    export interface ICidData {
+        cid: string;
+        links?: ICidInfo[];
+        name?: string;
+        size: number;
+        type?: 'dir' | 'file';
+        code?: CidCode;
+        multihash?: any;
+        bytes?: Uint8Array;
+    }
+    export interface ICidInfo {
+        cid: string;
+        links?: ICidInfo[];
+        name?: string;
+        size: number;
+        type?: 'dir' | 'file';
+    }
+}
+declare module "packages/ipfs/src/utils" {
+    import { ICidData, ICidInfo } from "packages/ipfs/src/types";
+    export function parse(cid: string, bytes?: Uint8Array): ICidData;
+    export interface IHashChunk {
+        size: number;
+        dataSize: number;
+        cid: {
+            toString: () => string;
+        };
+    }
+    export function hashChunk(data: Buffer, version?: number): Promise<IHashChunk>;
+    export function hashChunks(chunks: IHashChunk[] | ICidInfo[], version?: number): Promise<ICidData>;
+    export function hashItems(items?: ICidInfo[], version?: number): Promise<ICidData>;
+    export function hashContent(content: string | Uint8Array, version?: number): Promise<ICidData>;
+    export function hashFile(file: File | Uint8Array, version?: number): Promise<ICidData>;
+    export function cidToHash(cid: string): string;
+}
+declare module "packages/ipfs/src/fileManager" {
+    import { ICidData, ICidInfo } from "packages/ipfs/src/types";
+    export interface ISignature {
+        pubKey: string;
+        timestamp: number;
+        sig: string;
+    }
+    export interface ISignerData {
+        action: string;
+        timestamp: number;
+        data?: any;
+    }
+    export interface ISigner {
+        sign(data: ISignerData, schema: object): Promise<ISignature>;
+    }
+    interface IFileManagerOptions {
+        transport?: IFileManagerTransport;
+        endpoint?: string;
+        signer?: ISigner;
+        rootCid?: string;
+    }
+    export interface IUploadEndpoints {
+        [cid: string]: {
+            exists?: boolean;
+            url: string;
+            method?: string;
+            headers?: {
+                [key: string]: string;
+            };
+        };
+    }
+    export type IGetUploadUrlResult = {
+        success: true;
+        data: IUploadEndpoints;
+    };
+    export interface IRootInfo {
+        success: boolean;
+        data: {
+            cid: string;
+            used: number;
+            quota: number;
+        };
+    }
+    export interface IResult {
+        success: boolean;
+        data?: any;
+    }
+    export interface IFileManagerTransport {
+        applyUpdate(node: FileNode): Promise<IResult>;
+        getCidInfo(cid: string): Promise<ICidInfo | undefined>;
+        getRoot(): Promise<IRootInfo>;
+        getUploadUrl(cidInfo: ICidInfo): Promise<IGetUploadUrlResult | undefined>;
+    }
+    export interface IFileManagerTransporterOptions {
+        endpoint?: string;
+        signer?: ISigner;
+    }
+    export class FileManagerHttpTransport implements IFileManagerTransport {
+        private options;
+        private updated;
+        constructor(options?: IFileManagerTransporterOptions);
+        applyUpdate(node: FileNode): Promise<IResult>;
+        getCidInfo(cid: string): Promise<ICidInfo | undefined>;
+        getRoot(): Promise<IRootInfo>;
+        getUploadUrl(cidInfo: ICidInfo, isRoot?: boolean): Promise<IGetUploadUrlResult | undefined>;
+    }
+    export class FileNode {
+        private _name;
+        private _parent;
+        protected _items: FileNode[];
+        private _cidInfo;
+        private _isFile;
+        private _isFolder;
+        private _file;
+        private _fileContent;
+        private _isModified;
+        private _owner;
+        isRoot: boolean;
+        constructor(owner: FileManager, name: string, parent?: FileNode, cidInfo?: ICidData);
+        get cid(): string;
+        checkCid(): Promise<void>;
+        get fullPath(): string;
+        get isModified(): boolean;
+        modified(value?: boolean): false | undefined;
+        get name(): string;
+        set name(value: string);
+        get parent(): FileNode;
+        set parent(value: FileNode);
+        itemCount(): Promise<number>;
+        items(index: number): Promise<FileNode>;
+        addFile(name: string, file: File): Promise<FileNode>;
+        addFileContent(name: string, content: Uint8Array | string): Promise<FileNode>;
+        addItem(item: FileNode): Promise<void>;
+        removeItem(item: FileNode): void;
+        findItem(name: string): Promise<FileNode | undefined>;
+        get cidInfo(): ICidData | undefined;
+        isFile(): Promise<boolean>;
+        isFolder(): Promise<boolean>;
+        get file(): File | undefined;
+        set file(value: File | undefined);
+        get fileContent(): string | Uint8Array | undefined;
+        set fileContent(value: string | Uint8Array | undefined);
+        hash(): Promise<ICidData | undefined>;
+    }
+    export class FileManager {
+        private transporter;
+        private rootNode;
+        private options;
+        quota: number;
+        used: number;
+        constructor(options?: IFileManagerOptions);
+        addFileTo(folder: FileNode, filePath: string, file: File | Uint8Array): Promise<FileNode>;
+        addFile(filePath: string, file: File): Promise<FileNode | undefined>;
+        addFileContent(filePath: string, content: Uint8Array | string): Promise<FileNode | undefined>;
+        getCidInfo(cid: string): Promise<ICidInfo | undefined>;
+        private updateNode;
+        applyUpdates(): Promise<FileNode | undefined>;
+        delete(fileNode: FileNode): void;
+        addFolder(folder: FileNode, name: string): Promise<FileNode>;
+        updateFolderName(fileNode: FileNode, newName: string): Promise<void>;
+        getFileNode(path: string): Promise<FileNode | undefined>;
+        getRootNode(): Promise<FileNode | undefined>;
+        reset(): void;
+        setRootCid(cid: string): Promise<FileNode | undefined>;
+        move(fileNode: FileNode, newParent: FileNode): void;
+    }
+}
+declare module "packages/ipfs/src/index" {
+    import { ICidInfo } from "packages/ipfs/src/types";
+    export { CidCode, ICidData, ICidInfo } from "packages/ipfs/src/types";
+    export { cidToHash, hashContent, hashFile, hashItems, parse } from "packages/ipfs/src/utils";
+    export { FileManager, FileManagerHttpTransport, IFileManagerTransport, IFileManagerTransporterOptions, ISigner, ISignerData, ISignature, FileNode, IGetUploadUrlResult } from "packages/ipfs/src/fileManager";
+    export interface IFile extends File {
+        path?: string;
+        cid?: {
+            cid: string;
+            size: number;
+        };
+    }
+    export function hashFiles(files: IFile[], version?: number): Promise<ICidInfo>;
+    export function cidToSri(cid: string): Promise<string>;
 }
 declare module "packages/upload/src/style/upload.css" { }
 declare module "packages/upload/src/upload" {
@@ -5398,7 +6800,7 @@ declare module "packages/upload/src/upload" {
 declare module "packages/button/src/style/button.css" { }
 /// <amd-module name="@ijstech/components/button" />
 declare module "@ijstech/components/button" {
-    import { Control, Container, ControlElement } from "@ijstech/components/base";
+    import { Control, Container, ControlElement, I18n } from "@ijstech/components/base";
     import { Icon, IconElement } from "packages/icon/src/index";
     import "packages/button/src/style/button.css";
     export interface ButtonElement extends ControlElement {
@@ -5417,8 +6819,10 @@ declare module "@ijstech/components/button" {
         private captionElm;
         private _icon;
         private _rightIcon;
+        private _caption;
         static create(options?: ButtonElement, parent?: Container): Promise<Button>;
         constructor(parent?: Control, options?: ButtonElement);
+        updateLocale(i18n: I18n): void;
         get caption(): string;
         set caption(value: string);
         get icon(): Icon;
@@ -5618,6 +7022,107 @@ declare module "packages/upload/src/index" {
     export { Upload, UploadElement, UploadRawFile } from "packages/upload/src/upload";
     export { UploadModal } from "packages/upload/src/upload-modal";
 }
+declare module "packages/module/src/module" {
+    import { Container, ContainerElement, Control, I18n } from "@ijstech/components/base";
+    import { IconElement } from "packages/icon/src/index";
+    import { Modal, ModalElement } from "packages/modal/src/index";
+    export interface ModuleElement extends ContainerElement {
+        caption?: string;
+    }
+    global {
+        var Render: any;
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-module']: ModuleElement;
+            }
+        }
+    }
+    export interface IOpenModalOptions {
+        title?: string;
+        showBackdrop?: boolean;
+        closeIcon?: IconElement;
+        width?: number | string;
+        zIndex?: number;
+    }
+    export class Module extends Container {
+        private $renderElms;
+        private $render;
+        private modulesUrlRegex;
+        private static _modalMap;
+        private static _modules;
+        currentModuleDir: string;
+        private _i18n;
+        static updateLocale(): void;
+        static create(options?: ModuleElement, parent?: Container, defaults?: ModuleElement): Promise<Module>;
+        constructor(parent?: Container, options?: any, defaults?: any);
+        get i18n(): I18n;
+        updateLocale(): void;
+        init(): void;
+        _getValueByControl(elm: Control): any;
+        flattenArray(arr: any[]): any;
+        _render(...params: any[]): HTMLElement;
+        render(): void;
+        onLoad(): void;
+        onShow(options?: any): void;
+        onHide(): void;
+        connectedCallback(): void;
+        disconnectedCallback(): void;
+        openModal(options?: ModalElement): Modal;
+        closeModal(): void;
+    }
+}
+declare module "packages/module/src/index" {
+    export { Module, ModuleElement, IOpenModalOptions } from "packages/module/src/module";
+}
+declare module "packages/application/src/event-bus" {
+    export interface Registry {
+        unregister: () => void;
+    }
+    export interface Callable {
+        [key: string]: Function;
+    }
+    export interface Subscriber {
+        [key: string]: Callable;
+    }
+    export interface IEventBus {
+        dispatch<T>(event: string, arg?: T): void;
+        register(sender: any, event: string, callback: Function): Registry;
+    }
+    export class EventBus implements IEventBus {
+        private subscribers;
+        private static nextId;
+        private static instance?;
+        private constructor();
+        static getInstance(): EventBus;
+        dispatch<T>(event: string, arg?: T): void;
+        register(sender: any, event: string, callback: Function): Registry;
+        private getNextId;
+    }
+}
+declare module "packages/application/src/globalEvent" {
+    export class GlobalEvents {
+        _leftMouseButtonDown: boolean;
+        private _initialTouchPos;
+        constructor();
+        abortEvent(event: Event): void;
+        private _handleClick;
+        private _handleMouseDown;
+        private _handleMouseMove;
+        private _handleMouseUp;
+        private _handleDblClick;
+        private _handleKeyDown;
+        private _handleKeyUp;
+        private _handleContextMenu;
+        private _handleChange;
+        private _handleMouseWheel;
+        private _handleFocus;
+        private _handleBlur;
+        private bindEvents;
+    }
+}
+declare module "packages/application/src/styles/index.css" {
+    export const applicationStyle: string;
+}
 declare module "packages/tab/src/style/tab.css" {
     import { ITabMediaQuery } from "packages/tab/src/tab";
     export const getTabMediaQueriesStyleClass: (mediaQueries: ITabMediaQuery[]) => string;
@@ -5627,7 +7132,7 @@ declare module "packages/tab/src/tab" {
     import { Icon, IconElement } from "packages/icon/src/index";
     import "packages/tab/src/style/tab.css";
     type TabModeType = "horizontal" | "vertical";
-    type TabsEventCallback = (target: Tabs, activeTab: Tab) => void;
+    type TabsEventCallback = (target: Tabs, activeTab: Tab, oldActiveTab?: Tab) => void;
     type TabCloseEventCallback = (target: Tabs, tab: Tab) => void;
     export interface TabsElement extends ContainerElement {
         activeTabIndex?: number;
@@ -5733,619 +7238,6 @@ declare module "packages/tab/src/tab" {
 }
 declare module "packages/tab/src/index" {
     export { Tabs, TabsElement, Tab, TabElement } from "packages/tab/src/tab";
-}
-declare module "packages/combo-box/src/style/combo-box.css" {
-    export let ItemListStyle: string;
-}
-declare module "packages/combo-box/src/combo-box" {
-    import { Control, ControlElement, notifyEventCallback, IBorder, Border, IFont, IBackground, Background } from "@ijstech/components/base";
-    import { Icon, IconElement } from "packages/icon/src/index";
-    import "packages/combo-box/src/style/combo-box.css";
-    export interface IComboItem {
-        value: string;
-        label: string;
-        isNew?: boolean;
-        description?: string;
-        icon?: string;
-    }
-    type ModeType = 'single' | 'multiple' | 'tags';
-    export interface ComboBoxElement extends ControlElement {
-        selectedItem?: IComboItem | IComboItem[];
-        items?: IComboItem[];
-        icon?: IconElement;
-        mode?: ModeType;
-        readOnly?: boolean;
-        placeholder?: string;
-        onChanged?: notifyEventCallback;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ["i-combo-box"]: ComboBoxElement;
-            }
-        }
-    }
-    export class ComboBox extends Control {
-        private _selectedItem;
-        private _caption;
-        private _captionWidth;
-        private _items;
-        private _icon;
-        private _mode;
-        private _readOnly;
-        private _searchStr;
-        private newItem;
-        private isListShown;
-        private captionSpanElm;
-        private labelElm;
-        private inputWrapElm;
-        private inputElm;
-        private iconElm;
-        private listElm;
-        private callback;
-        onChanged: notifyEventCallback;
-        constructor(parent?: Control, options?: any);
-        get value(): IComboItem | IComboItem[] | undefined;
-        set value(value: IComboItem | IComboItem[] | undefined);
-        get selectedItem(): IComboItem | IComboItem[] | undefined;
-        set selectedItem(value: IComboItem | IComboItem[] | undefined);
-        get caption(): string;
-        set caption(value: string);
-        get captionWidth(): number | string;
-        set captionWidth(value: number | string);
-        get items(): IComboItem[];
-        set items(items: IComboItem[]);
-        get icon(): Icon;
-        set icon(value: Icon);
-        get searchStr(): string;
-        set searchStr(str: string);
-        get placeholder(): string;
-        set placeholder(value: string);
-        get mode(): ModeType;
-        set mode(value: ModeType);
-        get isMulti(): boolean;
-        set border(value: IBorder);
-        get border(): Border;
-        get readOnly(): boolean;
-        set readOnly(value: boolean);
-        get background(): Background;
-        set background(value: IBackground);
-        get font(): IFont;
-        set font(value: IFont);
-        private isValueValid;
-        private getItemIndex;
-        private openList;
-        calculatePositon(): void;
-        private closeList;
-        private toggleList;
-        private escapeRegExp;
-        private renderItems;
-        private add;
-        private handleRemove;
-        private onItemClick;
-        clear(): void;
-        protected init(): void;
-        disconnectedCallback(): void;
-        static create(options?: ComboBoxElement, parent?: Control): Promise<ComboBox>;
-    }
-}
-declare module "packages/combo-box/src/index" {
-    export { ComboBox, ComboBoxElement, IComboItem } from "packages/combo-box/src/combo-box";
-}
-declare module "packages/datepicker/src/style/datepicker.css" { }
-declare module "packages/datepicker/src/datepicker" {
-    import { ControlElement, Control, notifyEventCallback, IBorder, Border } from "@ijstech/components/base";
-    import "packages/datepicker/src/style/datepicker.css";
-    import Moment from 'moment';
-    type actionCallback = (target: Datepicker) => void;
-    type dateType = 'date' | 'dateTime' | 'time';
-    export interface DatepickerElement extends ControlElement {
-        caption?: string;
-        captionWidth?: number | string;
-        value?: Moment.Moment;
-        placeholder?: string;
-        type?: dateType;
-        dateTimeFormat?: string;
-        onChanged?: notifyEventCallback;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-datepicker']: DatepickerElement;
-            }
-        }
-    }
-    export class Datepicker extends Control {
-        private _value?;
-        private _caption;
-        private _captionWidth;
-        private _iconWidth;
-        private _dateTimeFormat;
-        private _type;
-        private _placeholder;
-        private callback;
-        private captionSpanElm;
-        private labelElm;
-        private inputElm;
-        private toggleElm;
-        private toggleIconElm;
-        private datepickerElm;
-        onChanged: notifyEventCallback;
-        onBlur: actionCallback;
-        constructor(parent?: Control, options?: any);
-        _handleClick(event: MouseEvent): boolean;
-        get caption(): string;
-        set caption(value: string);
-        get captionWidth(): number;
-        set captionWidth(value: number | string);
-        get height(): number;
-        set height(value: number | string);
-        get width(): number;
-        set width(value: number | string);
-        set border(value: IBorder);
-        get border(): Border;
-        get value(): Moment.Moment | undefined;
-        set value(value: Moment.Moment | undefined);
-        get defaultDateTimeFormat(): string;
-        get dateTimeFormat(): string;
-        set dateTimeFormat(format: string);
-        get datepickerFormat(): string;
-        get maxLength(): number;
-        get enabled(): boolean;
-        set enabled(value: boolean);
-        get placeholder(): string;
-        set placeholder(value: string);
-        get type(): dateType;
-        set type(value: dateType);
-        set designMode(value: boolean);
-        private get formatString();
-        private _onDatePickerChange;
-        private _onBlur;
-        private updateValue;
-        private clear;
-        protected init(): void;
-        protected _handleBlur(event: Event, stopPropagation?: boolean): boolean;
-        static create(options?: DatepickerElement, parent?: Control): Promise<Datepicker>;
-    }
-}
-declare module "packages/datepicker/src/index" {
-    export { Datepicker, DatepickerElement } from "packages/datepicker/src/datepicker";
-}
-declare module "packages/range/src/style/range.css" { }
-declare module "packages/range/src/range" {
-    import { Control, ControlElement, notifyEventCallback, Types } from "@ijstech/components/base";
-    import "packages/range/src/style/range.css";
-    export interface RangeElement extends ControlElement {
-        caption?: string;
-        captionWidth?: number | string;
-        value?: number;
-        min?: number;
-        max?: number;
-        step?: number;
-        stepDots?: boolean | number;
-        tooltipFormatter?: any;
-        tooltipVisible?: boolean;
-        trackColor?: Types.Color;
-        onChanged?: notifyEventCallback;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-range']: RangeElement;
-            }
-        }
-    }
-    export class Range extends Control {
-        private _value;
-        private _caption;
-        private _captionWidth;
-        private _tooltipVisible;
-        private _trackColor;
-        private tooltipFormatter;
-        private captionSpanElm;
-        private labelElm;
-        private inputElm;
-        private inputContainerElm;
-        private tooltipElm;
-        onChanged: notifyEventCallback;
-        onKeyUp: notifyEventCallback;
-        private callback;
-        constructor(parent?: Control, options?: any);
-        get caption(): string;
-        set caption(value: string);
-        get captionWidth(): number;
-        set captionWidth(value: number | string);
-        get value(): number;
-        set value(value: number);
-        get width(): number;
-        set width(value: number | string);
-        get enabled(): boolean;
-        set enabled(value: boolean);
-        set designMode(value: boolean);
-        get tooltipVisible(): boolean;
-        set tooltipVisible(value: boolean);
-        get trackColor(): Types.Color;
-        set trackColor(value: Types.Color);
-        private onSliderChange;
-        private onUpdateTooltip;
-        protected init(): void;
-        static create(options?: RangeElement, parent?: Control): Promise<Range>;
-    }
-}
-declare module "packages/range/src/index" {
-    export { Range, RangeElement } from "packages/range/src/range";
-}
-declare module "packages/radio/src/radio.css" {
-    export const captionStyle: string;
-}
-declare module "packages/radio/src/radio" {
-    import { Control, ControlElement, notifyEventCallback, IFont } from "@ijstech/components/base";
-    export interface RadioElement extends ControlElement {
-        caption?: string;
-        captionWidth?: number | string;
-        value?: string;
-    }
-    export type RadioGroupLayout = 'vertical' | 'horizontal';
-    export interface RadioGroupElement extends ControlElement {
-        layout?: RadioGroupLayout;
-        selectedValue?: string;
-        radioItems?: RadioElement[];
-        onChanged?: notifyEventCallback;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-radio-group']: RadioGroupElement;
-                ['i-radio']: RadioElement;
-            }
-        }
-    }
-    export class Radio extends Control {
-        private _value;
-        private _caption;
-        private _captionWidth;
-        private labelElm;
-        private inputElm;
-        private captionSpanElm;
-        constructor(parent?: Control, options?: any);
-        get value(): string;
-        set value(value: string);
-        get caption(): string;
-        set caption(value: string);
-        get captionWidth(): number | string;
-        set captionWidth(value: number | string);
-        set font(value: IFont);
-        get font(): IFont;
-        _handleClick(event: MouseEvent): boolean;
-        protected init(): void;
-        static create(options?: RadioElement, parent?: Control): Promise<Radio>;
-    }
-    export class RadioGroup extends Control {
-        private _selectedValue;
-        private _radioItems;
-        private _layout;
-        private _group;
-        private name;
-        onChanged: notifyEventCallback;
-        constructor(parent?: Control, options?: any);
-        get selectedValue(): string;
-        set selectedValue(value: string);
-        get radioItems(): RadioElement[];
-        set radioItems(value: RadioElement[]);
-        get layout(): RadioGroupLayout;
-        set layout(value: RadioGroupLayout);
-        private renderUI;
-        private appendItem;
-        private _handleChange;
-        add(options: RadioElement): Radio;
-        delete(index: number): void;
-        protected init(): void;
-        static create(options?: RadioGroupElement, parent?: Control): Promise<RadioGroup>;
-    }
-}
-declare module "packages/radio/src/index" {
-    export { Radio, RadioElement, RadioGroup, RadioGroupElement, RadioGroupLayout } from "packages/radio/src/radio";
-}
-declare module "packages/color/src/utils" {
-    export function stringToArr(color: string, isRgb: boolean): string[];
-    export function hslaToHex(h: number, s: number, l: number, a: number): string;
-    export function rgbToHex(rgba: string[]): string;
-    export function hslaToRgba(h: number, s: number, l: number): {
-        r: number;
-        g: number;
-        b: number;
-    };
-    export function rgbaToHsla(r: number, g: number, b: number): {
-        h: number;
-        s: number;
-        l: number;
-    };
-    export function getUnitValues(h: number, s: number, l: number, a: number): {
-        hex: string;
-        isValid: boolean;
-        r: number;
-        g: number;
-        b: number;
-        h: number;
-        s: number;
-        l: number;
-        a: number;
-    };
-    export function convertColor(color: string): any;
-    export function isRgbValid(value: string): boolean;
-    export function isHValid(value: string): boolean;
-    export function isPercentValid(value: string): boolean;
-    export function customRound(value: number, threshold: number): number;
-    export function hsvToHsl(h: number, s: number, v: number): {
-        h: number;
-        s: number;
-        l: number;
-    };
-    export function hslToHsv(h: number, s: number, l: number): {
-        h: number;
-        s: number;
-        v: number;
-    };
-}
-declare module "packages/color/src/style/color.css" { }
-declare module "packages/color/src/color" {
-    import { ControlElement, Control, notifyEventCallback } from "@ijstech/components/base";
-    import "packages/color/src/style/color.css";
-    export interface ColorPickerElement extends ControlElement {
-        value?: string;
-        caption?: string;
-        captionWidth?: number | string;
-        onChanged?: notifyEventCallback;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-color']: ColorPickerElement;
-            }
-        }
-    }
-    export class ColorPicker extends Control {
-        private wrapperElm;
-        private inputSpanElm;
-        private captionSpanElm;
-        private mdColorPicker;
-        private colorPalette;
-        private colorSlider;
-        private pnlShown;
-        private pnlWrap;
-        private pnlInput;
-        private colorSelected;
-        private _caption;
-        private _captionWidth;
-        private _format;
-        private inputMap;
-        private currentH;
-        private currentColor;
-        private currentPalette;
-        private isMousePressed;
-        onChanged: notifyEventCallback;
-        onClosed: () => void;
-        constructor(parent?: Control, options?: any);
-        get value(): string;
-        set value(color: string);
-        get caption(): string;
-        set caption(value: string);
-        get captionWidth(): number | string;
-        set captionWidth(value: number | string);
-        get height(): number;
-        set height(value: number | string);
-        protected init(): Promise<void>;
-        private onOpenPicker;
-        private onClosePicker;
-        private createInputGroup;
-        private createPreview;
-        protected _handleMouseDown(event: MouseEvent): boolean;
-        private handleMouseMove;
-        private handleMouseUp;
-        private createPicker;
-        private activeEyeDropper;
-        private onPaletteChanged;
-        private onSliderChanged;
-        private onToggleFormat;
-        private updateIconPointer;
-        private onColorSelected;
-        private updateColor;
-        private updateCurrentColor;
-        private updateHex;
-        private updateUI;
-        private initUI;
-        private setPalette;
-        private onInputChanged;
-        static create(options?: ColorPickerElement, parent?: Control): Promise<ColorPicker>;
-    }
-}
-declare module "packages/color/src/index" {
-    export { ColorPicker, ColorPickerElement } from "packages/color/src/color";
-}
-declare module "packages/input/src/style/input.css" { }
-declare module "packages/input/src/input" {
-    import { Control, ControlElement, notifyEventCallback, IBorder, Border, IBackground, Background, IFont } from "@ijstech/components/base";
-    import { Checkbox, CheckboxElement } from "packages/checkbox/src/index";
-    import { ComboBox, ComboBoxElement } from "packages/combo-box/src/index";
-    import { Datepicker, DatepickerElement } from "packages/datepicker/src/index";
-    import { Range, RangeElement } from "packages/range/src/index";
-    import { Radio, RadioElement } from "packages/radio/src/index";
-    import { ColorPicker } from "packages/color/src/index";
-    import "packages/input/src/style/input.css";
-    export type InputType = 'checkbox' | 'radio' | 'range' | 'date' | 'time' | 'dateTime' | 'password' | 'combobox' | 'number' | 'textarea' | 'text' | 'color';
-    type InputControlType = Checkbox | ComboBox | Datepicker | Range | Radio | ColorPicker;
-    type actionCallback = (target: Input) => void;
-    type resizeType = "none" | "auto" | "both" | "horizontal" | "vertical" | "initial" | "inherit" | "auto-grow";
-    export interface InputElement extends ControlElement, CheckboxElement, ComboBoxElement, DatepickerElement, RangeElement, RadioElement {
-        caption?: string;
-        captionWidth?: number | string;
-        inputType?: InputType;
-        value?: any;
-        placeholder?: string;
-        readOnly?: boolean;
-        showClearButton?: boolean;
-        rows?: number;
-        multiline?: boolean;
-        resize?: resizeType;
-        maxLength?: number;
-        onChanged?: notifyEventCallback;
-        onKeyDown?: notifyEventCallback;
-        onKeyUp?: notifyEventCallback;
-        onBlur?: actionCallback;
-        onFocus?: actionCallback;
-        onClearClick?: actionCallback;
-        onClosed?: () => void;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-input']: InputElement;
-            }
-        }
-    }
-    export class Input extends Control {
-        private _value;
-        private _caption;
-        private _captionWidth;
-        private _inputType;
-        private _placeholder;
-        private _readOnly;
-        private _showClearButton;
-        private _clearBtnWidth;
-        private _rows;
-        private _multiline;
-        private _resize;
-        private _maxLength;
-        private captionSpanElm;
-        private labelElm;
-        private inputElm;
-        private _inputControl;
-        private clearIconElm;
-        private _onClosed;
-        onKeyDown: notifyEventCallback;
-        onKeyUp: notifyEventCallback;
-        onChanged: notifyEventCallback;
-        onBlur: actionCallback;
-        onFocus: actionCallback;
-        onClearClick: actionCallback;
-        constructor(parent?: Control, options?: any);
-        get caption(): string;
-        set caption(value: string);
-        get captionWidth(): number | string;
-        set captionWidth(value: number | string);
-        get height(): number;
-        set height(value: number | string);
-        get value(): any;
-        set value(value: any);
-        get width(): number | string;
-        set width(value: number | string);
-        get readOnly(): boolean;
-        set readOnly(value: boolean);
-        get inputType(): InputType;
-        set inputType(type: InputType);
-        get inputControl(): InputControlType;
-        get enabled(): boolean;
-        set enabled(value: boolean);
-        set placeholder(value: string);
-        get rows(): number;
-        set rows(value: number);
-        get multiline(): boolean;
-        set multiline(value: boolean);
-        get resize(): resizeType;
-        set resize(value: resizeType);
-        set border(value: IBorder);
-        get border(): Border;
-        set maxLength(value: number);
-        get maxLength(): number;
-        get background(): Background;
-        set background(value: IBackground);
-        get font(): IFont;
-        set font(value: IFont);
-        set onClosed(callback: () => void);
-        get onClosed(): () => void;
-        private _createInputElement;
-        private _inputCallback;
-        private _handleChange;
-        private _handleInputKeyDown;
-        private _handleInputKeyUp;
-        protected _handleBlur(event: Event, stopPropagation?: boolean): boolean;
-        private _handleOnFocus;
-        private _clearValue;
-        focus(): void;
-        protected init(): void;
-        static create(options?: InputElement, parent?: Control): Promise<Input>;
-    }
-}
-declare module "packages/input/src/index" {
-    export { Input, InputElement } from "packages/input/src/input";
-}
-declare module "packages/switch/src/style/switch.css" { }
-declare module "packages/switch/src/switch" {
-    import { Control, ControlElement, notifyEventCallback } from "@ijstech/components/base";
-    import "packages/switch/src/style/switch.css";
-    export interface SwitchElement extends ControlElement {
-        checkedThumbColor?: string;
-        uncheckedThumbColor?: string;
-        checkedThumbText?: string;
-        uncheckedThumbText?: string;
-        checkedTrackColor?: string;
-        uncheckedTrackColor?: string;
-        checkedText?: string;
-        uncheckedText?: string;
-        checked?: boolean;
-        onChanged?: notifyEventCallback;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ["i-switch"]: SwitchElement;
-            }
-        }
-    }
-    export class Switch extends Control {
-        private wrapperElm;
-        private switchBaseElm;
-        private inputElm;
-        private thumbElm;
-        private rippleElm;
-        private trackElm;
-        private _checked;
-        private _checkedThumbColor;
-        private _uncheckedThumbColor;
-        private _checkedTrackColor;
-        private _uncheckedTrackColor;
-        private _checkedText;
-        private _uncheckedText;
-        private _checkedThumbText;
-        private _uncheckedThumbText;
-        onChanged: notifyEventCallback;
-        constructor(parent?: Control, options?: any);
-        get checked(): boolean;
-        set checked(value: boolean);
-        get checkedThumbColor(): string;
-        set checkedThumbColor(value: string);
-        get uncheckedThumbColor(): string;
-        set uncheckedThumbColor(value: string);
-        get checkedTrackColor(): string;
-        set checkedTrackColor(value: string);
-        get uncheckedTrackColor(): string;
-        set uncheckedTrackColor(value: string);
-        get checkedText(): string;
-        set checkedText(value: string);
-        get uncheckedText(): string;
-        set uncheckedText(value: string);
-        get checkedThumbText(): string;
-        set checkedThumbText(value: string);
-        get uncheckedThumbText(): string;
-        set uncheckedThumbText(value: string);
-        protected setAttributeToProperty<P extends keyof Switch>(propertyName: P): void;
-        _handleClick(event: MouseEvent): boolean;
-        init(): void;
-        static create(options?: SwitchElement, parent?: Control): Promise<Switch>;
-    }
-}
-declare module "packages/switch/src/index" {
-    export { Switch, SwitchElement } from "packages/switch/src/switch";
 }
 declare module "packages/application/src/styles/jsonUI.css" {
     export const jsonUICheckboxStyle: string;
@@ -6651,6 +7543,7 @@ declare module "packages/application/src/idUtils" {
 }
 declare module "packages/application/src/index" {
     import { Module } from "packages/module/src/index";
+    import { Locales, I18n } from "@ijstech/components/base";
     import { EventBus } from "packages/application/src/event-bus";
     import { GlobalEvents } from "packages/application/src/globalEvent";
     import { ICidInfo } from "packages/ipfs/src/index";
@@ -6728,11 +7621,20 @@ declare module "packages/application/src/index" {
         cid: ICidInfo;
         data?: File | string;
     }
+    interface IDevInfo {
+        data?: {
+            [name: string]: any;
+        };
+        paths?: {
+            [name: string]: any;
+        };
+    }
     class Application {
         private static _instance;
         private modules;
         private modulesId;
         private scripts;
+        private loadedScripts;
         globalEvents: GlobalEvents;
         private id;
         currentModulePath: string;
@@ -6750,6 +7652,10 @@ declare module "packages/application/src/index" {
         private bundleLibs;
         store: Record<string, any>;
         rootDir: string;
+        assetsDir: string;
+        dev: IDevInfo | null;
+        private _locale;
+        private _i18n;
         private constructor();
         get EventBus(): EventBus;
         static get Instance(): Application;
@@ -6765,6 +7671,9 @@ declare module "packages/application/src/index" {
         getUploadUrl(item: ICidInfo): Promise<{
             [cid: string]: string;
         }>;
+        get i18n(): I18n;
+        get locale(): Locales;
+        set locale(value: Locales);
         uploadData(fileName: string, content: string): Promise<IUploadResult>;
         uploadFile(extensions?: string | string[]): Promise<IUploadResult>;
         uploadTo(targetCid: string, items: IUploadItem[]): Promise<IUploadResult>;
@@ -6772,7 +7681,8 @@ declare module "packages/application/src/index" {
         private getCidItem;
         private verifyScript;
         private getScript;
-        loadScript(modulePath: string, script?: string): Promise<boolean>;
+        loadScript(modulePath: string, script?: string, forcedSave?: boolean): Promise<boolean>;
+        loadScriptWithIntegrity(modulePath: string, integrity?: string, crossorigin?: string): Promise<boolean | HTMLScriptElement>;
         getContent(modulePath: string): Promise<string>;
         fetchDirectoryInfoByCID(ipfsCid: string): Promise<ICidInfo[]>;
         private calculatePackageModulePath;
@@ -9828,6 +10738,7 @@ declare module "packages/code-editor/src/monaco" {
     export type LanguageType = "txt" | "css" | "json" | "javascript" | "typescript" | "solidity" | "markdown" | "html" | "xml" | "shell";
     export function getLanguageType(fileName: string): LanguageType | undefined;
     export interface Monaco {
+        MarkerSeverity: typeof IMonaco.MarkerSeverity;
         editor: typeof IMonaco.editor;
         Uri: typeof IMonaco.Uri;
         languages: typeof IMonaco.languages;
@@ -9836,6 +10747,7 @@ declare module "packages/code-editor/src/monaco" {
     export function addFile(fileName: string, content: string): Promise<IMonaco.editor.ITextModel | null>;
     export function updateFile(fileName: string, content: string): Promise<IMonaco.editor.ITextModel | null>;
     export function getFileModel(fileName: string): Promise<IMonaco.editor.ITextModel | null>;
+    export function getModels(): Promise<IMonaco.editor.ITextModel[] | undefined>;
     export function addLib(lib: string, dts: string): Promise<void>;
     export function initMonaco(): Promise<Monaco>;
 }
@@ -9850,6 +10762,7 @@ declare module "packages/code-editor/src/code-editor" {
         onChange?: notifyEventCallback;
         onKeyDown?: notifyKeyboardEventCallback;
         onKeyUp?: notifyKeyboardEventCallback;
+        onAddAction?: (editor: IMonaco.editor.IStandaloneCodeEditor) => void;
     }
     global {
         namespace JSX {
@@ -9867,6 +10780,7 @@ declare module "packages/code-editor/src/code-editor" {
         onChange: notifyEventCallback;
         onKeyDown: notifyKeyboardEventCallback;
         onKeyUp: notifyKeyboardEventCallback;
+        onAddAction: (editor: IMonaco.editor.IStandaloneCodeEditor) => void;
         static addLib: typeof addLib;
         static addFile: typeof addFile;
         static getFileModel: typeof getFileModel;
@@ -9880,9 +10794,13 @@ declare module "packages/code-editor/src/code-editor" {
         set language(value: LanguageType);
         get designMode(): boolean;
         set designMode(value: boolean);
+        getErrors(): IMonaco.editor.IMarker[];
         loadContent(content?: string, language?: LanguageType, fileName?: string): Promise<void>;
+        saveViewState(): IMonaco.editor.ICodeEditorViewState | null | undefined;
+        restoreViewState(state: IMonaco.editor.ICodeEditorViewState): void;
         updateFileName(oldValue: string, newValue: string): Promise<void>;
         dispose(): void;
+        disposeEditor(): void;
         scrollToLine(line: number, column: number): void;
         loadFile(fileName: string): Promise<void>;
         updateOptions(options: IMonaco.editor.IEditorOptions): void;
@@ -9892,7 +10810,7 @@ declare module "packages/code-editor/src/code-editor" {
 }
 declare module "packages/code-editor/src/diff-editor" {
     import { Control } from "@ijstech/components/base";
-    import { addLib, addFile, getFileModel, updateFile, LanguageType } from "packages/code-editor/src/monaco";
+    import { addLib, addFile, getFileModel, updateFile, LanguageType, Monaco } from "packages/code-editor/src/monaco";
     import { CodeEditorElement } from "packages/code-editor/src/code-editor";
     import * as IMonaco from "packages/code-editor/src/editor.api";
     import "packages/code-editor/src/style/code-editor.css";
@@ -9902,6 +10820,7 @@ declare module "packages/code-editor/src/diff-editor" {
     }
     export interface CodeDiffEditorElement extends CodeEditorElement {
         onChange?: any;
+        renderSideBySide?: boolean;
     }
     global {
         namespace JSX {
@@ -9918,6 +10837,7 @@ declare module "packages/code-editor/src/diff-editor" {
         private _fileName;
         private _originalValue;
         private _modifiedValue;
+        private _renderSideBySide;
         onChange: any;
         static addLib: typeof addLib;
         static addFile: typeof addFile;
@@ -9927,9 +10847,13 @@ declare module "packages/code-editor/src/diff-editor" {
         get editor(): IMonaco.editor.IDiffEditor;
         get language(): LanguageType;
         set language(value: LanguageType);
+        get designMode(): boolean;
+        set designMode(value: boolean);
+        get monaco(): Monaco;
         setModelLanguage(value: LanguageType, functionName: 'getModifiedEditor' | 'getOriginalEditor'): void;
         dispose(): void;
         updateFileName(): void;
+        getErrors(): IMonaco.editor.IMarker[];
         getEditor(type: EditorType): IMonaco.editor.ICodeEditor;
         getModel(type: EditorType): IMonaco.editor.ITextModel | null;
         loadContent(type: EditorType, content?: string, language?: LanguageType, fileName?: string): Promise<void>;
@@ -10327,9 +11251,7 @@ declare module "packages/markdown/src/markdown" {
     import { Control, ControlElement, ISpace } from "@ijstech/components/base";
     import "packages/markdown/src/styles/index.css";
     export interface MarkdownElement extends ControlElement {
-        caption?: string;
-        src?: string;
-        assetPath?: string;
+        theme?: 'light' | 'dark';
     }
     global {
         namespace JSX {
@@ -10358,7 +11280,7 @@ declare module "packages/markdown/src/markdown" {
         private preParse;
         beforeRender(text: string): Promise<void>;
         processText(text: string): Promise<string>;
-        loadLib(): Promise<unknown>;
+        private loadLib;
         protected init(): void;
     }
 }
@@ -10416,6 +11338,7 @@ declare module "packages/markdown-editor/src/markdown-editor" {
         private _placeholder;
         private _autoFocus;
         private overlayElm;
+        private isPaste;
         onChanged: notifyEventCallback;
         onFocus: notifyEventCallback;
         onBlur: notifyEventCallback;
@@ -10848,216 +11771,6 @@ declare module "packages/popover/src/popover" {
 declare module "packages/popover/src/index" {
     export { Popover, PopoverElement, popoverPlacementType } from "packages/popover/src/popover";
 }
-declare module "packages/chart/src/chart" {
-    import { Control, ControlElement } from "@ijstech/components/base";
-    export interface EchartElement extends ControlElement {
-        theme?: 'light' | 'dark';
-    }
-    export class Chart<T> extends Control {
-        private _data;
-        private _theme;
-        private _echart;
-        private _chartDom;
-        private _chartIns;
-        constructor(parent?: Control, options?: any);
-        get data(): T;
-        set data(value: T);
-        get theme(): 'light' | 'dark';
-        set theme(value: 'light' | 'dark');
-        private get dataObj();
-        showLoading(): void;
-        drawChart(): void;
-        private _drawChart;
-        updateChartOptions(): void;
-        resize(): void;
-        private initChartDom;
-        protected init(): void;
-    }
-}
-declare module "packages/chart/src/lineChart" {
-    import { Control } from "@ijstech/components/base";
-    import { Chart, EchartElement } from "packages/chart/src/chart";
-    export interface LineEchartElement extends EchartElement {
-        data?: any;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-line-chart']: LineEchartElement;
-            }
-        }
-    }
-    export class LineChart extends Chart<any> {
-        constructor(parent?: Control, options?: any);
-        protected init(): void;
-    }
-}
-declare module "packages/chart/src/barChart" {
-    import { Control } from "@ijstech/components/base";
-    import { Chart, EchartElement } from "packages/chart/src/chart";
-    export interface IBarChartAxisTick {
-        show?: boolean;
-    }
-    export interface IBarChartAxisLineStyle {
-        type?: string;
-    }
-    export interface IBarChartAxisLine {
-        show?: boolean;
-        lineStyle?: IBarChartAxisLineStyle;
-    }
-    export interface IBarChartAxisSplitLine {
-        show?: boolean;
-        lineStyle?: IBarChartAxisLineStyle;
-    }
-    export interface IBarChartAxisLabel {
-        color?: string;
-        fontSize?: number;
-        fontFamily?: string;
-    }
-    export interface IBarChartAxisNameTextStyle {
-        fontSize?: number;
-        color?: string;
-    }
-    export interface IBarChartAxis {
-        type?: string;
-        name?: string;
-        nameGap?: number;
-        nameTextStyle?: IBarChartAxisNameTextStyle;
-        boundaryGap?: boolean;
-        data?: string[];
-        min?: number;
-        max?: number;
-        axisTick?: IBarChartAxisTick;
-        axisLabel?: IBarChartAxisLabel;
-        axisLine?: IBarChartAxisLine;
-        splitLine?: IBarChartAxisSplitLine;
-    }
-    export interface IBarChartSeriesLabel {
-        show: boolean;
-        position: string;
-    }
-    export interface IBarChartSeries {
-        type?: string;
-        name?: string;
-        data?: any[];
-        label?: IBarChartSeriesLabel;
-    }
-    export interface IBarChartData {
-        xAxis?: IBarChartAxis;
-        yAxis?: IBarChartAxis;
-        color?: string[];
-        series?: IBarChartSeries[];
-    }
-    export interface BarEchartElement extends EchartElement {
-        data?: IBarChartData;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-bar-chart']: BarEchartElement;
-            }
-        }
-    }
-    export class BarChart extends Chart<IBarChartData> {
-        constructor(parent?: Control, options?: any);
-        protected init(): void;
-    }
-}
-declare module "packages/chart/src/barStackChart" {
-    import { Control } from "@ijstech/components/base";
-    import { Chart, EchartElement } from "packages/chart/src/chart";
-    export interface BarEchartElement extends EchartElement {
-        data?: any;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-bar-stack-chart']: BarEchartElement;
-            }
-        }
-    }
-    export class BarStackChart extends Chart<any> {
-        constructor(parent?: Control, options?: any);
-        protected init(): void;
-    }
-}
-declare module "packages/chart/src/pieChart" {
-    import { Control } from "@ijstech/components/base";
-    import { Chart, EchartElement } from "packages/chart/src/chart";
-    export interface IPieChartTooltip {
-        trigger?: string;
-        formatter?: string;
-    }
-    export interface IPieChartSeries {
-        type?: string;
-        radius?: string[];
-        avoidLabelOverlap?: boolean;
-        data?: any[];
-    }
-    export interface IPieChartData {
-        tooltip?: IPieChartTooltip;
-        series?: IPieChartSeries[];
-    }
-    export interface PieEchartElement extends EchartElement {
-        data?: IPieChartData;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-pie-chart']: PieEchartElement;
-            }
-        }
-    }
-    export class PieChart extends Chart<IPieChartData> {
-        constructor(parent?: Control, options?: any);
-        protected init(): void;
-    }
-}
-declare module "packages/chart/src/scatterChart" {
-    import { Control } from "@ijstech/components/base";
-    import { Chart, EchartElement } from "packages/chart/src/chart";
-    export interface ScatterChartElement extends EchartElement {
-        data?: any;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-scatter-chart']: ScatterChartElement;
-            }
-        }
-    }
-    export class ScatterChart extends Chart<any> {
-        constructor(parent?: Control, options?: any);
-        protected init(): void;
-    }
-}
-declare module "packages/chart/src/scatterLineChart" {
-    import { Control } from "@ijstech/components/base";
-    import { Chart, EchartElement } from "packages/chart/src/chart";
-    export interface ScatterLineChartElement extends EchartElement {
-        data?: any;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-scatter-line-chart']: ScatterLineChartElement;
-            }
-        }
-    }
-    export class ScatterLineChart extends Chart<any> {
-        constructor(parent?: Control, options?: any);
-        protected init(): void;
-    }
-}
-declare module "packages/chart/src/index" {
-    export { Chart } from "packages/chart/src/chart";
-    export { LineChart } from "packages/chart/src/lineChart";
-    export { BarChart } from "packages/chart/src/barChart";
-    export { BarStackChart } from "packages/chart/src/barStackChart";
-    export { PieChart } from "packages/chart/src/pieChart";
-    export { ScatterChart } from "packages/chart/src/scatterChart";
-    export { ScatterLineChart } from "packages/chart/src/scatterLineChart";
-}
 declare module "packages/iframe/src/style/iframe.css" { }
 declare module "packages/iframe/src/iframe" {
     import { Control, ControlElement } from "@ijstech/components/base";
@@ -11080,6 +11793,8 @@ declare module "packages/iframe/src/iframe" {
         private overlayElm;
         constructor(parent?: Control, options?: any);
         reload(): Promise<void>;
+        clear(): void;
+        unload(): void;
         postMessage(msg: string): void;
         get url(): string;
         set url(value: string);
@@ -11219,7 +11934,7 @@ declare module "packages/table/src/tableColumn" {
         set sortOrder(value: SortDirection);
         get textAlign(): TextAlign;
         set textAlign(value: TextAlign);
-        renderSort(): void;
+        private renderSort;
         appendNode(params: any): Promise<void>;
         init(): void;
     }
@@ -11432,8 +12147,8 @@ declare module "packages/carousel/src/carousel" {
         get items(): CarouselItemElement[];
         set items(nodes: CarouselItemElement[]);
         add(control: Control): Control;
-        get type(): 'dot' | 'arrow';
-        set type(value: 'dot' | 'arrow');
+        get type(): CarouselType;
+        set type(value: CarouselType);
         get swipe(): boolean;
         set swipe(value: boolean);
         get mediaQueries(): ICarouselMediaQuery[];
@@ -11443,7 +12158,7 @@ declare module "packages/carousel/src/carousel" {
         _handleMouseUp(event: PointerEvent | MouseEvent | TouchEvent, stopPropagation?: boolean): boolean;
         get indicators(): boolean;
         set indicators(value: boolean);
-        get isArrow(): boolean;
+        private get isArrow();
         private updateArrows;
         private updateSliderByArrows;
         private updateWrapperClass;
@@ -11455,9 +12170,9 @@ declare module "packages/carousel/src/carousel" {
         prev(): void;
         next(): void;
         refresh(): void;
-        dragStartHandler(event: MouseEvent | TouchEvent): void;
-        dragHandler(event: MouseEvent | TouchEvent): void;
-        dragEndHandler(event: MouseEvent | TouchEvent): void;
+        private dragStartHandler;
+        private dragHandler;
+        private dragEndHandler;
         protected init(): void;
         static create(options?: CarouselSliderElement, parent?: Control): Promise<CarouselSlider>;
     }
@@ -12023,6 +12738,13 @@ declare module "packages/form/src/types/index" {
         rule?: IUISchemaRules;
         options?: IUISchemaOptions;
     }
+    export interface IInputOptions {
+        inputType: string;
+        height?: number | string;
+        width?: number | string;
+        value?: number | string;
+        rows?: number;
+    }
 }
 declare module "packages/form/src/form" {
     import { Control, ControlElement, notifyMouseEventCallback } from "@ijstech/components/base";
@@ -12061,7 +12783,7 @@ declare module "packages/form/src/form" {
         };
         customControls?: {
             [key: string]: {
-                render: () => Control;
+                render: (parent?: Control) => Control;
                 getData: (control: Control) => any;
                 setData: (control: Control, value: any, rowData?: any) => void;
             };
@@ -12076,6 +12798,7 @@ declare module "packages/form/src/form" {
         private _formControls;
         private validationData;
         private validationResult;
+        private isSubmitted;
         constructor(parent?: Control, options?: any);
         protected init(): void;
         set formOptions(options: any);
@@ -12091,6 +12814,8 @@ declare module "packages/form/src/form" {
         getFormData(isErrorShown?: boolean): Promise<any>;
         private getDataBySchema;
         private isNumber;
+        private checkArrayErrors;
+        private checkError;
         private findTabByElm;
         renderForm(): void;
         private renderFormByJSONSchema;
@@ -12132,6 +12857,7 @@ declare module "packages/repeater/src/repeater" {
     type onRenderCallback = (parent: Control, index: number) => void;
     export interface RepeaterElement extends ControlElement {
         onRender?: onRenderCallback;
+        data?: any[];
         count?: number;
     }
     global {
@@ -12142,6 +12868,7 @@ declare module "packages/repeater/src/repeater" {
         }
     }
     export class Repeater extends Container {
+        private _data;
         private _count;
         private wrapper;
         private pnlPanel;
@@ -12150,6 +12877,8 @@ declare module "packages/repeater/src/repeater" {
         constructor(parent?: Control, options?: any);
         get count(): number;
         set count(value: number);
+        set data(value: any[]);
+        get data(): any[];
         private foreachNode;
         private isEmpty;
         private cloneItems;
@@ -12182,9 +12911,11 @@ declare module "packages/accordion/src/style/accordion.css" {
 declare module "packages/accordion/src/accordion-item" {
     import { Control, Container } from "@ijstech/components/base";
     import { IAccordionItem } from "packages/accordion/src/interface";
+    import { IFont } from "packages/base/src/component";
     type onSelectedFn = (target: AccordionItem) => void;
     export interface AccordionItemElement extends IAccordionItem {
         onSelected?: onSelectedFn;
+        onRemoved?: onSelectedFn;
     }
     global {
         namespace JSX {
@@ -12216,6 +12947,8 @@ declare module "packages/accordion/src/accordion-item" {
         get showRemove(): boolean;
         set showRemove(value: boolean);
         get contentControl(): Control;
+        get font(): IFont;
+        set font(value: IFont);
         private renderUI;
         private updatePanel;
         private onSelectClick;
@@ -12259,9 +12992,10 @@ declare module "packages/accordion/src/accordion" {
         private createAccordionItem;
         private onItemClick;
         private onRemoveClick;
+        private removeItem;
         add(item: IAccordionItem): AccordionItem;
+        delete(item: AccordionItem): void;
         updateItemName(id: string, name: string): void;
-        removeItem(id: string): void;
         clear(): void;
         private appendItem;
         protected init(): Promise<void>;
@@ -12273,7 +13007,7 @@ declare module "packages/accordion/src/index" {
 declare module "@ijstech/components" {
     export * as Styles from "packages/style/src/index";
     export { application, EventBus, IEventBus, IHasDependencies, IModuleOptions, IModuleRoute, IModuleMenuItem, IRenderUIOptions, DataSchemaValidator, renderUI, FormatUtils, IFormatNumberOptions, IdUtils } from "packages/application/src/index";
-    export { customModule, customElements, getCustomElements, Component, Control, ControlElement, Container, Observe, Unobserve, ClearObservers, isObservable, observable, LibPath, RequireJS, ISpace, IBorder, IFont } from "@ijstech/components/base";
+    export { customModule, customElements, getCustomElements, Component, Control, ControlElement, Container, Observe, Unobserve, ClearObservers, isObservable, observable, LibPath, RequireJS, ISpace, IBorder, IFont, I18n, Locales } from "@ijstech/components/base";
     export { Alert } from "packages/alert/src/index";
     export { Button } from "packages/button/src/index";
     export { CodeEditor, LanguageType, CodeDiffEditor } from "packages/code-editor/src/index";
@@ -12294,7 +13028,6 @@ declare module "@ijstech/components" {
     export { Popover } from "packages/popover/src/index";
     export { Checkbox } from "packages/checkbox/src/index";
     export { Datepicker } from "packages/datepicker/src/index";
-    export { LineChart, BarChart, PieChart, ScatterChart, ScatterLineChart } from "packages/chart/src/index";
     export { Upload, UploadModal } from "packages/upload/src/index";
     export { Tabs, Tab } from "packages/tab/src/index";
     export { Iframe } from "packages/iframe/src/index";
