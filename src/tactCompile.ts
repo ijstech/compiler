@@ -1,8 +1,9 @@
 import * as Types from './types';
 import {
-  build as buildTact,
+  build,
   VirtualFileSystem
 } from './lib/tact-compiler';
+import { Config, ConfigProject } from '@ijstech/tact';
 
 class OverwritableVirtualFileSystem implements VirtualFileSystem {
   root: string;
@@ -64,12 +65,10 @@ class OverwritableVirtualFileSystem implements VirtualFileSystem {
   }
 }
 
-async function compileTactContract(storage: Types.IStorage, config: any) {
+async function buildTact(storage: Types.IStorage, projectConfig: ConfigProject) {
+  if (!projectConfig) throw new Error('Error while building');
   try {
-    const { projects } = config;
-    const projectConfig = projects[0];
     const filesToProcess = [projectConfig.path];
-
     const fs = new OverwritableVirtualFileSystem(`/`);
 
     while (filesToProcess.length !== 0) {
@@ -88,7 +87,7 @@ async function compileTactContract(storage: Types.IStorage, config: any) {
     // }
     // ctx = precompile(ctx, fs, stdlib, entryFile);
 
-    const response = await buildTact({
+    const response = await build({
       config: projectConfig,
       project: fs,
       stdlib: '@stdlib',
@@ -99,18 +98,25 @@ async function compileTactContract(storage: Types.IStorage, config: any) {
       throw new Error('Error while building');
     }
 
-    // fs.overwrites.forEach((value, key) => {
-    //   const filePath = key.startsWith('/') ? key.slice(1) : key;
-    //   let fileContent = value.toString();
-
-    //   if (key.includes('.boc')) {
-    //     fileContent = Buffer.from(value).toString('base64');
-    //   }
-
-    //   storage.writeFile(filePath, fileContent);
-    // });
-
     return fs.overwrites;
+  } catch (error) {
+    return null;
+  }
+}
+
+async function compileTactContract(storage: Types.IStorage, config: Config) {
+  try {
+    let result: Map<string, Buffer> = new Map();
+    const { projects } = config;
+    for (let project of projects) {
+      const built = await buildTact(storage, project);
+      if (built) {
+        for (let [key, value] of built) {
+          result.set(key, value);
+        }
+      }
+    }
+    return result;
   } catch (error) {
     console.error('Compilation failed:', error);
   }
