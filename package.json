@@ -13,7 +13,6 @@
     "compiler": "cli/bin/bundle.js"
   },
   "dependencies": {
-    "@ijstech/tact": "https://github.com/ijstech/tact.git",
     "bignumber.js": "9.1.1",
     "solc": "^0.8.19"
   },
@@ -31,7 +30,7 @@
     "typescript": "5.0.4"
   },
   "scripts": {
-    "build": "rm -rf dist && rm -rf pluginTypes && rm -rf lib && rm -rf types && npm run build:lib && npm run build:types && npm run build:dist && npm run build:cli",
+    "build": "rm -rf dist && rm -rf pluginTypes && rm -rf lib && rm -rf types && npm run build:lib && npm run build:types && npm run build:dist && npm run build:cli && cp -f bundle/lib/tact-compiler.d.ts types/lib/tact-compiler.d.ts",
     "build:cli": "cd cli && tsc && cd ..",
     "build:dist": "rm -rf types && rm -rf bundle && rm -rf dist && tsc && node tools/bundleDist && tsc --P tsconfig.bundle.json && node tools/copyDist",
     "build:lib": "tsc --P tsconfig.lib.json ",

@@ -7,7 +7,11 @@
     "declaration": true,
     "declarationDir": "types",
     "outDir": "lib",
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "@ijstech/*": ["../../src"],
+      "@ton/core": ["../../lib/lib/tact-compiler/index.js"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "test"]

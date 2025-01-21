@@ -108,9 +108,15 @@ export async function bundleTactContract(storage: Types.IStorage, RootPath?: str
             options = JSON.parse(config);
     };
 
-    await Tact.compileTactContract(storage, options);
-    await bundleDist('contract', storage, RootPath);
-    await bundleLib(storage, RootPath);
+    const files = await Tact.compileTactContract(storage, options);
+    if (files) {
+        for (let [key, value] of files) {
+            if (key.startsWith('/')) key = key.substring(1);
+            await storage.writeFile(key, value.toString());
+        }
+        await bundleDist('contract', storage, RootPath);
+        await bundleLib(storage, RootPath);
+    }
 };
 export async function bundleSdk(storage: Types.IStorage, RootPath?: string){
     RootPath = RootPath || storage.rootPath;
@@ -123,6 +129,7 @@ export async function bundleLib(storage: Types.IStorage, RootPath?: string){
     if (packageConfig){
         let packageManager = new PackageManager({
             packageImporter: async (packName: string) => {
+                if (packName === '@ton/core') packName = '@ijstech/ton-core';
                 let pack = await storage.getPackageTypes(packName);
                 packageManager.setImportedPackage(packName, pack);
                 return pack;
@@ -172,6 +179,7 @@ export async function bundleDist(bundleType: string, storage: Types.IStorage, Ro
     if (packageConfig){
         let packageManager = new PackageManager({
             packageImporter: async (packName: string) => {
+                if (packName === '@ton/core') packName = '@ijstech/ton-core';
                 let pack = await storage.getPackageTypes(packName);
                 packageManager.setImportedPackage(packName, pack);
                 return pack;

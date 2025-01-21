@@ -11044,7 +11044,6 @@ declare module "@ijstech/compiler/types" {
             content: string;
         };
     }
-    export type NetworkEnvironment = 'TESTNET' | 'MAINNET' | 'SANDBOX';
 }
 /// <amd-module name="@ijstech/compiler/solCodeGen" />
 declare module "@ijstech/compiler/solCodeGen" {
@@ -11118,7 +11117,7 @@ declare module "@ijstech/compiler/solCompile" {
 /// <amd-module name="@ijstech/compiler/tactCompile" />
 declare module "@ijstech/compiler/tactCompile" {
     import * as Types from "@ijstech/compiler/types";
-    import { Config } from '@ijstech/tact';
+    import { Config } from './lib/tact-compiler';
     function compileTactContract(storage: Types.IStorage, config: Config): Promise<Map<string, Buffer> | undefined>;
     export { compileTactContract };
 }
