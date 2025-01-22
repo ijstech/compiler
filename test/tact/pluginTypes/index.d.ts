@@ -1,6 +1,6 @@
 /// <amd-module name="@scom/scom-tact/contracts/sample_SampleTactContract.ts" />
 declare module "@scom/scom-tact/contracts/sample_SampleTactContract.ts" {
-    import { Cell, Slice, Address, Builder, ContractProvider, Sender, Contract, ContractABI } from '@ijstech/ton-core';
+    import { Cell, Slice, Address, Builder, ContractProvider, Sender, Contract, ContractABI } from '@ton/core';
     export type StateInit = {
         $$type: 'StateInit';
         code: Cell;

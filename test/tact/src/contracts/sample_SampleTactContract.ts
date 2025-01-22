@@ -18,7 +18,7 @@ import {
     ABIReceiver,
     TupleBuilder,
     DictionaryValue
-} from '@ijstech/ton-core';
+} from '@ton/core';
 
 export type StateInit = {
     $$type: 'StateInit';

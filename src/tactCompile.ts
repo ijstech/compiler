@@ -1,9 +1,10 @@
 import * as Types from './types';
 import {
   build,
-  VirtualFileSystem
+  VirtualFileSystem,
+  Config,
+  ConfigProject
 } from './lib/tact-compiler';
-import { Config, ConfigProject } from '@ijstech/tact';
 
 class OverwritableVirtualFileSystem implements VirtualFileSystem {
   root: string;

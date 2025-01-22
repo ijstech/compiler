@@ -1,5 +1,5 @@
-import { Cell, Slice, Address, Builder, ContractProvider, Sender, Contract, ContractABI } from '@ijstech/ton-core';
-export type StateInit = {
+import { Cell, Slice, Address, Builder, ContractProvider, Sender, Contract, ContractABI } from '@ton/core';
+export declare type StateInit = {
     $$type: 'StateInit';
     code: Cell;
     data: Cell;
@@ -10,7 +10,7 @@ export declare function loadStateInit(slice: Slice): {
     code: Cell;
     data: Cell;
 };
-export type StdAddress = {
+export declare type StdAddress = {
     $$type: 'StdAddress';
     workchain: bigint;
     address: bigint;
@@ -21,7 +21,7 @@ export declare function loadStdAddress(slice: Slice): {
     workchain: bigint;
     address: bigint;
 };
-export type VarAddress = {
+export declare type VarAddress = {
     $$type: 'VarAddress';
     workchain: bigint;
     address: Slice;
@@ -32,7 +32,7 @@ export declare function loadVarAddress(slice: Slice): {
     workchain: bigint;
     address: Slice;
 };
-export type Context = {
+export declare type Context = {
     $$type: 'Context';
     bounced: boolean;
     sender: Address;
@@ -47,7 +47,7 @@ export declare function loadContext(slice: Slice): {
     value: bigint;
     raw: Slice;
 };
-export type SendParameters = {
+export declare type SendParameters = {
     $$type: 'SendParameters';
     bounce: boolean;
     to: Address;
@@ -68,7 +68,7 @@ export declare function loadSendParameters(slice: Slice): {
     code: Cell;
     data: Cell;
 };
-export type Deploy = {
+export declare type Deploy = {
     $$type: 'Deploy';
     queryId: bigint;
 };
@@ -77,7 +77,7 @@ export declare function loadDeploy(slice: Slice): {
     $$type: "Deploy";
     queryId: bigint;
 };
-export type DeployOk = {
+export declare type DeployOk = {
     $$type: 'DeployOk';
     queryId: bigint;
 };
@@ -86,7 +86,7 @@ export declare function loadDeployOk(slice: Slice): {
     $$type: "DeployOk";
     queryId: bigint;
 };
-export type FactoryDeploy = {
+export declare type FactoryDeploy = {
     $$type: 'FactoryDeploy';
     queryId: bigint;
     cashback: Address;
@@ -97,7 +97,7 @@ export declare function loadFactoryDeploy(slice: Slice): {
     queryId: bigint;
     cashback: Address;
 };
-export type Add = {
+export declare type Add = {
     $$type: 'Add';
     amount: bigint;
 };
@@ -106,7 +106,7 @@ export declare function loadAdd(slice: Slice): {
     $$type: "Add";
     amount: bigint;
 };
-export type SampleTactContract$Data = {
+export declare type SampleTactContract$Data = {
     $$type: 'SampleTactContract$Data';
     owner: Address;
     counter: bigint;

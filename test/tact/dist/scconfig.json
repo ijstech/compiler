@@ -3,6 +3,6 @@
     "type": "contract",
     "version": "0.1.0",
     "dependencies": [
-        "@ijstech/ton-core"
+        "@ton/core"
     ]
 }
