@@ -1953,7 +1953,7 @@ declare module "storage/allocator" {
     }): AllocationCell;
 }
 declare module "bindings/writeTypescript" {
-    import { ABIArgument, ContractABI } from "@ton/core";
+    import { ABIArgument, ContractABI } from "@scom/ton-core";
     export function writeTypescript(abi: ContractABI, init?: {
         code: string;
         system: string | null;

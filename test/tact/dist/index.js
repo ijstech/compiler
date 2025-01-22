@@ -1,4 +1,4 @@
-define("@scom/scom-tact/contracts/sample_SampleTactContract.ts", ["require", "exports", "@ton/core"], function (require, exports, core_1) {
+define("@scom/scom-tact/contracts/sample_SampleTactContract.ts", ["require", "exports", "@scom/ton-core"], function (require, exports, ton_core_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SampleTactContract = exports.SampleTactContract_getterMapping = exports.loadSampleTactContract$Data = exports.storeSampleTactContract$Data = exports.loadAdd = exports.storeAdd = exports.loadFactoryDeploy = exports.storeFactoryDeploy = exports.loadDeployOk = exports.storeDeployOk = exports.loadDeploy = exports.storeDeploy = exports.loadSendParameters = exports.storeSendParameters = exports.loadContext = exports.storeContext = exports.loadVarAddress = exports.storeVarAddress = exports.loadStdAddress = exports.storeStdAddress = exports.loadStateInit = exports.storeStateInit = void 0;
@@ -28,7 +28,7 @@ define("@scom/scom-tact/contracts/sample_SampleTactContract.ts", ["require", "ex
         return { $$type: 'StateInit', code: _code, data: _data };
     }
     function storeTupleStateInit(source) {
-        const builder = new core_1.TupleBuilder();
+        const builder = new ton_core_1.TupleBuilder();
         builder.writeCell(source.code);
         builder.writeCell(source.data);
         return builder.build();
@@ -36,7 +36,7 @@ define("@scom/scom-tact/contracts/sample_SampleTactContract.ts", ["require", "ex
     function dictValueParserStateInit() {
         return {
             serialize: (src, builder) => {
-                builder.storeRef((0, core_1.beginCell)().store(storeStateInit(src)).endCell());
+                builder.storeRef((0, ton_core_1.beginCell)().store(storeStateInit(src)).endCell());
             },
             parse: (src) => {
                 return loadStateInit(src.loadRef().beginParse());
@@ -69,7 +69,7 @@ define("@scom/scom-tact/contracts/sample_SampleTactContract.ts", ["require", "ex
         return { $$type: 'StdAddress', workchain: _workchain, address: _address };
     }
     function storeTupleStdAddress(source) {
-        const builder = new core_1.TupleBuilder();
+        const builder = new ton_core_1.TupleBuilder();
         builder.writeNumber(source.workchain);
         builder.writeNumber(source.address);
         return builder.build();
@@ -77,7 +77,7 @@ define("@scom/scom-tact/contracts/sample_SampleTactContract.ts", ["require", "ex
     function dictValueParserStdAddress() {
         return {
             serialize: (src, builder) => {
-                builder.storeRef((0, core_1.beginCell)().store(storeStdAddress(src)).endCell());
+                builder.storeRef((0, ton_core_1.beginCell)().store(storeStdAddress(src)).endCell());
             },
             parse: (src) => {
                 return loadStdAddress(src.loadRef().beginParse());
@@ -110,7 +110,7 @@ define("@scom/scom-tact/contracts/sample_SampleTactContract.ts", ["require", "ex
         return { $$type: 'VarAddress', workchain: _workchain, address: _address };
     }
     function storeTupleVarAddress(source) {
-        const builder = new core_1.TupleBuilder();
+        const builder = new ton_core_1.TupleBuilder();
         builder.writeNumber(source.workchain);
         builder.writeSlice(source.address.asCell());
         return builder.build();
@@ -118,7 +118,7 @@ define("@scom/scom-tact/contracts/sample_SampleTactContract.ts", ["require", "ex
     function dictValueParserVarAddress() {
         return {
             serialize: (src, builder) => {
-                builder.storeRef((0, core_1.beginCell)().store(storeVarAddress(src)).endCell());
+                builder.storeRef((0, ton_core_1.beginCell)().store(storeVarAddress(src)).endCell());
             },
             parse: (src) => {
                 return loadVarAddress(src.loadRef().beginParse());
@@ -159,7 +159,7 @@ define("@scom/scom-tact/contracts/sample_SampleTactContract.ts", ["require", "ex
         return { $$type: 'Context', bounced: _bounced, sender: _sender, value: _value, raw: _raw };
     }
     function storeTupleContext(source) {
-        const builder = new core_1.TupleBuilder();
+        const builder = new ton_core_1.TupleBuilder();
         builder.writeBoolean(source.bounced);
         builder.writeAddress(source.sender);
         builder.writeNumber(source.value);
@@ -169,7 +169,7 @@ define("@scom/scom-tact/contracts/sample_SampleTactContract.ts", ["require", "ex
     function dictValueParserContext() {
         return {
             serialize: (src, builder) => {
-                builder.storeRef((0, core_1.beginCell)().store(storeContext(src)).endCell());
+                builder.storeRef((0, ton_core_1.beginCell)().store(storeContext(src)).endCell());
             },
             parse: (src) => {
                 return loadContext(src.loadRef().beginParse());
@@ -237,7 +237,7 @@ define("@scom/scom-tact/contracts/sample_SampleTactContract.ts", ["require", "ex
         return { $$type: 'SendParameters', bounce: _bounce, to: _to, value: _value, mode: _mode, body: _body, code: _code, data: _data };
     }
     function storeTupleSendParameters(source) {
-        const builder = new core_1.TupleBuilder();
+        const builder = new ton_core_1.TupleBuilder();
         builder.writeBoolean(source.bounce);
         builder.writeAddress(source.to);
         builder.writeNumber(source.value);
@@ -250,7 +250,7 @@ define("@scom/scom-tact/contracts/sample_SampleTactContract.ts", ["require", "ex
     function dictValueParserSendParameters() {
         return {
             serialize: (src, builder) => {
-                builder.storeRef((0, core_1.beginCell)().store(storeSendParameters(src)).endCell());
+                builder.storeRef((0, ton_core_1.beginCell)().store(storeSendParameters(src)).endCell());
             },
             parse: (src) => {
                 return loadSendParameters(src.loadRef().beginParse());
@@ -283,14 +283,14 @@ define("@scom/scom-tact/contracts/sample_SampleTactContract.ts", ["require", "ex
         return { $$type: 'Deploy', queryId: _queryId };
     }
     function storeTupleDeploy(source) {
-        const builder = new core_1.TupleBuilder();
+        const builder = new ton_core_1.TupleBuilder();
         builder.writeNumber(source.queryId);
         return builder.build();
     }
     function dictValueParserDeploy() {
         return {
             serialize: (src, builder) => {
-                builder.storeRef((0, core_1.beginCell)().store(storeDeploy(src)).endCell());
+                builder.storeRef((0, ton_core_1.beginCell)().store(storeDeploy(src)).endCell());
             },
             parse: (src) => {
                 return loadDeploy(src.loadRef().beginParse());
@@ -323,14 +323,14 @@ define("@scom/scom-tact/contracts/sample_SampleTactContract.ts", ["require", "ex
         return { $$type: 'DeployOk', queryId: _queryId };
     }
     function storeTupleDeployOk(source) {
-        const builder = new core_1.TupleBuilder();
+        const builder = new ton_core_1.TupleBuilder();
         builder.writeNumber(source.queryId);
         return builder.build();
     }
     function dictValueParserDeployOk() {
         return {
             serialize: (src, builder) => {
-                builder.storeRef((0, core_1.beginCell)().store(storeDeployOk(src)).endCell());
+                builder.storeRef((0, ton_core_1.beginCell)().store(storeDeployOk(src)).endCell());
             },
             parse: (src) => {
                 return loadDeployOk(src.loadRef().beginParse());
@@ -367,7 +367,7 @@ define("@scom/scom-tact/contracts/sample_SampleTactContract.ts", ["require", "ex
         return { $$type: 'FactoryDeploy', queryId: _queryId, cashback: _cashback };
     }
     function storeTupleFactoryDeploy(source) {
-        const builder = new core_1.TupleBuilder();
+        const builder = new ton_core_1.TupleBuilder();
         builder.writeNumber(source.queryId);
         builder.writeAddress(source.cashback);
         return builder.build();
@@ -375,7 +375,7 @@ define("@scom/scom-tact/contracts/sample_SampleTactContract.ts", ["require", "ex
     function dictValueParserFactoryDeploy() {
         return {
             serialize: (src, builder) => {
-                builder.storeRef((0, core_1.beginCell)().store(storeFactoryDeploy(src)).endCell());
+                builder.storeRef((0, ton_core_1.beginCell)().store(storeFactoryDeploy(src)).endCell());
             },
             parse: (src) => {
                 return loadFactoryDeploy(src.loadRef().beginParse());
@@ -408,14 +408,14 @@ define("@scom/scom-tact/contracts/sample_SampleTactContract.ts", ["require", "ex
         return { $$type: 'Add', amount: _amount };
     }
     function storeTupleAdd(source) {
-        const builder = new core_1.TupleBuilder();
+        const builder = new ton_core_1.TupleBuilder();
         builder.writeNumber(source.amount);
         return builder.build();
     }
     function dictValueParserAdd() {
         return {
             serialize: (src, builder) => {
-                builder.storeRef((0, core_1.beginCell)().store(storeAdd(src)).endCell());
+                builder.storeRef((0, ton_core_1.beginCell)().store(storeAdd(src)).endCell());
             },
             parse: (src) => {
                 return loadAdd(src.loadRef().beginParse());
@@ -448,7 +448,7 @@ define("@scom/scom-tact/contracts/sample_SampleTactContract.ts", ["require", "ex
         return { $$type: 'SampleTactContract$Data', owner: _owner, counter: _counter };
     }
     function storeTupleSampleTactContract$Data(source) {
-        const builder = new core_1.TupleBuilder();
+        const builder = new ton_core_1.TupleBuilder();
         builder.writeAddress(source.owner);
         builder.writeNumber(source.counter);
         return builder.build();
@@ -456,7 +456,7 @@ define("@scom/scom-tact/contracts/sample_SampleTactContract.ts", ["require", "ex
     function dictValueParserSampleTactContract$Data() {
         return {
             serialize: (src, builder) => {
-                builder.storeRef((0, core_1.beginCell)().store(storeSampleTactContract$Data(src)).endCell());
+                builder.storeRef((0, ton_core_1.beginCell)().store(storeSampleTactContract$Data(src)).endCell());
             },
             parse: (src) => {
                 return loadSampleTactContract$Data(src.loadRef().beginParse());
@@ -470,8 +470,8 @@ define("@scom/scom-tact/contracts/sample_SampleTactContract.ts", ["require", "ex
         };
     }
     async function SampleTactContract_init(owner) {
-        const __code = core_1.Cell.fromBase64('te6ccgECEAEAAhMAART/APSkE/S88sgLAQIBYgIDAlzQAdDTAwFxsKMB+kBUYTATFm8E+GEC+GLbPFrbPPLggsh/AcoAWVnPFssfye1UDQQCAVgLDAPg7aLt+wGSMH/gcCHXScIflTAg1wsf3iCCEIfUOsK6jpUw0x8BghCH1DrCuvLggdMfATHbPH/gIIIQlGqYtrqOqDDTHwGCEJRqmLa68uCB0z8BMcgBghCv+Q9XWMsfyz/J+EIBcG3bPH/gwACRMOMNcAYIBQNs+QGC8MT41yMS7f3vW3vseDO9uxYtFRG9eKkSrtDyY3r2VXKuuo+Ocds8iPhCAX9t2zx/2zHgBgcIACT4QW8kECNfAyOBEU0CxwXy9KAAHgAAAABpbmNyZW1lbnRlZAE8bW0ibrOZWyBu8tCAbyIBkTLiECRwAwSAQlAj2zwwCQH2yHEBygFQBwHKAHABygJQBc8WUAP6AnABymgjbrORf5MkbrPijkx/AcoAyHABygBwAcoAJG6znX8BygAEIG7y0IBQBMyWNANwAcoA4iRus51/AcoABCBu8tCAUATMljQDcAHKAOJwAcoAAn8BygACyVjMlzMzAXABygDiCgA2IW6znH8BygABIG7y0IABzJUxcAHKAOLJAfsIAhG5oY2zzbPGwhgNDgARuCvu1E0NIAAYATDtRNDSAAGZ+kABAdMfWWwS4PpAAQHR2zwPAAIgAAJw');
-        const builder = (0, core_1.beginCell)();
+        const __code = ton_core_1.Cell.fromBase64('te6ccgECEAEAAhMAART/APSkE/S88sgLAQIBYgIDAlzQAdDTAwFxsKMB+kBUYTATFm8E+GEC+GLbPFrbPPLggsh/AcoAWVnPFssfye1UDQQCAVgLDAPg7aLt+wGSMH/gcCHXScIflTAg1wsf3iCCEIfUOsK6jpUw0x8BghCH1DrCuvLggdMfATHbPH/gIIIQlGqYtrqOqDDTHwGCEJRqmLa68uCB0z8BMcgBghCv+Q9XWMsfyz/J+EIBcG3bPH/gwACRMOMNcAYIBQNs+QGC8MT41yMS7f3vW3vseDO9uxYtFRG9eKkSrtDyY3r2VXKuuo+Ocds8iPhCAX9t2zx/2zHgBgcIACT4QW8kECNfAyOBEU0CxwXy9KAAHgAAAABpbmNyZW1lbnRlZAE8bW0ibrOZWyBu8tCAbyIBkTLiECRwAwSAQlAj2zwwCQH2yHEBygFQBwHKAHABygJQBc8WUAP6AnABymgjbrORf5MkbrPijkx/AcoAyHABygBwAcoAJG6znX8BygAEIG7y0IBQBMyWNANwAcoA4iRus51/AcoABCBu8tCAUATMljQDcAHKAOJwAcoAAn8BygACyVjMlzMzAXABygDiCgA2IW6znH8BygABIG7y0IABzJUxcAHKAOLJAfsIAhG5oY2zzbPGwhgNDgARuCvu1E0NIAAYATDtRNDSAAGZ+kABAdMfWWwS4PpAAQHR2zwPAAIgAAJw');
+        const builder = (0, ton_core_1.beginCell)();
         builder.storeUint(0, 1);
         initSampleTactContract_init_args({ $$type: 'SampleTactContract_init_args', owner })(builder);
         const __data = builder.endCell();
@@ -543,7 +543,7 @@ define("@scom/scom-tact/contracts/sample_SampleTactContract.ts", ["require", "ex
         }
         static async fromInit(owner) {
             const init = await SampleTactContract_init(owner);
-            const address = (0, core_1.contractAddress)(0, init);
+            const address = (0, ton_core_1.contractAddress)(0, init);
             return new SampleTactContract(address, init);
         }
         static fromAddress(address) {
@@ -561,14 +561,14 @@ define("@scom/scom-tact/contracts/sample_SampleTactContract.ts", ["require", "ex
         }
         async send(provider, via, args, message) {
             let body = null;
-            if (message && typeof message === 'object' && !(message instanceof core_1.Slice) && message.$$type === 'Add') {
-                body = (0, core_1.beginCell)().store(storeAdd(message)).endCell();
+            if (message && typeof message === 'object' && !(message instanceof ton_core_1.Slice) && message.$$type === 'Add') {
+                body = (0, ton_core_1.beginCell)().store(storeAdd(message)).endCell();
             }
             if (message === "increment") {
-                body = (0, core_1.beginCell)().storeUint(0, 32).storeStringTail(message).endCell();
+                body = (0, ton_core_1.beginCell)().storeUint(0, 32).storeStringTail(message).endCell();
             }
-            if (message && typeof message === 'object' && !(message instanceof core_1.Slice) && message.$$type === 'Deploy') {
-                body = (0, core_1.beginCell)().store(storeDeploy(message)).endCell();
+            if (message && typeof message === 'object' && !(message instanceof ton_core_1.Slice) && message.$$type === 'Deploy') {
+                body = (0, ton_core_1.beginCell)().store(storeDeploy(message)).endCell();
             }
             if (body === null) {
                 throw new Error('Invalid message type');
@@ -576,7 +576,7 @@ define("@scom/scom-tact/contracts/sample_SampleTactContract.ts", ["require", "ex
             await provider.internal(via, { ...args, body: body });
         }
         async getCounter(provider) {
-            const builder = new core_1.TupleBuilder();
+            const builder = new ton_core_1.TupleBuilder();
             const source = (await provider.get(104984, builder.build())).stack;
             const result = source.readBigNumber();
             return result;

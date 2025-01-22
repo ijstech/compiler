@@ -10,7 +10,7 @@
     "baseUrl": ".",
     "paths": {
       "@ijstech/*": ["../../src"],
-      "@ton/core": ["../../lib/lib/tact-compiler/index.js"]
+      "@scom/ton-core": ["../../lib/lib/tact-compiler.js"]
     }
   },
   "include": ["src/**/*"],
