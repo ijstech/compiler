@@ -7160,7 +7160,8 @@ declare namespace ts {
 export = ts;
 };
 
-declare namespace TactCompiler {
+declare module "tact-compiler" {
+    declare namespace TactCompiler {
                 declare module "config/parseConfig" {
     import { z } from "zod";
     export const optionsSchema: z.ZodObject<{
@@ -9115,7 +9116,7 @@ declare module "storage/allocator" {
     }): AllocationCell;
 }
 declare module "bindings/writeTypescript" {
-    import { ABIArgument, ContractABI } from "@ton/core";
+    import { ABIArgument, ContractABI } from "@scom/ton-core";
     export function writeTypescript(abi: ContractABI, init?: {
         code: string;
         system: string | null;
@@ -10900,6 +10901,7 @@ export * from "./error/errors";
 
             };
  export = TactCompiler;
+};
 
 /// <reference types="node" />
 /// <amd-module name="@ijstech/compiler/lib" />

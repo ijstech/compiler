@@ -129,7 +129,6 @@ export async function bundleLib(storage: Types.IStorage, RootPath?: string){
     if (packageConfig){
         let packageManager = new PackageManager({
             packageImporter: async (packName: string) => {
-                if (packName === '@ton/core') packName = '@ijstech/ton-core';
                 let pack = await storage.getPackageTypes(packName);
                 packageManager.setImportedPackage(packName, pack);
                 return pack;
@@ -179,7 +178,6 @@ export async function bundleDist(bundleType: string, storage: Types.IStorage, Ro
     if (packageConfig){
         let packageManager = new PackageManager({
             packageImporter: async (packName: string) => {
-                if (packName === '@ton/core') packName = '@ijstech/ton-core';
                 let pack = await storage.getPackageTypes(packName);
                 packageManager.setImportedPackage(packName, pack);
                 return pack;

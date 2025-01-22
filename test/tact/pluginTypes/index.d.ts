@@ -1,6 +1,6 @@
 /// <amd-module name="@scom/scom-tact/contracts/sample_SampleTactContract.ts" />
 declare module "@scom/scom-tact/contracts/sample_SampleTactContract.ts" {
-    import { Cell, Slice, Address, Builder, ContractProvider, Sender, Contract, ContractABI } from '@ton/core';
+    import { Cell, Slice, Address, Builder, ContractProvider, Sender, Contract, ContractABI } from '@scom/ton-core';
     export type StateInit = {
         $$type: 'StateInit';
         code: Cell;
@@ -45,7 +45,7 @@ declare module "@scom/scom-tact/contracts/sample_SampleTactContract.ts" {
     export function loadContext(slice: Slice): {
         $$type: "Context";
         bounced: boolean;
-        sender: Address;
+        sender: any;
         value: bigint;
         raw: Slice;
     };
@@ -63,7 +63,7 @@ declare module "@scom/scom-tact/contracts/sample_SampleTactContract.ts" {
     export function loadSendParameters(slice: Slice): {
         $$type: "SendParameters";
         bounce: boolean;
-        to: Address;
+        to: any;
         value: bigint;
         mode: bigint;
         body: Cell;
@@ -97,7 +97,7 @@ declare module "@scom/scom-tact/contracts/sample_SampleTactContract.ts" {
     export function loadFactoryDeploy(slice: Slice): {
         $$type: "FactoryDeploy";
         queryId: bigint;
-        cashback: Address;
+        cashback: any;
     };
     export type Add = {
         $$type: 'Add';
@@ -116,7 +116,7 @@ declare module "@scom/scom-tact/contracts/sample_SampleTactContract.ts" {
     export function storeSampleTactContract$Data(src: SampleTactContract$Data): (builder: Builder) => void;
     export function loadSampleTactContract$Data(slice: Slice): {
         $$type: "SampleTactContract$Data";
-        owner: Address;
+        owner: any;
         counter: bigint;
     };
     export const SampleTactContract_getterMapping: {

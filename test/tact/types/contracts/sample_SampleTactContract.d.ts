@@ -1,4 +1,4 @@
-import { Cell, Slice, Address, Builder, ContractProvider, Sender, Contract, ContractABI } from '@ton/core';
+import { Cell, Slice, Address, Builder, ContractProvider, Sender, Contract, ContractABI } from '@scom/ton-core';
 export declare type StateInit = {
     $$type: 'StateInit';
     code: Cell;
