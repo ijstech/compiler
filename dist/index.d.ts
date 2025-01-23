@@ -7162,7 +7162,7 @@ export = ts;
 
 declare module "tact-compiler" {
     declare namespace TactCompiler {
-                declare module "config/parseConfig" {
+            declare module "config/parseConfig" {
     import { z } from "zod";
     export const optionsSchema: z.ZodObject<{
         /**
@@ -10882,7 +10882,7 @@ declare module "utils/testKey" {
     export function testKey(seed: string): import("@ton/crypto").KeyPair;
 }
 
-                /// <amd-module name="@ijstech/tact" />
+            /// <amd-module name="@ijstech/tact" />
 export { enableFeatures, build } from "./pipeline/build";
 export { precompile } from "./pipeline/precompile";
 export { TactError, TactCompilationError, TactInternalCompilerError, TactConstEvalError, TactErrorCollection, } from "./error/errors";
