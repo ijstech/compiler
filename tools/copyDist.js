@@ -62,10 +62,9 @@ async function bundle(){
     exports.default = ts;
 });
 
-define("tact-compiler", ["require", "exports", "@scom/ton-core"], function (require, exports, ton_core_1) {
+define("tact-compiler", ["require", "exports", "@scom/ton-core", "bignumber.js"], function (require, exports, ton_core_1, bignumber_js_1) {
     Object.defineProperty(exports, "__esModule", { value: true }); 
     ${compiler} 
-    exports.default = TactCompiler;
 });
 
 ${content}`);
