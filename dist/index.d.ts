@@ -7162,7 +7162,7 @@ export = ts;
 
 declare module "tact-compiler" {
     declare namespace TactCompiler {
-                declare module "config/parseConfig" {
+declare module "config/parseConfig" {
     import { z } from "zod";
     export const optionsSchema: z.ZodObject<{
         /**
@@ -10882,7 +10882,7 @@ declare module "utils/testKey" {
     export function testKey(seed: string): import("@ton/crypto").KeyPair;
 }
 
-                /// <amd-module name="@ijstech/tact" />
+/// <amd-module name="@ijstech/tact" />
 export { enableFeatures, build } from "./pipeline/build";
 export { precompile } from "./pipeline/precompile";
 export { TactError, TactCompilationError, TactInternalCompilerError, TactConstEvalError, TactErrorCollection, } from "./error/errors";
@@ -10899,7 +10899,7 @@ export * from "./browser";
 export * from "./context/logger";
 export * from "./error/errors";
 
-            };
+};
  export = TactCompiler;
 };
 
@@ -11119,9 +11119,10 @@ declare module "@ijstech/compiler/solCompile" {
 /// <amd-module name="@ijstech/compiler/tactCompile" />
 declare module "@ijstech/compiler/tactCompile" {
     import * as Types from "@ijstech/compiler/types";
-    import { Config } from './lib/tact-compiler';
+    import { Config, ConfigProject } from './lib/tact-compiler';
+    function buildTact(storage: Types.IStorage, projectConfig: ConfigProject): Promise<Map<string, Buffer> | null>;
     function compileTactContract(storage: Types.IStorage, config: Config): Promise<Map<string, Buffer> | undefined>;
-    export { compileTactContract };
+    export { compileTactContract, buildTact, Config, ConfigProject };
 }
 /// <amd-module name="@ijstech/compiler" />
 declare module "@ijstech/compiler" {
@@ -11139,7 +11140,7 @@ declare module "@ijstech/compiler" {
         worker = "worker"
     }
     export function bundleContract(storage: Types.IStorage, solc: Types.ISolc, RootPath?: string): Promise<void>;
-    export function bundleTactContract(storage: Types.IStorage, RootPath?: string): Promise<void>;
+    export function bundleTactContract(storage: Types.IStorage, RootPath?: string, config?: any): Promise<Map<string, Buffer> | undefined>;
     export function bundleSdk(storage: Types.IStorage, RootPath?: string): Promise<void>;
     export function bundleLib(storage: Types.IStorage, RootPath?: string): Promise<void>;
     export function bundleDist(bundleType: string, storage: Types.IStorage, RootPath?: string): Promise<void>;

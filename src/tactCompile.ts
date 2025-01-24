@@ -124,5 +124,8 @@ async function compileTactContract(storage: Types.IStorage, config: Config) {
 }
 
 export {
-  compileTactContract
+  compileTactContract,
+  buildTact,
+  Config,
+  ConfigProject
 };

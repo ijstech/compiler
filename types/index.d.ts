@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import * as Parser from './parser';
 import TS from "./lib/typescript";
 import Path from './path';
@@ -12,7 +13,7 @@ export declare enum EPackageType {
     worker = "worker"
 }
 export declare function bundleContract(storage: Types.IStorage, solc: Types.ISolc, RootPath?: string): Promise<void>;
-export declare function bundleTactContract(storage: Types.IStorage, RootPath?: string): Promise<void>;
+export declare function bundleTactContract(storage: Types.IStorage, RootPath?: string, config?: any): Promise<Map<string, Buffer> | undefined>;
 export declare function bundleSdk(storage: Types.IStorage, RootPath?: string): Promise<void>;
 export declare function bundleLib(storage: Types.IStorage, RootPath?: string): Promise<void>;
 export declare function bundleDist(bundleType: string, storage: Types.IStorage, RootPath?: string): Promise<void>;
