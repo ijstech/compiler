@@ -7161,7 +7161,7 @@ export = ts;
 };
 
 declare module "tact-compiler" {
-    declare namespace TactCompiler {
+declare namespace TactCompiler {
 declare module "config/parseConfig" {
     import { z } from "zod";
     export const optionsSchema: z.ZodObject<{
