@@ -50,7 +50,7 @@ async function bundle(){
     await copyFile(Path.resolve(__dirname, '../node_modules/@ijstech/components/types/index.d.ts'), Path.resolve(__dirname, '../dist/lib/components/index.d.ts'));
 
     let typescript = await readFile(Path.resolve(__dirname, '../node_modules/typescript/lib/typescript.js'));
-    let compiler = await readFile(Path.resolve(__dirname, '../src/lib/tact-compiler/index.js'));
+    let compiler = await readFile(Path.resolve(__dirname, '../src/lib/tact-compiler/browser.js'));
 
     let content = await readFile(Path.resolve(__dirname, '../dist/index.js'));
     content = replaceAll(content, '"./lib/typescript"', '"typescript"');
@@ -62,7 +62,7 @@ async function bundle(){
     exports.default = ts;
 });
 
-define("tact-compiler", ["require", "exports"], function (require, exports) {
+define("tact-compiler", ["require", "exports", "@scom/ton-core"], function (require, exports, ton_core_1) {
     Object.defineProperty(exports, "__esModule", { value: true }); 
     ${compiler} 
     exports.default = TactCompiler;

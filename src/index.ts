@@ -11,7 +11,7 @@ export {Parser, Path};
 import * as Sol from './solCompile';
 import * as Tact from './tactCompile';
 import * as Types from './types';
-import { ICompilerError } from './types';
+import {ICompilerError} from './types';
 export {Types};
 
 let isNode = false;    
@@ -93,23 +93,26 @@ export async function bundleContract(storage: Types.IStorage, solc: Types.ISolc,
     await bundleDist('contract', storage, RootPath);
     await bundleLib(storage, RootPath);
 };
-export async function bundleTactContract(storage: Types.IStorage, RootPath?: string){
-    RootPath = RootPath || storage.rootPath;
-    let scconfig = await storage.getSCConfig();
-    let options = scconfig?.tact;
-    if (!options){
-        const isExist = await storage.isFileExists('tact.config.json');
-        if (!isExist) {
-            console.error('tact.config.json not found');
-            return;
-        }
-        let config = await storage.readFile('tact.config.json');
-        if (config)
-            options = JSON.parse(config);
-    };
+export async function bundleTactContract(storage: Types.IStorage, RootPath?: string, config?: any){//TODO
+    let options = config;
+    if (!options) {
+        RootPath = RootPath || storage.rootPath;
+        const scconfig = await storage.getSCConfig();
+        options = scconfig?.tact;
+        if (!options) {
+            const isExist = await storage.isFileExists('tact.config.json');
+            if (!isExist) {
+                console.error('tact.config.json not found');
+                return;
+            }
+            const tactConfig = await storage.readFile('tact.config.json');
+            if (tactConfig)
+                options = JSON.parse(tactConfig);
+        };
+    }
 
     const files = await Tact.compileTactContract(storage, options);
-    if (files) {
+    if (files && !config) {
         for (let [key, value] of files) {
             if (key.startsWith('/')) key = key.substring(1);
             await storage.writeFile(key, value.toString());
@@ -117,6 +120,7 @@ export async function bundleTactContract(storage: Types.IStorage, RootPath?: str
         await bundleDist('contract', storage, RootPath);
         await bundleLib(storage, RootPath);
     }
+    return files;
 };
 export async function bundleSdk(storage: Types.IStorage, RootPath?: string){
     RootPath = RootPath || storage.rootPath;
