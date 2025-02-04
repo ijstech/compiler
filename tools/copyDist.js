@@ -64,7 +64,18 @@ async function bundle(){
 
 define("tact-compiler", ["require", "exports", "@scom/ton-core", "bignumber.js"], function (require, exports, ton_core_1, bignumber_js_1) {
     Object.defineProperty(exports, "__esModule", { value: true }); 
-    ${compiler} 
+    ${compiler}
+    exports.enableFeatures = TactCompiler.enableFeatures;
+    exports.build = TactCompiler.build;
+    exports.precompile = TactCompiler.precompile;
+    exports.TactError = TactCompiler.TactError;
+    exports.TactCompilationError = TactCompiler.TactCompilationError;
+    exports.parseConfig = TactCompiler.parseConfig;
+    exports.verifyConfig = TactCompiler.verifyConfig;
+    exports.createVirtualFileSystem = TactCompiler.createVirtualFileSystem;
+    exports.ConfigProject = TactCompiler.ConfigProject;
+    exports.Config = TactCompiler.Config;
+    exports.VirtualFileSystem = TactCompiler.VirtualFileSystem;
 });
 
 ${content}`);
