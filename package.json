@@ -1,6 +1,6 @@
 {
   "name": "@ijstech/compiler",
-  "version": "0.1.98",
+  "version": "0.1.99",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
   "pluginTypes": "dist/index.d.ts",
@@ -30,7 +30,7 @@
     "typescript": "5.0.4"
   },
   "scripts": {
-    "build": "rm -rf dist && rm -rf pluginTypes && rm -rf lib && rm -rf types && npm run build:lib && npm run build:types && npm run build:dist && npm run build:cli && cp -f bundle/lib/tact-compiler.d.ts types/lib/tact-compiler.d.ts",
+    "build": "rm -rf dist && rm -rf pluginTypes && rm -rf lib && rm -rf types && npm run build:lib && npm run build:types && npm run build:dist && npm run build:cli && cp -f scconfig.json dist/scconfig.json && cp -f bundle/lib/tact-compiler.d.ts types/lib/tact-compiler.d.ts",
     "build:cli": "cd cli && tsc && cd ..",
     "build:dist": "rm -rf types && rm -rf bundle && rm -rf dist && tsc && node tools/bundleDist && tsc --P tsconfig.bundle.json && node tools/copyDist",
     "build:lib": "tsc --P tsconfig.lib.json ",
