@@ -117,8 +117,12 @@ export async function bundleTactContract(storage: Types.IStorage, RootPath?: str
             if (key.startsWith('/')) key = key.substring(1);
             await storage.writeFile(key, value.toString());
         }
-        await bundleDist('contract', storage, RootPath);
-        await bundleLib(storage, RootPath);
+        try {
+            await bundleDist('contract', storage, RootPath);
+            await bundleLib(storage, RootPath);
+        } catch (err) {
+            console.error('Bundle contract error: ', err);
+        }
     }
     return files;
 };
@@ -154,7 +158,13 @@ export async function bundleLib(storage: Types.IStorage, RootPath?: string){
         packageManager.addPackage('@ijstech/eth-contract', await storage.getPackageTypes('@ijstech/eth-contract'));            
         let pack:Types.IPackage = {files: await storage.getFiles(Path.join(RootPath, 'src'))};
         packageManager.addPackage(packageConfig.name, pack);
-        await packageManager.buildAll();
+
+        try {
+            await packageManager.buildAll();
+        } catch (err) {
+            console.error('Bundle lib error: ', err);
+            return;
+        }
 
         pack = packageManager.packages(packageConfig.name);
 
@@ -186,7 +196,7 @@ export async function bundleDist(bundleType: string, storage: Types.IStorage, Ro
                 packageManager.setImportedPackage(packName, pack);
                 return pack;
             }
-        });       
+        });
         let pack:Types.IPackage = {files: await storage.getFiles(Path.join(RootPath, 'src'))};
         for (let n in pack.files){
             if (n == 'index.ts' || n == 'index.tsx')
@@ -195,7 +205,13 @@ export async function bundleDist(bundleType: string, storage: Types.IStorage, Ro
                 pack.files[n] = `///<amd-module name='${packageConfig.name}/${n}'/> \n` + pack.files[n];
         };
         packageManager.addPackage(packageConfig.name, pack);
-        await packageManager.buildAll();
+
+        try {
+            await packageManager.buildAll();
+        } catch (err) {
+            console.error('Bundle dist error: ', err);
+            return;
+        }
 
         pack = packageManager.packages(packageConfig.name);
         if (pack.errors && pack.errors.length > 0) {
@@ -401,7 +417,13 @@ export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
         };
         packageManager.addPackage(packageConfig.name, pack);   
         packages[packageConfig.name] = pack;
-        await packageManager.buildAll();    
+
+        try {
+            await packageManager.buildAll();    
+        } catch (err) {
+            console.error('Bundle widget error: ', err);
+            return;
+        }
 
         pack = packageManager.packages(packageConfig.name);
         if (pack.errors && pack.errors.length > 0) {
@@ -412,7 +434,7 @@ export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
         
         let dependencies: string[] = [];
         
-        pack.dependencies?.forEach((item: string) => {            
+        pack.dependencies?.forEach((item: string) => {         
             let dep = packages[item];
             if (dep && dependencies.indexOf(item) < 0){   
                 let idx = dependencies.push(item);
@@ -527,7 +549,11 @@ if (!rootDir.endsWith('/'))
             packageManager.addPackage(name, pack);
         };
 
-        await packageManager.buildAll(storage);
+        try {
+            await packageManager.buildAll(storage);
+        } catch (err) {
+            console.error('Dapp compilation error: ', err);
+        }
 
         for (let name in packages) {
             let pack = packageManager.packages(name);
