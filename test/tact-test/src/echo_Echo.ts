@@ -532,7 +532,7 @@ export class Echo implements Contract {
     async getHello(provider: ContractProvider, src: string) {
         const builder = new TupleBuilder();
         builder.writeString(src);
-        const source = (await provider.get(115554 as any, builder.build())).stack;
+        const source = (await provider.get('hello', builder.build())).stack;
         const result = source.readString();
         return result;
     }
@@ -540,7 +540,7 @@ export class Echo implements Contract {
     async getHello2(provider: ContractProvider, src: bigint) {
         const builder = new TupleBuilder();
         builder.writeNumber(src);
-        const source = (await provider.get(105790 as any, builder.build())).stack;
+        const source = (await provider.get('hello2', builder.build())).stack;
         const result = source.readBigNumber();
         return result;
     }

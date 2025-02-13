@@ -781,7 +781,7 @@ export class Payouts implements Contract {
     
     async getOwner(provider: ContractProvider) {
         const builder = new TupleBuilder();
-        const source = (await provider.get(83229 as any, builder.build())).stack;
+        const source = (await provider.get('owner', builder.build())).stack;
         const result = source.readAddress();
         return result;
     }
