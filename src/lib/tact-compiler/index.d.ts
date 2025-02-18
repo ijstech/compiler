@@ -1,51 +1,51 @@
 declare namespace TactCompiler {
 declare module "config/parseConfig" {
-    import { z } from "zod";
-    export const optionsSchema: z.ZodObject<{
+    import { z } from "@scom/ton-core";
+    export const optionsSchema: import("@scom/ton-core").ZodObject<{
         /**
          * If set to true, enables debug output of a contract and allows usage of `dump()` function,
          * which is useful for debugging purposes.
          *
          * Read more: https://docs.tact-lang.org/book/debug
          */
-        debug: z.ZodOptional<z.ZodBoolean>;
+        debug: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodBoolean>;
         /**
          * If set to true, enables support of external message receivers.
          *
          * Read more: https://docs.tact-lang.org/book/external
          */
-        external: z.ZodOptional<z.ZodBoolean>;
+        external: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodBoolean>;
         /**
          * If set to true, enables generation of a getter with IPFS links describing the contract's ABI.
          *
          * Read more: https://docs.tact-lang.org/ref/evolution/OTP-003
          */
-        ipfsAbiGetter: z.ZodOptional<z.ZodBoolean>;
+        ipfsAbiGetter: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodBoolean>;
         /**
          * If set to true, enables generation of a getter with a list of interfaces provided by the contract.
          *
          * Read more: https://docs.tact-lang.org/book/contracts#interfaces
          */
-        interfacesGetter: z.ZodOptional<z.ZodBoolean>;
+        interfacesGetter: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodBoolean>;
         /**
          * If set to "new", uses new parser. If set to "old", uses legacy parser. Default is "old".
          */
-        parser: z.ZodOptional<z.ZodUnion<[z.ZodLiteral<"new">, z.ZodLiteral<"old">]>>;
+        parser: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodUnion<[import("@scom/ton-core").ZodLiteral<"new">, import("@scom/ton-core").ZodLiteral<"old">]>>;
         /**
          * Experimental options that might be removed in the future. Use with caution!
          */
-        experimental: z.ZodOptional<z.ZodObject<{
+        experimental: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodObject<{
             /**
              * If set to true, enables inlining of all functions in contracts.
              * This can reduce gas usage at the cost of bigger contracts.
              */
-            inline: z.ZodOptional<z.ZodBoolean>;
-        }, "strict", z.ZodTypeAny, {
+            inline: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodBoolean>;
+        }, "strict", import("@scom/ton-core").ZodTypeAny, {
             inline?: boolean;
         }, {
             inline?: boolean;
         }>>;
-    }, "strict", z.ZodTypeAny, {
+    }, "strict", import("@scom/ton-core").ZodTypeAny, {
         external?: boolean;
         debug?: boolean;
         ipfsAbiGetter?: boolean;
@@ -64,75 +64,75 @@ declare module "config/parseConfig" {
             inline?: boolean;
         };
     }>;
-    export const projectSchema: z.ZodObject<{
+    export const projectSchema: import("@scom/ton-core").ZodObject<{
         /**
          * Name of the project. All generated files are prefixed with it.
          *
          * Read more: https://docs.tact-lang.org/book/config#projects-name
          */
-        name: z.ZodString;
+        name: import("@scom/ton-core").ZodString;
         /**
          * Path to the project's Tact file. You can only specify one Tact file per project.
          *
          * Read more: https://docs.tact-lang.org/book/config#projects-path
          */
-        path: z.ZodString;
+        path: import("@scom/ton-core").ZodString;
         /**
          * Path to the directory where all generated files will be placed.
          *
          * Read more: https://docs.tact-lang.org/book/config#projects-output
          */
-        output: z.ZodString;
+        output: import("@scom/ton-core").ZodString;
         /**
          * Compilation options for the project.
          *
          * Read more: https://docs.tact-lang.org/book/config#projects-options
          */
-        options: z.ZodOptional<z.ZodObject<{
+        options: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodObject<{
             /**
              * If set to true, enables debug output of a contract and allows usage of `dump()` function,
              * which is useful for debugging purposes.
              *
              * Read more: https://docs.tact-lang.org/book/debug
              */
-            debug: z.ZodOptional<z.ZodBoolean>;
+            debug: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodBoolean>;
             /**
              * If set to true, enables support of external message receivers.
              *
              * Read more: https://docs.tact-lang.org/book/external
              */
-            external: z.ZodOptional<z.ZodBoolean>;
+            external: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodBoolean>;
             /**
              * If set to true, enables generation of a getter with IPFS links describing the contract's ABI.
              *
              * Read more: https://docs.tact-lang.org/ref/evolution/OTP-003
              */
-            ipfsAbiGetter: z.ZodOptional<z.ZodBoolean>;
+            ipfsAbiGetter: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodBoolean>;
             /**
              * If set to true, enables generation of a getter with a list of interfaces provided by the contract.
              *
              * Read more: https://docs.tact-lang.org/book/contracts#interfaces
              */
-            interfacesGetter: z.ZodOptional<z.ZodBoolean>;
+            interfacesGetter: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodBoolean>;
             /**
              * If set to "new", uses new parser. If set to "old", uses legacy parser. Default is "old".
              */
-            parser: z.ZodOptional<z.ZodUnion<[z.ZodLiteral<"new">, z.ZodLiteral<"old">]>>;
+            parser: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodUnion<[import("@scom/ton-core").ZodLiteral<"new">, import("@scom/ton-core").ZodLiteral<"old">]>>;
             /**
              * Experimental options that might be removed in the future. Use with caution!
              */
-            experimental: z.ZodOptional<z.ZodObject<{
+            experimental: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodObject<{
                 /**
                  * If set to true, enables inlining of all functions in contracts.
                  * This can reduce gas usage at the cost of bigger contracts.
                  */
-                inline: z.ZodOptional<z.ZodBoolean>;
-            }, "strict", z.ZodTypeAny, {
+                inline: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodBoolean>;
+            }, "strict", import("@scom/ton-core").ZodTypeAny, {
                 inline?: boolean;
             }, {
                 inline?: boolean;
             }>>;
-        }, "strict", z.ZodTypeAny, {
+        }, "strict", import("@scom/ton-core").ZodTypeAny, {
             external?: boolean;
             debug?: boolean;
             ipfsAbiGetter?: boolean;
@@ -156,8 +156,8 @@ declare module "config/parseConfig" {
          *
          * Read more: https://docs.tact-lang.org/book/config#projects-mode
          */
-        mode: z.ZodOptional<z.ZodEnum<["fullWithDecompilation", "full", "funcOnly", "checkOnly"]>>;
-    }, "strict", z.ZodTypeAny, {
+        mode: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodEnum<["fullWithDecompilation", "full", "funcOnly", "checkOnly"]>>;
+    }, "strict", import("@scom/ton-core").ZodTypeAny, {
         name?: string;
         output?: string;
         path?: string;
@@ -188,87 +188,87 @@ declare module "config/parseConfig" {
         };
         mode?: "full" | "fullWithDecompilation" | "funcOnly" | "checkOnly";
     }>;
-    export const configSchema: z.ZodObject<{
+    export const configSchema: import("@scom/ton-core").ZodObject<{
         /**
          * A property for specifying a path or URL to the JSON schema of tact.config.json
          *
          * Read more: https://docs.tact-lang.org/book/config#schema
          */
-        $schema: z.ZodOptional<z.ZodString>;
+        $schema: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodString>;
         /**
          * List of Tact projects with respective compilation options. Each .tact file represents its own Tact project.
          *
          * Read more: https://docs.tact-lang.org/book/config#projects
          */
-        projects: z.ZodArray<z.ZodObject<{
+        projects: import("@scom/ton-core").ZodArray<import("@scom/ton-core").ZodObject<{
             /**
              * Name of the project. All generated files are prefixed with it.
              *
              * Read more: https://docs.tact-lang.org/book/config#projects-name
              */
-            name: z.ZodString;
+            name: import("@scom/ton-core").ZodString;
             /**
              * Path to the project's Tact file. You can only specify one Tact file per project.
              *
              * Read more: https://docs.tact-lang.org/book/config#projects-path
              */
-            path: z.ZodString;
+            path: import("@scom/ton-core").ZodString;
             /**
              * Path to the directory where all generated files will be placed.
              *
              * Read more: https://docs.tact-lang.org/book/config#projects-output
              */
-            output: z.ZodString;
+            output: import("@scom/ton-core").ZodString;
             /**
              * Compilation options for the project.
              *
              * Read more: https://docs.tact-lang.org/book/config#projects-options
              */
-            options: z.ZodOptional<z.ZodObject<{
+            options: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodObject<{
                 /**
                  * If set to true, enables debug output of a contract and allows usage of `dump()` function,
                  * which is useful for debugging purposes.
                  *
                  * Read more: https://docs.tact-lang.org/book/debug
                  */
-                debug: z.ZodOptional<z.ZodBoolean>;
+                debug: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodBoolean>;
                 /**
                  * If set to true, enables support of external message receivers.
                  *
                  * Read more: https://docs.tact-lang.org/book/external
                  */
-                external: z.ZodOptional<z.ZodBoolean>;
+                external: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodBoolean>;
                 /**
                  * If set to true, enables generation of a getter with IPFS links describing the contract's ABI.
                  *
                  * Read more: https://docs.tact-lang.org/ref/evolution/OTP-003
                  */
-                ipfsAbiGetter: z.ZodOptional<z.ZodBoolean>;
+                ipfsAbiGetter: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodBoolean>;
                 /**
                  * If set to true, enables generation of a getter with a list of interfaces provided by the contract.
                  *
                  * Read more: https://docs.tact-lang.org/book/contracts#interfaces
                  */
-                interfacesGetter: z.ZodOptional<z.ZodBoolean>;
+                interfacesGetter: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodBoolean>;
                 /**
                  * If set to "new", uses new parser. If set to "old", uses legacy parser. Default is "old".
                  */
-                parser: z.ZodOptional<z.ZodUnion<[z.ZodLiteral<"new">, z.ZodLiteral<"old">]>>;
+                parser: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodUnion<[import("@scom/ton-core").ZodLiteral<"new">, import("@scom/ton-core").ZodLiteral<"old">]>>;
                 /**
                  * Experimental options that might be removed in the future. Use with caution!
                  */
-                experimental: z.ZodOptional<z.ZodObject<{
+                experimental: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodObject<{
                     /**
                      * If set to true, enables inlining of all functions in contracts.
                      * This can reduce gas usage at the cost of bigger contracts.
                      */
-                    inline: z.ZodOptional<z.ZodBoolean>;
-                }, "strict", z.ZodTypeAny, {
+                    inline: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodBoolean>;
+                }, "strict", import("@scom/ton-core").ZodTypeAny, {
                     inline?: boolean;
                 }, {
                     inline?: boolean;
                 }>>;
-            }, "strict", z.ZodTypeAny, {
+            }, "strict", import("@scom/ton-core").ZodTypeAny, {
                 external?: boolean;
                 debug?: boolean;
                 ipfsAbiGetter?: boolean;
@@ -292,8 +292,8 @@ declare module "config/parseConfig" {
              *
              * Read more: https://docs.tact-lang.org/book/config#projects-mode
              */
-            mode: z.ZodOptional<z.ZodEnum<["fullWithDecompilation", "full", "funcOnly", "checkOnly"]>>;
-        }, "strict", z.ZodTypeAny, {
+            mode: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodEnum<["fullWithDecompilation", "full", "funcOnly", "checkOnly"]>>;
+        }, "strict", import("@scom/ton-core").ZodTypeAny, {
             name?: string;
             output?: string;
             path?: string;
@@ -324,7 +324,7 @@ declare module "config/parseConfig" {
             };
             mode?: "full" | "fullWithDecompilation" | "funcOnly" | "checkOnly";
         }>, "many">;
-    }, "strict", z.ZodTypeAny, {
+    }, "strict", import("@scom/ton-core").ZodTypeAny, {
         $schema?: string;
         projects?: {
             name?: string;
@@ -1953,7 +1953,7 @@ declare module "storage/allocator" {
     }): AllocationCell;
 }
 declare module "bindings/writeTypescript" {
-    import { ABIArgument, ContractABI } from "@scom/ton-core";
+    import { ABIArgument, ContractABI } from "@ton/core";
     export function writeTypescript(abi: ContractABI, init?: {
         code: string;
         system: string | null;
@@ -2013,64 +2013,64 @@ declare module "func/funcCompile" {
     }): Promise<FuncCompilationResult>;
 }
 declare module "packaging/fileFormat" {
-    import { z } from "zod";
-    export const fileFormat: z.ZodObject<{
-        name: z.ZodString;
-        code: z.ZodString;
-        abi: z.ZodString;
-        init: z.ZodObject<{
-            kind: z.ZodLiteral<"direct">;
-            args: z.ZodArray<z.ZodObject<{
-                name: z.ZodString;
-                type: z.ZodUnion<[z.ZodObject<{
-                    kind: z.ZodLiteral<"simple">;
-                    type: z.ZodString;
-                    optional: z.ZodNullable<z.ZodOptional<z.ZodBoolean>>;
-                    format: z.ZodNullable<z.ZodOptional<z.ZodUnion<[z.ZodBoolean, z.ZodNumber, z.ZodString]>>>;
-                }, "strip", z.ZodTypeAny, {
+    import { z } from "@scom/ton-core";
+    export const fileFormat: import("@scom/ton-core").ZodObject<{
+        name: import("@scom/ton-core").ZodString;
+        code: import("@scom/ton-core").ZodString;
+        abi: import("@scom/ton-core").ZodString;
+        init: import("@scom/ton-core").ZodObject<{
+            kind: import("@scom/ton-core").ZodLiteral<"direct">;
+            args: import("@scom/ton-core").ZodArray<import("@scom/ton-core").ZodObject<{
+                name: import("@scom/ton-core").ZodString;
+                type: import("@scom/ton-core").ZodUnion<[import("@scom/ton-core").ZodObject<{
+                    kind: import("@scom/ton-core").ZodLiteral<"simple">;
+                    type: import("@scom/ton-core").ZodString;
+                    optional: import("@scom/ton-core").ZodNullable<import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodBoolean>>;
+                    format: import("@scom/ton-core").ZodNullable<import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodUnion<[import("@scom/ton-core").ZodBoolean, import("@scom/ton-core").ZodNumber, import("@scom/ton-core").ZodString]>>>;
+                }, "strip", import("@scom/ton-core").ZodTypeAny, {
                     type?: string;
                     optional?: boolean;
-                    format?: string | number | boolean;
                     kind?: "simple";
+                    format?: string | number | boolean;
                 }, {
                     type?: string;
                     optional?: boolean;
-                    format?: string | number | boolean;
                     kind?: "simple";
-                }>, z.ZodObject<{
-                    kind: z.ZodLiteral<"dict">;
-                    format: z.ZodNullable<z.ZodOptional<z.ZodUnion<[z.ZodBoolean, z.ZodNumber, z.ZodString]>>>;
-                    key: z.ZodString;
-                    keyFormat: z.ZodNullable<z.ZodOptional<z.ZodUnion<[z.ZodBoolean, z.ZodNumber, z.ZodString]>>>;
-                    value: z.ZodString;
-                    valueFormat: z.ZodNullable<z.ZodOptional<z.ZodUnion<[z.ZodBoolean, z.ZodNumber, z.ZodString]>>>;
-                }, "strip", z.ZodTypeAny, {
+                    format?: string | number | boolean;
+                }>, import("@scom/ton-core").ZodObject<{
+                    kind: import("@scom/ton-core").ZodLiteral<"dict">;
+                    format: import("@scom/ton-core").ZodNullable<import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodUnion<[import("@scom/ton-core").ZodBoolean, import("@scom/ton-core").ZodNumber, import("@scom/ton-core").ZodString]>>>;
+                    key: import("@scom/ton-core").ZodString;
+                    keyFormat: import("@scom/ton-core").ZodNullable<import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodUnion<[import("@scom/ton-core").ZodBoolean, import("@scom/ton-core").ZodNumber, import("@scom/ton-core").ZodString]>>>;
+                    value: import("@scom/ton-core").ZodString;
+                    valueFormat: import("@scom/ton-core").ZodNullable<import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodUnion<[import("@scom/ton-core").ZodBoolean, import("@scom/ton-core").ZodNumber, import("@scom/ton-core").ZodString]>>>;
+                }, "strip", import("@scom/ton-core").ZodTypeAny, {
                     key?: string;
                     value?: string;
-                    format?: string | number | boolean;
                     kind?: "dict";
+                    format?: string | number | boolean;
                     keyFormat?: string | number | boolean;
                     valueFormat?: string | number | boolean;
                 }, {
                     key?: string;
                     value?: string;
-                    format?: string | number | boolean;
                     kind?: "dict";
+                    format?: string | number | boolean;
                     keyFormat?: string | number | boolean;
                     valueFormat?: string | number | boolean;
                 }>]>;
-            }, "strip", z.ZodTypeAny, {
+            }, "strip", import("@scom/ton-core").ZodTypeAny, {
                 name?: string;
                 type?: {
                     type?: string;
                     optional?: boolean;
-                    format?: string | number | boolean;
                     kind?: "simple";
+                    format?: string | number | boolean;
                 } | {
                     key?: string;
                     value?: string;
-                    format?: string | number | boolean;
                     kind?: "dict";
+                    format?: string | number | boolean;
                     keyFormat?: string | number | boolean;
                     valueFormat?: string | number | boolean;
                 };
@@ -2079,44 +2079,44 @@ declare module "packaging/fileFormat" {
                 type?: {
                     type?: string;
                     optional?: boolean;
-                    format?: string | number | boolean;
                     kind?: "simple";
+                    format?: string | number | boolean;
                 } | {
                     key?: string;
                     value?: string;
-                    format?: string | number | boolean;
                     kind?: "dict";
+                    format?: string | number | boolean;
                     keyFormat?: string | number | boolean;
                     valueFormat?: string | number | boolean;
                 };
             }>, "many">;
-            prefix: z.ZodOptional<z.ZodObject<{
-                bits: z.ZodNumber;
-                value: z.ZodNumber;
-            }, "strip", z.ZodTypeAny, {
+            prefix: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodObject<{
+                bits: import("@scom/ton-core").ZodNumber;
+                value: import("@scom/ton-core").ZodNumber;
+            }, "strip", import("@scom/ton-core").ZodTypeAny, {
                 value?: number;
                 bits?: number;
             }, {
                 value?: number;
                 bits?: number;
             }>>;
-            deployment: z.ZodUnion<[z.ZodObject<{
-                kind: z.ZodLiteral<"direct">;
-            }, "strip", z.ZodTypeAny, {
+            deployment: import("@scom/ton-core").ZodUnion<[import("@scom/ton-core").ZodObject<{
+                kind: import("@scom/ton-core").ZodLiteral<"direct">;
+            }, "strip", import("@scom/ton-core").ZodTypeAny, {
                 kind?: "direct";
             }, {
                 kind?: "direct";
-            }>, z.ZodObject<{
-                kind: z.ZodLiteral<"system-cell">;
-                system: z.ZodNullable<z.ZodString>;
-            }, "strip", z.ZodTypeAny, {
+            }>, import("@scom/ton-core").ZodObject<{
+                kind: import("@scom/ton-core").ZodLiteral<"system-cell">;
+                system: import("@scom/ton-core").ZodNullable<import("@scom/ton-core").ZodString>;
+            }, "strip", import("@scom/ton-core").ZodTypeAny, {
                 kind?: "system-cell";
                 system?: string;
             }, {
                 kind?: "system-cell";
                 system?: string;
             }>]>;
-        }, "strip", z.ZodTypeAny, {
+        }, "strip", import("@scom/ton-core").ZodTypeAny, {
             prefix?: {
                 value?: number;
                 bits?: number;
@@ -2126,13 +2126,13 @@ declare module "packaging/fileFormat" {
                 type?: {
                     type?: string;
                     optional?: boolean;
-                    format?: string | number | boolean;
                     kind?: "simple";
+                    format?: string | number | boolean;
                 } | {
                     key?: string;
                     value?: string;
-                    format?: string | number | boolean;
                     kind?: "dict";
+                    format?: string | number | boolean;
                     keyFormat?: string | number | boolean;
                     valueFormat?: string | number | boolean;
                 };
@@ -2154,13 +2154,13 @@ declare module "packaging/fileFormat" {
                 type?: {
                     type?: string;
                     optional?: boolean;
-                    format?: string | number | boolean;
                     kind?: "simple";
+                    format?: string | number | boolean;
                 } | {
                     key?: string;
                     value?: string;
-                    format?: string | number | boolean;
                     kind?: "dict";
+                    format?: string | number | boolean;
                     keyFormat?: string | number | boolean;
                     valueFormat?: string | number | boolean;
                 };
@@ -2173,12 +2173,12 @@ declare module "packaging/fileFormat" {
                 system?: string;
             };
         }>;
-        sources: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodString>>;
-        compiler: z.ZodObject<{
-            name: z.ZodString;
-            version: z.ZodString;
-            parameters: z.ZodNullable<z.ZodOptional<z.ZodString>>;
-        }, "strip", z.ZodTypeAny, {
+        sources: import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodRecord<import("@scom/ton-core").ZodString, import("@scom/ton-core").ZodString>>;
+        compiler: import("@scom/ton-core").ZodObject<{
+            name: import("@scom/ton-core").ZodString;
+            version: import("@scom/ton-core").ZodString;
+            parameters: import("@scom/ton-core").ZodNullable<import("@scom/ton-core").ZodOptional<import("@scom/ton-core").ZodString>>;
+        }, "strip", import("@scom/ton-core").ZodTypeAny, {
             name?: string;
             version?: string;
             parameters?: string;
@@ -2187,7 +2187,7 @@ declare module "packaging/fileFormat" {
             version?: string;
             parameters?: string;
         }>;
-    }, "strip", z.ZodTypeAny, {
+    }, "strip", import("@scom/ton-core").ZodTypeAny, {
         code?: string;
         name?: string;
         init?: {
@@ -2200,13 +2200,13 @@ declare module "packaging/fileFormat" {
                 type?: {
                     type?: string;
                     optional?: boolean;
-                    format?: string | number | boolean;
                     kind?: "simple";
+                    format?: string | number | boolean;
                 } | {
                     key?: string;
                     value?: string;
-                    format?: string | number | boolean;
                     kind?: "dict";
+                    format?: string | number | boolean;
                     keyFormat?: string | number | boolean;
                     valueFormat?: string | number | boolean;
                 };
@@ -2239,13 +2239,13 @@ declare module "packaging/fileFormat" {
                 type?: {
                     type?: string;
                     optional?: boolean;
-                    format?: string | number | boolean;
                     kind?: "simple";
+                    format?: string | number | boolean;
                 } | {
                     key?: string;
                     value?: string;
-                    format?: string | number | boolean;
                     kind?: "dict";
+                    format?: string | number | boolean;
                     keyFormat?: string | number | boolean;
                     valueFormat?: string | number | boolean;
                 };
@@ -3716,7 +3716,8 @@ declare module "utils/loadCases" {
     }[];
 }
 declare module "utils/testKey" {
-    export function testKey(seed: string): import("@ton/crypto").KeyPair;
+    import { TonCrypto } from "@scom/ton-core";
+    export function testKey(seed: string): TonCrypto.KeyPair;
 }
 
 /// <amd-module name="@ijstech/tact" />
