@@ -8,8 +8,8 @@ import {
 
 class OverwritableVirtualFileSystem implements VirtualFileSystem {
   root: string;
-  overwrites: Map<string, Buffer> = new Map(); // It will be used to store build output files
-  files: Map<string, Buffer> = new Map(); // Simulate a file system
+  overwrites: Map<string, Buffer|null> = new Map();
+  files: Map<string, Buffer|null> = new Map();
 
   constructor(root: string = '/') {
     this.root = this.normalizePath(root);
@@ -64,62 +64,84 @@ class OverwritableVirtualFileSystem implements VirtualFileSystem {
     const resolvedPath = this.resolvePath(path);
     return this.files.has(resolvedPath) || this.overwrites.has(resolvedPath);;
   }
+
+  cleanup() {
+    for (let [key, value] of this.overwrites) {
+      this.overwrites.delete(key);
+    }
+    this.overwrites = new Map();
+    for (let [key, value] of this.files) {
+      this.files.delete(key);
+    }
+    this.files = new Map();
+  }
+}
+
+let fs: OverwritableVirtualFileSystem|undefined;
+
+function getFs() {
+  if (!fs) {
+    fs = new OverwritableVirtualFileSystem(`/`);
+  }
+  return fs;
 }
 
 async function buildTact(storage: Types.IStorage, projectConfig: ConfigProject) {
   if (!projectConfig) throw new Error('Error while building');
-  try {
-    const filesToProcess = [projectConfig.path];
-    const fs = new OverwritableVirtualFileSystem(`/`);
 
-    while (filesToProcess.length !== 0) {
-      const fileToProcess = filesToProcess.pop();
-      const fileContent = await storage.readFile(fileToProcess!);
-      if (fileContent) {
-        fs.writeContractFile(fileToProcess!, fileContent as string);
-      }
+  const filesToProcess = [projectConfig.path];
+  const fs = getFs();
+
+  while (filesToProcess.length !== 0) {
+    const fileToProcess = filesToProcess.pop();
+    const fileContent = await storage.readFile(fileToProcess!);
+    if (fileContent) {
+      fs.writeContractFile(fileToProcess!, fileContent as string);
     }
+  }
 
-    // let ctx = new CompilerContext();
-    // const stdlib = createVirtualFileSystem('@stdlib', stdLibFiles);
-    // const entryFile = projectConfig.path;
-    // if (projectConfig?.options?.external) {
-    //   ctx = featureEnable(ctx, 'external');
-    // }
-    // ctx = precompile(ctx, fs, stdlib, entryFile);
-
+  try {
     const response = await build({
       config: projectConfig,
       project: fs,
       stdlib: '@stdlib',
-      // logger: new TactLogger(LogLevel.DEBUG),
+      logger: null
     });
 
     if (!response.ok) {
       throw new Error('Error while building');
     }
 
-    return fs.overwrites;
+    let output: Record<string, string> = {};
+
+    for (let [key, value] of fs.overwrites) {
+      if (key.startsWith('/')) key = key.substring(1);
+      output[key] = value ? value.toString() : '';
+    }
+
+    return output;
   } catch (error) {
     return null;
+  } finally {
+    fs.cleanup();
   }
 }
 
 async function compileTactContract(storage: Types.IStorage, config: Config) {
   try {
-    let result: Map<string, Buffer> = new Map();
+    let result: Record<string, string> = {};
     const { projects } = config;
-    for (let project of projects) {
+    for (const project of projects) {
       const built = await buildTact(storage, project);
-      if (built) {
-        for (let [key, value] of built) {
-          result.set(key, value);
-        }
-      }
+      if (built) result = { ...result, ...built };
     }
     return result;
   } catch (error) {
     console.error('Compilation failed:', error);
+    return {};
+  } finally {
+    fs?.cleanup();
+    fs = undefined;
   }
 }
 
