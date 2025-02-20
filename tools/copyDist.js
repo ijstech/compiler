@@ -81,6 +81,9 @@ define("tact-compiler", ["require", "exports", "@scom/ton-core", "bignumber.js"]
 ${content}`);
 
     content = await readFile(Path.resolve(__dirname, '../dist/index.d.ts'));
+    content = replaceAll(content, '"./lib/typescript"', '"typescript"');
+    content = replaceAll(content, '"./lib/tact-compiler"', '"tact-compiler"');
+
     let typescriptDts = await readFile(Path.resolve(__dirname, '../node_modules/typescript/lib/typescript.d.ts'));
     let tactDts = await readFile(Path.resolve(__dirname, '../src/lib/tact-compiler/index.d.ts'));
     await writeFile(Path.resolve(__dirname, '../dist/index.d.ts'), 

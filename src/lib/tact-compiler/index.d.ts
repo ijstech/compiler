@@ -3659,6 +3659,8 @@ declare module "@ijstech/tact" {
     export * from "browser";
     export * from "context/logger";
     export * from "error/errors";
+    export { CompilerContext } from "context/context";
+    export * as stdLibFiles from "imports/stdlib";
 }
 declare module "vfs/createNodeFileSystem" {
     import { VirtualFileSystem } from "vfs/VirtualFileSystem";
@@ -3736,6 +3738,8 @@ export { createVirtualFileSystem } from "./vfs/createVirtualFileSystem";
 export * from "./browser";
 export * from "./context/logger";
 export * from "./error/errors";
+export { CompilerContext } from "./context/context";
+export * as stdLibFiles from "./imports/stdlib";
 
 };
  export = TactCompiler;

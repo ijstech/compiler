@@ -10822,6 +10822,8 @@ declare module "@ijstech/tact" {
     export * from "browser";
     export * from "context/logger";
     export * from "error/errors";
+    export { CompilerContext } from "context/context";
+    export * as stdLibFiles from "imports/stdlib";
 }
 declare module "vfs/createNodeFileSystem" {
     import { VirtualFileSystem } from "vfs/VirtualFileSystem";
@@ -10899,12 +10901,13 @@ export { createVirtualFileSystem } from "./vfs/createVirtualFileSystem";
 export * from "./browser";
 export * from "./context/logger";
 export * from "./error/errors";
+export { CompilerContext } from "./context/context";
+export * as stdLibFiles from "./imports/stdlib";
 
 };
  export = TactCompiler;
 };
 
-/// <reference types="node" />
 /// <amd-module name="@ijstech/compiler/lib" />
 declare module "@ijstech/compiler/lib" {
     const Lib: string;
@@ -10912,7 +10915,7 @@ declare module "@ijstech/compiler/lib" {
 }
 /// <amd-module name="@ijstech/compiler/parser" />
 declare module "@ijstech/compiler/parser" {
-    import TS from "./lib/typescript";
+    import TS from "typescript";
     export interface IComponent {
         name: string;
         props?: {
@@ -10975,7 +10978,7 @@ declare module "@ijstech/compiler/path" {
 }
 /// <amd-module name="@ijstech/compiler/types" />
 declare module "@ijstech/compiler/types" {
-    import TS from "./lib/typescript";
+    import TS from "typescript";
     export interface ICidInfo {
         cid: string;
         links?: ICidInfo[];
@@ -11121,14 +11124,14 @@ declare module "@ijstech/compiler/solCompile" {
 declare module "@ijstech/compiler/tactCompile" {
     import * as Types from "@ijstech/compiler/types";
     import { Config, ConfigProject } from './lib/tact-compiler';
-    function buildTact(storage: Types.IStorage, projectConfig: ConfigProject): Promise<Map<string, Buffer> | null>;
-    function compileTactContract(storage: Types.IStorage, config: Config): Promise<Map<string, Buffer> | undefined>;
+    function buildTact(storage: Types.IStorage, projectConfig: ConfigProject): Promise<Record<string, string> | null>;
+    function compileTactContract(storage: Types.IStorage, config: Config): Promise<Record<string, string>>;
     export { compileTactContract, buildTact, Config, ConfigProject };
 }
 /// <amd-module name="@ijstech/compiler" />
 declare module "@ijstech/compiler" {
     import * as Parser from "@ijstech/compiler/parser";
-    import TS from "./lib/typescript";
+    import TS from "typescript";
     import Path from "@ijstech/compiler/path";
     export { Parser, Path };
     import * as Types from "@ijstech/compiler/types";
@@ -11141,7 +11144,7 @@ declare module "@ijstech/compiler" {
         worker = "worker"
     }
     export function bundleContract(storage: Types.IStorage, solc: Types.ISolc, RootPath?: string): Promise<void>;
-    export function bundleTactContract(storage: Types.IStorage, RootPath?: string, config?: any): Promise<Map<string, Buffer> | undefined>;
+    export function bundleTactContract(storage: Types.IStorage, RootPath?: string, config?: any): Promise<Record<string, string>>;
     export function bundleSdk(storage: Types.IStorage, RootPath?: string): Promise<void>;
     export function bundleLib(storage: Types.IStorage, RootPath?: string): Promise<void>;
     export function bundleDist(bundleType: string, storage: Types.IStorage, RootPath?: string): Promise<void>;
