@@ -62,7 +62,7 @@ async function bundle(){
     exports.default = ts;
 });
 
-define("tact-compiler", ["require", "exports", "@scom/ton-core", "bignumber.js"], function (require, exports, ton_core_1, bignumber_js_1) {
+define("tact-compiler", ["require", "exports"], function (require, exports) {
     Object.defineProperty(exports, "__esModule", { value: true }); 
     ${compiler}
     exports.enableFeatures = TactCompiler.enableFeatures;
