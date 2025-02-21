@@ -62,7 +62,7 @@ async function bundle(){
     exports.default = ts;
 });
 
-define("tact-compiler", ["require", "exports", "@scom/ton-core", "bignumber.js"], function (require, exports, ton_core_1, bignumber_js_1) {
+define("tact-compiler", ["require", "exports"], function (require, exports) {
     Object.defineProperty(exports, "__esModule", { value: true }); 
     ${compiler}
     exports.enableFeatures = TactCompiler.enableFeatures;
@@ -81,6 +81,9 @@ define("tact-compiler", ["require", "exports", "@scom/ton-core", "bignumber.js"]
 ${content}`);
 
     content = await readFile(Path.resolve(__dirname, '../dist/index.d.ts'));
+    content = replaceAll(content, '"./lib/typescript"', '"typescript"');
+    content = replaceAll(content, '"./lib/tact-compiler"', '"tact-compiler"');
+
     let typescriptDts = await readFile(Path.resolve(__dirname, '../node_modules/typescript/lib/typescript.d.ts'));
     let tactDts = await readFile(Path.resolve(__dirname, '../src/lib/tact-compiler/index.d.ts'));
     await writeFile(Path.resolve(__dirname, '../dist/index.d.ts'), 
