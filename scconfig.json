@@ -1,6 +1,6 @@
 {
     "name": "@ijstech/compiler",
-    "version": "0.1.100",
+    "version": "0.1.101",
     "dependencies": [
         "@scom/ton-core"
     ]
