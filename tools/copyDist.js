@@ -48,9 +48,10 @@ async function bundle(){
     await copyFile(Path.resolve(__dirname, '../src/lib/tact-compiler/index.js'), Path.resolve(__dirname, '../lib/lib/tact-compiler.js'));
     await copyFile(Path.resolve(__dirname, '../src/lib/tact-compiler/index.d.ts'), Path.resolve(__dirname, '../types/lib/tact-compiler.d.ts'));
     await copyFile(Path.resolve(__dirname, '../node_modules/@ijstech/components/types/index.d.ts'), Path.resolve(__dirname, '../dist/lib/components/index.d.ts'));
+    await copyFile(Path.resolve(__dirname, '../src/lib/tact-compiler/browser.js'), Path.resolve(__dirname, '../dist/lib/tact-compiler.js'));
 
     let typescript = await readFile(Path.resolve(__dirname, '../node_modules/typescript/lib/typescript.js'));
-    let compiler = await readFile(Path.resolve(__dirname, '../src/lib/tact-compiler/browser.js'));
+    let compiler = await readFile(Path.resolve(__dirname, '../lib/tactLib.js'));
 
     let content = await readFile(Path.resolve(__dirname, '../dist/index.js'));
     content = replaceAll(content, '"./lib/typescript"', '"typescript"');
@@ -63,19 +64,7 @@ async function bundle(){
 });
 
 define("tact-compiler", ["require", "exports"], function (require, exports) {
-    Object.defineProperty(exports, "__esModule", { value: true }); 
     ${compiler}
-    exports.enableFeatures = TactCompiler.enableFeatures;
-    exports.build = TactCompiler.build;
-    exports.precompile = TactCompiler.precompile;
-    exports.TactError = TactCompiler.TactError;
-    exports.TactCompilationError = TactCompiler.TactCompilationError;
-    exports.parseConfig = TactCompiler.parseConfig;
-    exports.verifyConfig = TactCompiler.verifyConfig;
-    exports.createVirtualFileSystem = TactCompiler.createVirtualFileSystem;
-    exports.ConfigProject = TactCompiler.ConfigProject;
-    exports.Config = TactCompiler.Config;
-    exports.VirtualFileSystem = TactCompiler.VirtualFileSystem;
 });
 
 ${content}`);
