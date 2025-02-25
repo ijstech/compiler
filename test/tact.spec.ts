@@ -31,9 +31,8 @@ describe('Tact', async function () {
     });
 
     if (result) {
-      for (let [key, value] of result) {
-        if (key.startsWith('/')) key = key.substring(1);
-        await storage.writeFile(key, value.toString());
+      for (const key in result) {
+        await storage.writeFile(key, result[key]);
       }
     }
 
