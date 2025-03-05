@@ -1,60 +1,77 @@
-# TACT Compilation Report
+# Tact compilation report
 Contract: Payouts
-BOC Size: 991 bytes
+BoC Size: 1315 bytes
 
-# Types
-Total Types: 11
+## Structures (Structs and Messages)
+Total structures: 15
 
-## StateInit
-TLB: `_ code:^cell data:^cell = StateInit`
+### DataSize
+TL-B: `_ cells:int257 bits:int257 refs:int257 = DataSize`
+Signature: `DataSize{cells:int257,bits:int257,refs:int257}`
+
+### StateInit
+TL-B: `_ code:^cell data:^cell = StateInit`
 Signature: `StateInit{code:^cell,data:^cell}`
 
-## StdAddress
-TLB: `_ workchain:int8 address:uint256 = StdAddress`
+### Context
+TL-B: `_ bounceable:bool sender:address value:int257 raw:^slice = Context`
+Signature: `Context{bounceable:bool,sender:address,value:int257,raw:^slice}`
+
+### SendParameters
+TL-B: `_ mode:int257 body:Maybe ^cell code:Maybe ^cell data:Maybe ^cell value:int257 to:address bounce:bool = SendParameters`
+Signature: `SendParameters{mode:int257,body:Maybe ^cell,code:Maybe ^cell,data:Maybe ^cell,value:int257,to:address,bounce:bool}`
+
+### MessageParameters
+TL-B: `_ mode:int257 body:Maybe ^cell value:int257 to:address bounce:bool = MessageParameters`
+Signature: `MessageParameters{mode:int257,body:Maybe ^cell,value:int257,to:address,bounce:bool}`
+
+### DeployParameters
+TL-B: `_ mode:int257 body:Maybe ^cell value:int257 bounce:bool init:StateInit{code:^cell,data:^cell} = DeployParameters`
+Signature: `DeployParameters{mode:int257,body:Maybe ^cell,value:int257,bounce:bool,init:StateInit{code:^cell,data:^cell}}`
+
+### StdAddress
+TL-B: `_ workchain:int8 address:uint256 = StdAddress`
 Signature: `StdAddress{workchain:int8,address:uint256}`
 
-## VarAddress
-TLB: `_ workchain:int32 address:^slice = VarAddress`
+### VarAddress
+TL-B: `_ workchain:int32 address:^slice = VarAddress`
 Signature: `VarAddress{workchain:int32,address:^slice}`
 
-## Context
-TLB: `_ bounced:bool sender:address value:int257 raw:^slice = Context`
-Signature: `Context{bounced:bool,sender:address,value:int257,raw:^slice}`
+### BasechainAddress
+TL-B: `_ hash:Maybe int257 = BasechainAddress`
+Signature: `BasechainAddress{hash:Maybe int257}`
 
-## SendParameters
-TLB: `_ bounce:bool to:address value:int257 mode:int257 body:Maybe ^cell code:Maybe ^cell data:Maybe ^cell = SendParameters`
-Signature: `SendParameters{bounce:bool,to:address,value:int257,mode:int257,body:Maybe ^cell,code:Maybe ^cell,data:Maybe ^cell}`
-
-## ChangeOwner
-TLB: `change_owner#819dbe99 queryId:uint64 newOwner:address = ChangeOwner`
+### ChangeOwner
+TL-B: `change_owner#819dbe99 queryId:uint64 newOwner:address = ChangeOwner`
 Signature: `ChangeOwner{queryId:uint64,newOwner:address}`
 
-## ChangeOwnerOk
-TLB: `change_owner_ok#327b2b4a queryId:uint64 newOwner:address = ChangeOwnerOk`
+### ChangeOwnerOk
+TL-B: `change_owner_ok#327b2b4a queryId:uint64 newOwner:address = ChangeOwnerOk`
 Signature: `ChangeOwnerOk{queryId:uint64,newOwner:address}`
 
-## CanPayout
-TLB: `can_payout#c41949df amount:int257 = CanPayout`
+### CanPayout
+TL-B: `can_payout#c41949df amount:int257 = CanPayout`
 Signature: `CanPayout{amount:int257}`
 
-## CanPayoutResponse
-TLB: `can_payout_response#ffeb40de amount:int257 address:address ok:bool = CanPayoutResponse`
+### CanPayoutResponse
+TL-B: `can_payout_response#ffeb40de amount:int257 address:address ok:bool = CanPayoutResponse`
 Signature: `CanPayoutResponse{amount:int257,address:address,ok:bool}`
 
-## Beacon$Data
-TLB: `null`
-Signature: `null`
+### Beacon$Data
+TL-B: `_ master:address owner:address completed:bool = Beacon`
+Signature: `Beacon{master:address,owner:address,completed:bool}`
 
-## Payouts$Data
-TLB: `null`
-Signature: `null`
+### Payouts$Data
+TL-B: `_ owner:address publicKey:int257 = Payouts`
+Signature: `Payouts{owner:address,publicKey:int257}`
 
-# Get Methods
-Total Get Methods: 1
+## Get methods
+Total get methods: 1
 
 ## owner
+No arguments
 
-# Error Codes
+## Exit codes
 * 2: Stack underflow
 * 3: Stack overflow
 * 4: Integer overflow
@@ -89,25 +106,26 @@ Total Get Methods: 1
 * 133: Contract stopped
 * 134: Invalid argument
 * 135: Code of a contract was not found
+* 136: Invalid standard address
 * 4429: Invalid sender
 * 16059: Invalid value
 * 48401: Invalid signature
 * 62972: Invalid balance
 
-# Trait Inheritance Diagram
+## Trait inheritance diagram
 
 ```mermaid
 graph TD
 Payouts
 Payouts --> BaseTrait
 Payouts --> OwnableTransferable
-OwnableTransferable --> BaseTrait
 OwnableTransferable --> Ownable
 Ownable --> BaseTrait
+OwnableTransferable --> BaseTrait
 Payouts --> Ownable
 ```
 
-# Contract Dependency Diagram
+## Contract dependency diagram
 
 ```mermaid
 graph TD

@@ -13,7 +13,8 @@
     "compiler": "cli/bin/bundle.js"
   },
   "dependencies": {
-    "bignumber.js": "9.1.1"
+    "bignumber.js": "9.1.1",
+    "@ijstech/tact": "https://github.com/ijstech/tact.git"
   },
   "devDependencies": {
     "@ijstech/components": "^0.1.55",
@@ -21,8 +22,8 @@
     "@ijstech/eth-wallet": "^0.1.56",
     "@ijstech/plugin": "^0.1.8",
     "@ijstech/wallet": "^0.1.0",
+    "@ijstech/ton-core": "^0.60.0",
     "@openzeppelin/contracts": "4.9.6",
-    "@scom/ton-core": "^0.1.1",
     "@types/mocha": "9.0.0",
     "@types/node": "18.11",
     "mocha": "10.0.0",
@@ -31,7 +32,7 @@
     "typescript": "5.0.4"
   },
   "scripts": {
-    "build": "rm -rf dist && rm -rf pluginTypes && rm -rf lib && rm -rf types && npm run build:lib && npm run build:types && npm run build:dist && npm run build:cli && cp -f scconfig.json dist/scconfig.json && cp -f bundle/lib/tact-compiler.d.ts types/lib/tact-compiler.d.ts",
+    "build": "rm -rf dist && rm -rf pluginTypes && rm -rf lib && rm -rf types && npm run build:lib && npm run build:types && npm run build:dist && npm run build:cli && cp -f scconfig.json dist/scconfig.json",
     "build:cli": "cd cli && tsc && cd ..",
     "build:dist": "rm -rf types && rm -rf bundle && rm -rf dist && tsc && node tools/bundleDist && tsc --P tsconfig.bundle.json && node tools/copyDist",
     "build:lib": "tsc --P tsconfig.lib.json ",
@@ -45,6 +46,6 @@
     "test:path": "mocha --exit --require ts-node/register test/path.spec.ts",
     "test:bundle": "mocha --exit --require ts-node/register test/bundle.spec.ts",
     "test:solidity": "rm -rf test/solidity/src && mocha --exit --require ts-node/register test/solidity.spec.ts && tsc -p test/solidity --noEmit && if diff -r test/solidity/expected test/solidity/src ; then echo \"results are the same as expcted\" ; else echo \"results are different than the expected\"; fi",
-    "test:tact": "rm -rf test/tact-test/src && mocha --exit --require ts-node/register test/tact.spec.ts && tsc -p test/tact-test --noEmit"
+    "test:tact": "rm -rf test/tact-test/src && mocha --exit --require ts-node/register test/tact.spec.ts"
   }
 }

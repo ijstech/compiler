@@ -1,0 +1,430 @@
+// automatically generated from `@stdlib/std/stdlib.fc` `@stdlib/std/stdlib_ex.fc` `/test/tact-test/src/echo_Echo.fc` 
+PROGRAM{
+  DECLPROC __tact_sha256
+  DECLPROC __tact_context_get
+  DECLPROC __tact_context_get_sender
+  DECLPROC __tact_string_builder_start
+  DECLPROC __tact_string_builder_start_comment
+  DECLPROC __tact_string_builder_start_string
+  DECLPROC __tact_string_builder_end
+  DECLPROC __tact_string_builder_end_slice
+  DECLPROC __tact_string_builder_append
+  DECLPROC $EchoMessage$_store
+  DECLPROC $EchoMessage$_store_cell
+  DECLPROC $EchoMessage$_load_without_opcode
+  DECLPROC $StateInit$_not_null
+  DECLPROC $Echo$init$_load
+  DECLPROC $Echo$_contract_init
+  DECLPROC $Echo$_contract_load
+  DECLPROC $Echo$_contract_store
+  DECLPROC $Slice$_fun_asCell
+  DECLPROC $String$_fun_asComment
+  DECLPROC $Echo$_fun_hello
+  DECLPROC $Echo$_fun_hello2
+  DECLPROC $SendParameters$_constructor_bounce_to_value_mode_body_code_data
+  DECLPROC $Echo$_fun_forward
+  DECLPROC $Echo$_fun_reply
+  115554 DECLMETHOD %hello
+  105790 DECLMETHOD %hello2
+  DECLPROC recv_internal
+  65535 DECLMETHOD __tact_selector_hack
+  DECLGLOBVAR __tact_context
+  DECLGLOBVAR __tact_context_sender
+  DECLGLOBVAR __tact_child_contract_codes
+  DECLGLOBVAR __tact_randomized
+  __tact_sha256 PROC:<{
+    ONE
+    WHILE:<{
+      OVER SREFS 0 NEQINT
+    }>DO<{
+      OVER LDREF s0 POP CTOS s0 s1 XCHG INC
+    }>
+    HASHEXT_SHA256
+  }>
+  __tact_context_get PROCINLINE:<{
+    __tact_context GETGLOB
+    4 UNTUPLE
+  }>
+  __tact_context_get_sender PROCINLINE:<{
+    __tact_context_sender GETGLOB
+  }>
+  __tact_string_builder_start PROCINLINE:<{
+    NIL
+    SWAP
+    TPUSH
+    PUSHNULL
+    TPUSH
+  }>
+  __tact_string_builder_start_comment PROCINLINE:<{
+    NEWC
+    0 PUSHINT
+    SWAP
+    32 STU
+    __tact_string_builder_start INLINECALLDICT
+  }>
+  __tact_string_builder_start_string PROCINLINE:<{
+    NEWC
+    __tact_string_builder_start INLINECALLDICT
+  }>
+  __tact_string_builder_end PROCINLINE:<{
+    UNCONS
+    SWAP
+    ENDC
+    WHILE:<{
+      OVER
+      ISNULL
+      NOT
+    }>DO<{
+      SWAP
+      UNCONS
+      -ROT
+      STREF
+      ENDC
+    }>
+    NIP
+  }>
+  __tact_string_builder_end_slice PROCINLINE:<{
+    __tact_string_builder_end INLINECALLDICT
+    CTOS
+  }>
+  __tact_string_builder_append PROCREF:<{
+    DUP
+    SREFS
+    OVER
+    SBITS
+    WHILE:<{
+      DUP
+      0 GTINT
+      s2 PUSH
+      0 GTINT
+      OR
+    }>DO<{
+      s0 s3 XCHG
+      UNCONS
+      127 PUSHINT
+      s2 PUSH
+      BBITS
+      3 RSHIFT#
+      SUB
+      s0 s5 XCHG
+      3 RSHIFT#
+      s5 s5 XCPU
+      MIN
+      DUP
+      0 GTINT
+      IF:<{
+        DUP
+        3 LSHIFT#
+        s1 s5 XCHG
+        LDSLICEX
+        s3 s3 XCHG2
+        STSLICER
+        s0 s1 s4 XCHG3
+      }>
+      -ROT
+      CONS
+      s4 s1 PUSH2
+      SUB
+      0 GTINT
+      IF:<{
+        NEWC
+        SWAP
+        CONS
+        s4 s4 XCHG2
+        SUB
+        3 LSHIFT#
+      }>ELSE<{
+        NIP
+        s3 POP
+        0 GTINT
+        IF:<{
+          LDREF
+          DROP
+          CTOS
+          DUP
+          SREFS
+          OVER
+          SBITS
+        }>ELSE<{
+          0 PUSHINT
+          DUP
+        }>
+      }>
+    }>
+    3 BLKDROP
+  }>
+  $EchoMessage$_store PROCINLINE:<{
+    DROP
+    2074217921 PUSHINT
+    SWAP
+    32 STU
+  }>
+  $EchoMessage$_store_cell PROCINLINE:<{
+    NEWC
+    SWAP
+    $EchoMessage$_store INLINECALLDICT
+    ENDC
+  }>
+  $EchoMessage$_load_without_opcode PROCINLINE:<{
+    PUSHNULL
+  }>
+  $StateInit$_not_null PROCINLINE:<{
+        2 UNTUPLE
+  }>
+  $Echo$init$_load PROCINLINE:<{
+    257 PUSHINT
+    LDIX
+    SWAP
+  }>
+  $Echo$_contract_init PROCINLINE:<{
+    DROP
+    PUSHNULL
+  }>
+  $Echo$_contract_load PROCINLINE:<{
+    c4 PUSH
+    CTOS
+    1 LDI
+    SWAP
+    IF:<{
+      DROP
+      PUSHNULL
+    }>ELSE<{
+      $Echo$init$_load INLINECALLDICT
+      SWAP
+      ENDS
+      $Echo$_contract_init INLINECALLDICT
+    }>
+  }>
+  $Echo$_contract_store PROCINLINE:<{
+    DROP
+    NEWC
+    TRUE
+    SWAP
+    1 STI
+    ENDC
+    c4 POP
+  }>
+  $Slice$_fun_asCell PROCINLINE:<{
+        NEWC
+    SWAP
+        STSLICER
+        ENDC
+  }>
+  $String$_fun_asComment PROCREF:<{
+    __tact_string_builder_start_comment INLINECALLDICT
+    SWAP
+    __tact_string_builder_append INLINECALLDICT
+    __tact_string_builder_end INLINECALLDICT
+  }>
+  $Echo$_fun_hello PROCREF:<{
+    __tact_string_builder_start_string INLINECALLDICT
+        B{b5ee9c7241010101000900000e48656c6c6f2c20e8d197d2} B>boc <s PUSHSLICE
+    __tact_string_builder_append INLINECALLDICT
+    SWAP
+    __tact_string_builder_append INLINECALLDICT
+    __tact_string_builder_end_slice INLINECALLDICT
+  }>
+  $Echo$_fun_hello2 PROCREF:<{
+    10 LSHIFT#
+    32 PUSHINT
+    AND
+  }>
+  $SendParameters$_constructor_bounce_to_value_mode_body_code_data PROCINLINE:<{
+    s3 s6 XCHG
+    3 3 BLKSWAP
+    s1 s2 XCHG
+  }>
+  $Echo$_fun_forward PROCREF:<{
+    PUSHNULL
+    PUSHNULL
+    s2 PUSH
+    ISNULL
+    NOT
+    IF:<{
+      2DROP
+      $StateInit$_not_null INLINECALLDICT
+      SWAP
+    }>ELSE<{
+      s2 POP
+    }>
+    s2 s4 XCHG
+    0 PUSHINT
+    s0 s3 XCHG
+    s0 s4 XCHG
+    66 PUSHINT
+    s2 s3 XCHG2
+    $SendParameters$_constructor_bounce_to_value_mode_body_code_data INLINECALLDICT
+        NEWC
+        b{01} STSLICECONST  // store tag = $0 and ihr_disabled = true
+        1 STI               // store `bounce`
+        b{000} STSLICECONST // store bounced = false and src = addr_none
+        STSLICE             // store `to`
+        SWAP
+        STGRAMS             // store `value`
+        105 PUSHINT         // 1 + 4 + 4 + 64 + 32
+        STZEROES            // store currency_collection, ihr_fee, fwd_fee, created_lt and created_at
+        // → Stack state
+        // s0: Builder
+        // s1: `data`
+        // s2: `code`
+        // s3: `body`
+        // s4: `mode`
+        // Group 2: Placing the Builder after code and data, then checking those for nullability
+        s2 XCHG0
+        DUP2
+        ISNULL
+        SWAP
+        ISNULL
+        MUL // note that -1 * -1 wraps back to -1
+        // → Stack state
+        // s0: -1 (true) if `data` and `code` are both null, 0 (false) otherwise
+        // s1: `code`
+        // s2: `data`
+        // s3: Builder
+        // s4: `body`
+        // s5: `mode`
+        // Group 3: Left branch of the IFELSE, executed if s0 is -1 (true)
+        <{
+            DROP2 // drop `data` and `code`, since either of those is null
+            b{0} STSLICECONST
+        }> PUSHCONT
+        // Group 3: Right branch of the IFELSE, executed if s0 is 0 (false)
+        <{
+            // _ split_depth:(Maybe (## 5))
+            //   special:(Maybe TickTock)
+            //   code:(Maybe ^Cell)
+            //   data:(Maybe ^Cell)
+            //   library:(Maybe ^Cell)
+            // = StateInit;
+            ROT                // place message Builder on top
+            b{10} STSLICECONST // store Maybe = true, Either = false
+            // Start composing inlined StateInit
+            b{00} STSLICECONST // store split_depth and special first
+            STDICT             // store code
+            STDICT             // store data
+            b{0} STSLICECONST  // store library
+        }> PUSHCONT
+        // Group 3: IFELSE that does the branching shown above
+        IFELSE
+        // → Stack state
+        // s0: Builder
+        // s1: null or StateInit
+        // s2: `body`
+        // s3: `mode`
+        // Group 4: Finalizing the message
+        STDICT // store `body` as ref with an extra Maybe bit, since `body` might be null
+        ENDC
+        // → Stack state
+        // s0: Cell
+        // s1: `mode`
+        // Group 5: Sending the message, with `mode` on top
+        SWAP
+        SENDRAWMSG // https://github.com/tact-lang/tact/issues/1558
+  }>
+  $Echo$_fun_reply PROCINLINE:<{
+    __tact_context_get_sender INLINECALLDICT
+    SWAP
+    TRUE
+    PUSHNULL
+    $Echo$_fun_forward INLINECALLDICT
+  }>
+  %hello PROC:<{
+    $Echo$_contract_load INLINECALLDICT
+    SWAP
+    $Echo$_fun_hello INLINECALLDICT
+    NIP
+  }>
+  %hello2 PROC:<{
+    $Echo$_contract_load INLINECALLDICT
+    SWAP
+    $Echo$_fun_hello2 INLINECALLDICT
+    NIP
+  }>
+  recv_internal PROC:<{
+    c2 SAVE
+    SAMEALTSAVE
+    SWAP
+    CTOS
+    2 PUSHINT
+    SDSKIPFIRST
+    1 LDI
+    1 LDI
+    LDMSGADDR
+    OVER
+    s3 s4 XCHG
+    s6 s6 XCHG2
+    4 TUPLE
+    __tact_context SETGLOB
+    s0 s2 XCHG
+    __tact_context_sender SETGLOB
+    $Echo$_contract_load INLINECALLDICT
+    s0 s2 XCHG
+    IFJMP:<{
+      2DROP
+    }>
+    0 PUSHINT
+    OVER
+    SBITS
+    DUP
+    31 GTINT
+    IF:<{
+      NIP
+      OVER
+      32 PLDU
+      DUP
+      2074217921 PUSHINT
+      EQUAL
+      IFJMP:<{
+        2DROP
+        32 PUSHINT
+        SDSKIPFIRST
+        $EchoMessage$_load_without_opcode INLINECALLDICT
+        NIP
+        $EchoMessage$_store_cell INLINECALLDICT
+        $Echo$_fun_reply INLINECALLDICT
+        $Echo$_contract_store INLINECALLDICT
+        RETALT
+      }>
+      SWAP
+    }>
+    SWAP
+    0 EQINT
+    IF:<{
+      31 GTINT
+      IFJMP:<{
+        32 PUSHINT
+        SDSKIPFIRST
+        $String$_fun_asComment INLINECALLDICT
+        $Echo$_fun_reply INLINECALLDICT
+        $Echo$_contract_store INLINECALLDICT
+        RETALT
+      }>
+    }>ELSE<{
+      DROP
+    }>
+    $Slice$_fun_asCell INLINECALLDICT
+    $Echo$_fun_reply INLINECALLDICT
+    $Echo$_contract_store INLINECALLDICT
+  }>
+  __tact_selector_hack PROC:<{
+    @atend @ 1 {
+        execute current@ context@ current!
+        {
+            }END> b>
+            
+            <{
+                SETCP0 DUP
+                IFNOTJMP:<{
+                    DROP over <s ref@ 0 swap @procdictkeylen idict@ { "internal shortcut error" abort } ifnot @addop
+                }>
+    swap <s ref@
+                0 swap @procdictkeylen idict- drop
+                -1 swap @procdictkeylen idict- drop
+                65535 swap @procdictkeylen idict- drop
+                @procdictkeylen DICTPUSHCONST DICTIGETJMPZ 11 THROWARG
+            }> b>
+        } : }END>c
+        current@ context! current!
+    } does @atend !
+  }>
+}END>c

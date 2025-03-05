@@ -1,0 +1,498 @@
+#pragma version =0.4.6;
+#pragma allow-post-modification;
+#pragma compute-asm-ltr;
+
+;; echo_Echo.headers.fc
+;;
+;; Header files for Echo
+;; NOTE: declarations are sorted for optimal order
+;;
+
+;; __tact_context_get
+(int, slice, int, slice) __tact_context_get() inline;
+
+;; __tact_context_get_sender
+slice __tact_context_get_sender() inline;
+
+;; __tact_string_builder_start
+tuple __tact_string_builder_start(builder b) inline;
+
+;; __tact_string_builder_start_comment
+tuple __tact_string_builder_start_comment() inline;
+
+;; __tact_string_builder_start_string
+tuple __tact_string_builder_start_string() inline;
+
+;; __tact_string_builder_end
+cell __tact_string_builder_end(tuple builders) inline;
+
+;; __tact_string_builder_end_slice
+slice __tact_string_builder_end_slice(tuple builders) inline;
+
+;; __tact_string_builder_append
+((tuple), ()) __tact_string_builder_append(tuple builders, slice sc) inline_ref;
+
+;; $EchoMessage$_store
+builder $EchoMessage$_store(builder build_0, tuple v) inline;
+
+;; $EchoMessage$_store_cell
+cell $EchoMessage$_store_cell(tuple v) inline;
+
+;; $EchoMessage$_load_without_opcode
+(slice, (tuple)) $EchoMessage$_load_without_opcode(slice sc_0) inline;
+
+;; $StateInit$_not_null
+((cell, cell)) $StateInit$_not_null(tuple v) inline;
+
+;; $Echo$init$_load
+(slice, ((int))) $Echo$init$_load(slice sc_0) inline;
+
+;; $Echo$_contract_init
+tuple $Echo$_contract_init(int $a) impure inline;
+
+;; $Echo$_contract_load
+tuple $Echo$_contract_load() impure inline;
+
+;; $Echo$_contract_store
+() $Echo$_contract_store(tuple v) impure inline;
+
+;; $Slice$_fun_asCell
+cell $Slice$_fun_asCell(slice $self) impure inline;
+
+;; $String$_fun_asComment
+cell $String$_fun_asComment(slice $self) impure inline_ref;
+
+;; $Echo$_fun_hello
+(tuple, slice) $Echo$_fun_hello(tuple $self, slice $src) impure inline_ref;
+
+;; $Echo$_fun_hello2
+(tuple, int) $Echo$_fun_hello2(tuple $self, int $src) impure inline_ref;
+
+;; $SendParameters$_constructor_bounce_to_value_mode_body_code_data
+((int, cell, cell, cell, int, slice, int)) $SendParameters$_constructor_bounce_to_value_mode_body_code_data(int $bounce, slice $to, int $value, int $mode, cell $body, cell $code, cell $data) inline;
+
+;; $Echo$_fun_forward
+(tuple, ()) $Echo$_fun_forward(tuple $self, slice $to, cell $body, int $bounce, tuple $init) impure inline_ref;
+
+;; $Echo$_fun_reply
+(tuple, ()) $Echo$_fun_reply(tuple $self, cell $body) impure inline;
+
+
+;; echo_Echo.stdlib.fc
+global (int, slice, int, slice) __tact_context;
+global slice __tact_context_sender;
+global cell __tact_child_contract_codes;
+global int __tact_randomized;
+
+(int, slice, int, slice) __tact_context_get() inline {
+    return __tact_context;
+}
+
+slice __tact_context_get_sender() inline {
+    return __tact_context_sender;
+}
+
+forall X0, X1 -> (X0, X1) __tact_tuple_destroy_2(tuple v) asm """
+    2 UNTUPLE
+""";
+
+tuple __tact_string_builder_start(builder b) inline {
+    return tpush(tpush(empty_tuple(), b), null());
+}
+
+tuple __tact_string_builder_start_comment() inline {
+    return __tact_string_builder_start(begin_cell().store_uint(0, 32));
+}
+
+tuple __tact_string_builder_start_string() inline {
+    return __tact_string_builder_start(begin_cell());
+}
+
+cell __tact_string_builder_end(tuple builders) inline {
+    (builder b, tuple tail) = uncons(builders);
+    cell c = b.end_cell();
+    while(~ null?(tail)) {
+        (b, tail) = uncons(tail);
+        c = b.store_ref(c).end_cell();
+    }
+    return c;
+}
+
+slice __tact_string_builder_end_slice(tuple builders) inline {
+    return __tact_string_builder_end(builders).begin_parse();
+}
+
+((tuple), ()) __tact_string_builder_append(tuple builders, slice sc) inline_ref {
+    int sliceRefs = slice_refs(sc);
+    int sliceBits = slice_bits(sc);
+
+    while((sliceBits > 0) | (sliceRefs > 0)) {
+
+        ;; Load the current builder
+        (builder b, tuple tail) = uncons(builders);
+        int remBytes = 127 - (builder_bits(b) / 8);
+        int exBytes = sliceBits / 8;
+
+        ;; Append bits
+        int amount = min(remBytes, exBytes);
+        if (amount > 0) {
+            slice read = sc~load_bits(amount * 8);
+            b = b.store_slice(read);
+        }
+
+        ;; Update builders
+        builders = cons(b, tail);
+
+        ;; Check if we need to add a new cell and continue
+        if (exBytes - amount > 0) {
+            var bb = begin_cell();
+            builders = cons(bb, builders);
+            sliceBits = (exBytes - amount) * 8;
+        } elseif (sliceRefs > 0) {
+            sc = sc~load_ref().begin_parse();
+            sliceRefs = slice_refs(sc);
+            sliceBits = slice_bits(sc);
+        } else {
+            sliceBits = 0;
+            sliceRefs = 0;
+        }
+    }
+
+    return ((builders), ());
+}
+
+builder $global_beginCell() impure asm """
+    NEWC
+""";
+
+int $global_myBalance() impure asm """
+    BALANCE FIRST
+""";
+
+() $global_nativeReserve(int $amount, int $mode) impure asm """
+    RAWRESERVE
+""";
+
+() $global_send((int, cell, cell, cell, int, slice, int) $params) impure asm """
+    NEWC
+    b{01} STSLICECONST  // store tag = $0 and ihr_disabled = true
+    1 STI               // store `bounce`
+    b{000} STSLICECONST // store bounced = false and src = addr_none
+    STSLICE             // store `to`
+    SWAP
+    STGRAMS             // store `value`
+    105 PUSHINT         // 1 + 4 + 4 + 64 + 32
+    STZEROES            // store currency_collection, ihr_fee, fwd_fee, created_lt and created_at
+    // → Stack state
+    // s0: Builder
+    // s1: `data`
+    // s2: `code`
+    // s3: `body`
+    // s4: `mode`
+
+    // Group 2: Placing the Builder after code and data, then checking those for nullability
+    s2 XCHG0
+    DUP2
+    ISNULL
+    SWAP
+    ISNULL
+    MUL // note that -1 * -1 wraps back to -1
+    // → Stack state
+    // s0: -1 (true) if `data` and `code` are both null, 0 (false) otherwise
+    // s1: `code`
+    // s2: `data`
+    // s3: Builder
+    // s4: `body`
+    // s5: `mode`
+
+    // Group 3: Left branch of the IFELSE, executed if s0 is -1 (true)
+    <{
+        DROP2 // drop `data` and `code`, since either of those is null
+        b{0} STSLICECONST
+    }> PUSHCONT
+
+    // Group 3: Right branch of the IFELSE, executed if s0 is 0 (false)
+    <{
+        // _ split_depth:(Maybe (## 5))
+        //   special:(Maybe TickTock)
+        //   code:(Maybe ^Cell)
+        //   data:(Maybe ^Cell)
+        //   library:(Maybe ^Cell)
+        // = StateInit;
+        ROT                // place message Builder on top
+        b{10} STSLICECONST // store Maybe = true, Either = false
+        // Start composing inlined StateInit
+        b{00} STSLICECONST // store split_depth and special first
+        STDICT             // store code
+        STDICT             // store data
+        b{0} STSLICECONST  // store library
+    }> PUSHCONT
+
+    // Group 3: IFELSE that does the branching shown above
+    IFELSE
+    // → Stack state
+    // s0: Builder
+    // s1: null or StateInit
+    // s2: `body`
+    // s3: `mode`
+
+    // Group 4: Finalizing the message
+    STDICT // store `body` as ref with an extra Maybe bit, since `body` might be null
+    ENDC
+    // → Stack state
+    // s0: Cell
+    // s1: `mode`
+
+    // Group 5: Sending the message, with `mode` on top
+    SWAP
+    SENDRAWMSG // https://github.com/tact-lang/tact/issues/1558
+""";
+
+builder $Builder$_fun_storeSlice(builder $self, slice $slice) impure asm """
+    STSLICER
+""";
+
+cell $Builder$_fun_endCell(builder $self) impure asm """
+    ENDC
+""";
+
+cell $Slice$_fun_asCell(slice $self) impure inline {
+    var ($self) = $self;
+    return $Builder$_fun_endCell($Builder$_fun_storeSlice($global_beginCell(), $self));
+}
+
+cell $String$_fun_asComment(slice $self) impure inline_ref {
+    var ($self) = $self;
+    tuple $b = __tact_string_builder_start_comment();
+    $b~__tact_string_builder_append($self);
+    return __tact_string_builder_end($b);
+}
+
+(tuple, ()) $Echo$_fun_forward(tuple $self, slice $to, cell $body, int $bounce, tuple $init) impure inline_ref {
+    var ($self) = $self;
+    var ($init) = $init;
+    cell $code = null();
+    cell $data = null();
+    if ((~ null?($init))) {
+        var ($init2'code, $init2'data) = $StateInit$_not_null($init);
+        $code = $init2'code;
+        $data = $init2'data;
+    }
+    if (false) {
+        var ($ctx'bounceable, $ctx'sender, $ctx'value, $ctx'raw) = __tact_context_get();
+        int $balance = $global_myBalance();
+        int $balanceBeforeMessage = ($balance - $ctx'value);
+        if (($balanceBeforeMessage < 0)) {
+            $global_nativeReserve(0, 0);
+            $global_send($SendParameters$_constructor_bounce_to_value_mode_body_code_data($bounce, $to, 0, 130, $body, $code, $data));
+            return ($self, ());
+        }
+    }
+    $global_send($SendParameters$_constructor_bounce_to_value_mode_body_code_data($bounce, $to, 0, 66, $body, $code, $data));
+    return ($self, ());
+}
+
+(tuple, ()) $Echo$_fun_reply(tuple $self, cell $body) impure inline {
+    var ($self) = $self;
+    $self~$Echo$_fun_forward(__tact_context_get_sender(), $body, true, null());
+    return ($self, ());
+}
+
+;; echo_Echo.constants.fc
+;; String "Hello, "
+slice __gen_slice_string_f370faf8638967dd9ace3fe077417700dc2370082f3795482bcb6285b962df24() asm """
+    B{b5ee9c7241010101000900000e48656c6c6f2c20e8d197d2} B>boc <s PUSHSLICE
+""";
+
+;; echo_Echo.storage.fc
+;;
+;; Type: StateInit
+;; TLB: _ code:^cell data:^cell = StateInit
+;;
+
+((cell, cell)) $StateInit$_not_null(tuple v) inline {
+    var (cell vvv'code, cell vvv'data) = __tact_tuple_destroy_2(v);
+    return (vvv'code, vvv'data);
+}
+
+;;
+;; Type: SendParameters
+;; TLB: _ mode:int257 body:Maybe ^cell code:Maybe ^cell data:Maybe ^cell value:int257 to:address bounce:bool = SendParameters
+;;
+
+((int, cell, cell, cell, int, slice, int)) $SendParameters$_constructor_bounce_to_value_mode_body_code_data(int $bounce, slice $to, int $value, int $mode, cell $body, cell $code, cell $data) inline {
+    return ($mode, $body, $code, $data, $value, $to, $bounce);
+}
+
+;;
+;; Type: EchoMessage
+;; Header: 0x7ba20dc1
+;; TLB: echo_message#7ba20dc1  = EchoMessage
+;;
+
+builder $EchoMessage$_store(builder build_0, tuple v) inline {
+    build_0 = store_uint(build_0, 2074217921, 32);
+    return build_0;
+}
+
+cell $EchoMessage$_store_cell(tuple v) inline {
+    return $EchoMessage$_store(begin_cell(), v).end_cell();
+}
+
+(slice, (tuple)) $EchoMessage$_load_without_opcode(slice sc_0) inline {
+    return (sc_0, null());
+}
+
+;;
+;; Type: Echo
+;; TLB: _  = Echo
+;;
+
+(slice, ((int))) $Echo$init$_load(slice sc_0) inline {
+    var v'a = sc_0~load_int(257);
+    return (sc_0, (v'a));
+}
+
+tuple $Echo$_contract_load() impure inline {
+    slice $sc = get_data().begin_parse();
+    int $loaded = $sc~load_int(1);
+    if ($loaded) {
+        return null();
+    }
+    else {
+        (int $a) = $sc~$Echo$init$_load();
+        $sc.end_parse();
+        return $Echo$_contract_init($a);
+    }
+}
+
+() $Echo$_contract_store(tuple v) impure inline {
+    builder b = begin_cell();
+    b = b.store_int(true, 1);
+    set_data(b.end_cell());
+}
+
+;;
+;; Contract Echo functions
+;;
+
+tuple $Echo$_contract_init(int $a) impure inline {
+    tuple $self = null();
+    return $self;
+}
+
+(tuple, slice) $Echo$_fun_hello(tuple $self, slice $src) impure inline_ref {
+    var ($self) = $self;
+    tuple $builder = __tact_string_builder_start_string();
+    $builder~__tact_string_builder_append(__gen_slice_string_f370faf8638967dd9ace3fe077417700dc2370082f3795482bcb6285b962df24());
+    $builder~__tact_string_builder_append($src);
+    var $fresh$ret_0 = __tact_string_builder_end_slice($builder);
+    return ($self, $fresh$ret_0);
+}
+
+(tuple, int) $Echo$_fun_hello2(tuple $self, int $src) impure inline_ref {
+    var ($self) = $self;
+    var $fresh$ret_1 = (($src << 10) & 32);
+    return ($self, $fresh$ret_1);
+}
+
+;;
+;; Get methods of a Contract Echo
+;;
+
+_ %hello(slice $src) method_id(115554) {
+    slice $src = $src;
+    var self = $Echo$_contract_load();
+    var res = self~$Echo$_fun_hello($src);
+    return res;
+}
+
+_ %hello2(int $src) method_id(105790) {
+    int $src = $src;
+    var self = $Echo$_contract_load();
+    var res = self~$Echo$_fun_hello2($src);
+    return res;
+}
+
+;; message opcode reader utility
+;; Returns 32 bit message opcode, otherwise throws the "Invalid incoming message" exit code
+(slice, int) ~load_opcode(slice s) asm( -> 1 0) "32 LDUQ 130 THROWIFNOT";
+;;
+;; Routing of a Contract Echo
+;;
+
+() recv_internal(int msg_value, cell in_msg_cell, slice in_msg) impure {
+    
+    ;; Context
+    var cs = in_msg_cell.begin_parse();
+    cs~skip_bits(2);
+    var msg_bounceable = cs~load_int(1);
+    var msg_bounced = cs~load_int(1);
+    slice msg_sender_addr = cs~load_msg_addr();
+    __tact_context = (msg_bounceable, msg_sender_addr, msg_value, cs);
+    __tact_context_sender = msg_sender_addr;
+    
+    ;; Load contract data
+    var $self = $Echo$_contract_load();
+    
+    ;; Handle bounced messages
+    if (msg_bounced) { return (); }
+    int op = 0;
+    int in_msg_length = slice_bits(in_msg);
+    if (in_msg_length >= 32) {
+        op = in_msg.preload_uint(32);
+        ;; Receive EchoMessage message
+        if (op == 2074217921) {
+            in_msg~skip_bits(32);
+            var $msg = in_msg~$EchoMessage$_load_without_opcode();
+            $self~$Echo$_fun_reply($EchoMessage$_store_cell($msg));
+            ;; Persist state
+            $Echo$_contract_store($self);
+            return ();
+        }
+        
+    }
+    ;; Empty Receiver and Text Receivers
+    if (op == 0) {
+        ;; Fallback Text Receiver
+        if (in_msg_length >= 32) {
+            slice $msg = in_msg.skip_bits(32);
+            $self~$Echo$_fun_reply($String$_fun_asComment($msg));
+            ;; Persist state
+            $Echo$_contract_store($self);
+            return ();
+        }
+    }
+    ;; Receiver fallback
+    slice $msg = in_msg;
+    $self~$Echo$_fun_reply($Slice$_fun_asCell($msg));
+    ;; Persist state
+    $Echo$_contract_store($self);
+    return ();
+}
+
+() __tact_selector_hack_asm() impure asm """
+@atend @ 1 {
+    execute current@ context@ current!
+    {
+        }END> b>
+        
+        <{
+            SETCP0 DUP
+            IFNOTJMP:<{
+                DROP over <s ref@ 0 swap @procdictkeylen idict@ { "internal shortcut error" abort } ifnot @addop
+            }>
+swap <s ref@
+            0 swap @procdictkeylen idict- drop
+            -1 swap @procdictkeylen idict- drop
+            65535 swap @procdictkeylen idict- drop
+
+            @procdictkeylen DICTPUSHCONST DICTIGETJMPZ 11 THROWARG
+        }> b>
+    } : }END>c
+    current@ context! current!
+} does @atend !
+""";
+() __tact_selector_hack() method_id(65535) {
+    return __tact_selector_hack_asm();
+}

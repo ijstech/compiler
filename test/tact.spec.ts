@@ -41,15 +41,11 @@ describe('Tact', async function () {
 
     assert.strictEqual(!!(await storage.readFile('test/tact-test/src/echo_Echo.abi')), true);
     assert.strictEqual(!!(await storage.readFile('test/tact-test/src/echo_Echo.code.boc')), true);
-    assert.strictEqual(!!(await storage.readFile('test/tact-test/src/echo_Echo.code.fc')), true);
-    assert.strictEqual(!!(await storage.readFile('test/tact-test/src/echo_Echo.code.fif')), true);
-    assert.strictEqual(!!(await storage.readFile('test/tact-test/src/echo_Echo.constants.fc')), true);
-    assert.strictEqual(!!(await storage.readFile('test/tact-test/src/echo_Echo.headers.fc')), true);
+    assert.strictEqual(!!(await storage.readFile('test/tact-test/src/echo_Echo.fc')), true);
+    assert.strictEqual(!!(await storage.readFile('test/tact-test/src/echo_Echo.fif')), true);
     assert.strictEqual(!!(await storage.readFile('test/tact-test/src/echo_Echo.md')), true);
     assert.strictEqual(!!(echoPkg), true);
     assert.strictEqual(!!(await storage.readFile('test/tact-test/src/echo_Echo.ts')), true);
-    assert.strictEqual(!!(await storage.readFile('test/tact-test/src/echo_Echo.storage.fc')), true);
-    assert.strictEqual(!!(await storage.readFile('test/tact-test/src/echo_Echo.stdlib.fc')), true);
 
     const expectedEchoPkg = await storage.readFile('test/tact-test/expected/echo_Echo.pkg');
     assert.deepStrictEqual(echoPkg, expectedEchoPkg);
