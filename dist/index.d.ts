@@ -11120,14 +11120,6 @@ declare module "@ijstech/compiler/solCompile" {
     }
     export function bundle(solc: Types.ISolc, storage: Types.IStorage, config: Config, RootPath: string): Promise<void>;
 }
-/// <amd-module name="@ijstech/compiler/tactCompile" />
-declare module "@ijstech/compiler/tactCompile" {
-    import * as Types from "@ijstech/compiler/types";
-    import { Config, ConfigProject } from './lib/tact-compiler';
-    function buildTact(storage: Types.IStorage, projectConfig: ConfigProject): Promise<Record<string, string> | null>;
-    function compileTactContract(storage: Types.IStorage, config: Config): Promise<Record<string, string>>;
-    export { compileTactContract, buildTact, Config, ConfigProject };
-}
 /// <amd-module name="@ijstech/compiler" />
 declare module "@ijstech/compiler" {
     import * as Parser from "@ijstech/compiler/parser";
@@ -11144,7 +11136,7 @@ declare module "@ijstech/compiler" {
         worker = "worker"
     }
     export function bundleContract(storage: Types.IStorage, solc: Types.ISolc, RootPath?: string): Promise<void>;
-    export function bundleTactContract(storage: Types.IStorage, RootPath?: string, config?: any): Promise<Record<string, string>>;
+    export function bundleTactContract(storage: Types.IStorage, RootPath?: string, config?: any): Promise<any>;
     export function bundleSdk(storage: Types.IStorage, RootPath?: string): Promise<void>;
     export function bundleLib(storage: Types.IStorage, RootPath?: string): Promise<void>;
     export function bundleDist(bundleType: string, storage: Types.IStorage, RootPath?: string): Promise<void>;
@@ -11229,4 +11221,12 @@ declare module "@ijstech/compiler" {
         readFile(fileName: string): string | undefined;
         resolveModuleNames(moduleNames: string[], containingFile: string): TS.ResolvedModule[];
     }
+}
+/// <amd-module name="@ijstech/compiler/tactCompile" />
+declare module "@ijstech/compiler/tactCompile" {
+    import * as Types from "@ijstech/compiler/types";
+    import { Config, ConfigProject } from './lib/tact-compiler';
+    function buildTact(storage: Types.IStorage, projectConfig: ConfigProject): Promise<Record<string, string> | null>;
+    function compileTactContract(storage: Types.IStorage, config: Config): Promise<Record<string, string>>;
+    export { compileTactContract, buildTact, Config, ConfigProject };
 }
