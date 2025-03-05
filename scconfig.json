@@ -2,6 +2,6 @@
     "name": "@ijstech/compiler",
     "version": "0.1.102",
     "dependencies": [
-        "@scom/ton-core"
+        "@ijstech/tact"
     ]
 }

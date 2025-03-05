@@ -10,11 +10,9 @@ import TS, { Type } from "./lib/typescript";
 import Path from './path';
 export {Parser, Path};
 import * as Sol from './solCompile';
-import {
-    compileTactContract
-} from './tactCompile';
 import * as Types from './types';
 import {ICompilerError} from './types';
+import { compileTactContract } from './tactCompile';
 export {Types};
 
 let isNode = false;    
@@ -108,6 +106,15 @@ export async function bundleTactContract(storage: Types.IStorage, RootPath?: str
                 options = JSON.parse(tactConfig);
         };
     }
+
+    // const isNode = typeof process !== "undefined" && process.versions?.node;
+    // let files;
+    // if (isNode) {
+    //     const lib = require('./tactCompile');
+    //     files = await lib.compileTactContract(storage, options);
+    // } else {
+    //     files = await (window as any)?.compileTactContract?.(storage, options) || {};
+    // }
 
     const files = await compileTactContract(storage, options);
 

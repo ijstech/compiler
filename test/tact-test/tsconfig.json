@@ -9,8 +9,7 @@
     "outDir": "lib",
     "baseUrl": ".",
     "paths": {
-      "@ijstech/*": ["../../src"],
-      "@scom/ton-core": ["../../lib/lib/tact-compiler.js"]
+      "@ijstech/compiler": ["../../src"]
     }
   },
   "include": ["src/**/*"],

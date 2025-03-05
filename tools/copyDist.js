@@ -45,17 +45,17 @@ async function bundle(){
     // await copyDir(Path.resolve(__dirname, '../node_modules/@ijstech/components/dist'), Path.resolve(__dirname, '../dist/lib/components'));
     await copyFile(Path.resolve(__dirname, '../src/lib/typescript.js'), Path.resolve(__dirname, '../lib/lib/typescript.js'));
     await copyFile(Path.resolve(__dirname, '../src/lib/typescript.d.ts'), Path.resolve(__dirname, '../types/lib/typescript.d.ts'));
-    await copyFile(Path.resolve(__dirname, '../src/lib/tact-compiler/index.js'), Path.resolve(__dirname, '../lib/lib/tact-compiler.js'));
-    await copyFile(Path.resolve(__dirname, '../src/lib/tact-compiler/index.d.ts'), Path.resolve(__dirname, '../types/lib/tact-compiler.d.ts'));
+    // await copyFile(Path.resolve(__dirname, '../src/lib/tact-compiler/index.js'), Path.resolve(__dirname, '../lib/lib/tact-compiler.js'));
+    // await copyFile(Path.resolve(__dirname, '../src/lib/tact-compiler/index.d.ts'), Path.resolve(__dirname, '../types/lib/tact-compiler.d.ts'));
     await copyFile(Path.resolve(__dirname, '../node_modules/@ijstech/components/types/index.d.ts'), Path.resolve(__dirname, '../dist/lib/components/index.d.ts'));
-    await copyFile(Path.resolve(__dirname, '../src/lib/tact-compiler/browser.js'), Path.resolve(__dirname, '../dist/lib/tact-compiler.js'));
+    // await copyFile(Path.resolve(__dirname, '../src/lib/tact-compiler/browser.js'), Path.resolve(__dirname, '../dist/lib/tact-compiler.js'));
 
     let typescript = await readFile(Path.resolve(__dirname, '../node_modules/typescript/lib/typescript.js'));
-    let compiler = await readFile(Path.resolve(__dirname, '../lib/tactLib.js'));
+    // let compiler = await readFile(Path.resolve(__dirname, '../lib/tactLib.js'));
 
     let content = await readFile(Path.resolve(__dirname, '../dist/index.js'));
     content = replaceAll(content, '"./lib/typescript"', '"typescript"');
-    content = replaceAll(content, '"./lib/tact-compiler"', '"tact-compiler"');
+    // content = replaceAll(content, '"./lib/tact-compiler"', '"tact-compiler"');
     await writeFile(Path.resolve(__dirname, '../dist/index.js'), 
 `define("typescript", ["require", "exports"], function (require, exports) {
     Object.defineProperty(exports, "__esModule", { value: true }); 
@@ -63,25 +63,16 @@ async function bundle(){
     exports.default = ts;
 });
 
-define("tact-compiler", ["require", "exports"], function (require, exports) {
-    ${compiler}
-});
-
 ${content}`);
 
     content = await readFile(Path.resolve(__dirname, '../dist/index.d.ts'));
     content = replaceAll(content, '"./lib/typescript"', '"typescript"');
-    content = replaceAll(content, '"./lib/tact-compiler"', '"tact-compiler"');
 
     let typescriptDts = await readFile(Path.resolve(__dirname, '../node_modules/typescript/lib/typescript.d.ts'));
-    let tactDts = await readFile(Path.resolve(__dirname, '../src/lib/tact-compiler/index.d.ts'));
+    // let tactDts = await readFile(Path.resolve(__dirname, '../src/lib/tact-compiler/index.d.ts'));
     await writeFile(Path.resolve(__dirname, '../dist/index.d.ts'), 
 `declare module "typescript" {
     ${typescriptDts}
-};
-
-declare module "tact-compiler" {
-    ${tactDts}
 };
 
 ${content}`);    

@@ -3,8 +3,8 @@ import {
   build,
   VirtualFileSystem,
   Config,
-  ConfigProject
-} from './lib/tact-compiler';
+  Project
+} from '@ijstech/tact';
 
 class OverwritableVirtualFileSystem implements VirtualFileSystem {
   root: string;
@@ -86,7 +86,7 @@ function getFs() {
   return fs;
 }
 
-async function buildTact(storage: Types.IStorage, projectConfig: ConfigProject) {
+async function buildTact(storage: Types.IStorage, projectConfig: Project) {
   if (!projectConfig) throw new Error('Error while building');
 
   const filesToProcess = [projectConfig.path];
@@ -104,8 +104,7 @@ async function buildTact(storage: Types.IStorage, projectConfig: ConfigProject) 
     const response = await build({
       config: projectConfig,
       project: fs,
-      stdlib: '@stdlib',
-      logger: null
+      stdlib: '@stdlib'
     });
 
     if (!response.ok) {
@@ -146,8 +145,5 @@ async function compileTactContract(storage: Types.IStorage, config: Config) {
 }
 
 export {
-  compileTactContract,
-  buildTact,
-  Config,
-  ConfigProject
+  compileTactContract
 };

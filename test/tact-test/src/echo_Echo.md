@@ -1,40 +1,56 @@
-# TACT Compilation Report
+# Tact compilation report
 Contract: Echo
-BOC Size: 640 bytes
+BoC Size: 543 bytes
 
-# Types
-Total Types: 7
+## Structures (Structs and Messages)
+Total structures: 11
 
-## StateInit
-TLB: `_ code:^cell data:^cell = StateInit`
+### DataSize
+TL-B: `_ cells:int257 bits:int257 refs:int257 = DataSize`
+Signature: `DataSize{cells:int257,bits:int257,refs:int257}`
+
+### StateInit
+TL-B: `_ code:^cell data:^cell = StateInit`
 Signature: `StateInit{code:^cell,data:^cell}`
 
-## StdAddress
-TLB: `_ workchain:int8 address:uint256 = StdAddress`
+### Context
+TL-B: `_ bounceable:bool sender:address value:int257 raw:^slice = Context`
+Signature: `Context{bounceable:bool,sender:address,value:int257,raw:^slice}`
+
+### SendParameters
+TL-B: `_ mode:int257 body:Maybe ^cell code:Maybe ^cell data:Maybe ^cell value:int257 to:address bounce:bool = SendParameters`
+Signature: `SendParameters{mode:int257,body:Maybe ^cell,code:Maybe ^cell,data:Maybe ^cell,value:int257,to:address,bounce:bool}`
+
+### MessageParameters
+TL-B: `_ mode:int257 body:Maybe ^cell value:int257 to:address bounce:bool = MessageParameters`
+Signature: `MessageParameters{mode:int257,body:Maybe ^cell,value:int257,to:address,bounce:bool}`
+
+### DeployParameters
+TL-B: `_ mode:int257 body:Maybe ^cell value:int257 bounce:bool init:StateInit{code:^cell,data:^cell} = DeployParameters`
+Signature: `DeployParameters{mode:int257,body:Maybe ^cell,value:int257,bounce:bool,init:StateInit{code:^cell,data:^cell}}`
+
+### StdAddress
+TL-B: `_ workchain:int8 address:uint256 = StdAddress`
 Signature: `StdAddress{workchain:int8,address:uint256}`
 
-## VarAddress
-TLB: `_ workchain:int32 address:^slice = VarAddress`
+### VarAddress
+TL-B: `_ workchain:int32 address:^slice = VarAddress`
 Signature: `VarAddress{workchain:int32,address:^slice}`
 
-## Context
-TLB: `_ bounced:bool sender:address value:int257 raw:^slice = Context`
-Signature: `Context{bounced:bool,sender:address,value:int257,raw:^slice}`
+### BasechainAddress
+TL-B: `_ hash:Maybe int257 = BasechainAddress`
+Signature: `BasechainAddress{hash:Maybe int257}`
 
-## SendParameters
-TLB: `_ bounce:bool to:address value:int257 mode:int257 body:Maybe ^cell code:Maybe ^cell data:Maybe ^cell = SendParameters`
-Signature: `SendParameters{bounce:bool,to:address,value:int257,mode:int257,body:Maybe ^cell,code:Maybe ^cell,data:Maybe ^cell}`
-
-## EchoMessage
-TLB: `echo_message#7ba20dc1  = EchoMessage`
+### EchoMessage
+TL-B: `echo_message#7ba20dc1  = EchoMessage`
 Signature: `EchoMessage{}`
 
-## Echo$Data
-TLB: `null`
-Signature: `null`
+### Echo$Data
+TL-B: `_  = Echo`
+Signature: `Echo{}`
 
-# Get Methods
-Total Get Methods: 2
+## Get methods
+Total get methods: 2
 
 ## hello
 Argument: src
@@ -42,7 +58,7 @@ Argument: src
 ## hello2
 Argument: src
 
-# Error Codes
+## Exit codes
 * 2: Stack underflow
 * 3: Stack overflow
 * 4: Integer overflow
@@ -77,8 +93,9 @@ Argument: src
 * 133: Contract stopped
 * 134: Invalid argument
 * 135: Code of a contract was not found
+* 136: Invalid standard address
 
-# Trait Inheritance Diagram
+## Trait inheritance diagram
 
 ```mermaid
 graph TD
@@ -86,7 +103,7 @@ Echo
 Echo --> BaseTrait
 ```
 
-# Contract Dependency Diagram
+## Contract dependency diagram
 
 ```mermaid
 graph TD
