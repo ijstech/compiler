@@ -1,6 +1,6 @@
 {
   "name": "@ijstech/compiler",
-  "version": "0.1.102",
+  "version": "0.1.103",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
   "pluginTypes": "dist/index.d.ts",
@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "bignumber.js": "9.1.1",
-    "@ijstech/tact": "https://github.com/ijstech/tact.git"
+    "@ijstech/tact": "^0.1.0"
   },
   "devDependencies": {
     "@ijstech/components": "^0.1.55",
@@ -22,7 +22,6 @@
     "@ijstech/eth-wallet": "^0.1.56",
     "@ijstech/plugin": "^0.1.8",
     "@ijstech/wallet": "^0.1.0",
-    "@ijstech/ton-core": "^0.60.0",
     "@openzeppelin/contracts": "4.9.6",
     "@types/mocha": "9.0.0",
     "@types/node": "18.11",
