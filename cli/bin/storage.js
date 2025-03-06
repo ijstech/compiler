@@ -212,34 +212,34 @@ class Storage {
             let targetPackDir = targetDir;
             if (!targetPackDir.endsWith(packName))
                 targetPackDir = path_1.default.join(targetDir, packName);
+            let distDir = 'dist';
             if (distFile && distFile.endsWith('.js')) {
-                await fs_1.promises.mkdir(targetPackDir, { recursive: true });
+                distDir = path_1.default.dirname(distFile);
+            }
+            await fs_1.promises.cp(path_1.default.join(path, distDir), targetPackDir, { recursive: true });
+            if (dtsFile && dtsFile.endsWith('.d.ts')) {
+                await fs_1.promises.copyFile(path_1.default.join(path, dtsFile), path_1.default.join(targetPackDir, 'index.d.ts'));
+            }
+            ;
+            if (distFile && distFile.endsWith('.js')) {
                 await fs_1.promises.copyFile(path_1.default.join(path, distFile), path_1.default.join(targetPackDir, 'index.js'));
-                if (dtsFile && dtsFile.endsWith('.d.ts')) {
-                    await fs_1.promises.copyFile(path_1.default.join(path, dtsFile), path_1.default.join(targetPackDir, 'index.d.ts'));
-                }
             }
-            else {
-                await fs_1.promises.cp(path_1.default.join(path, 'dist'), targetPackDir, { recursive: true });
-                if (dtsFile && dtsFile.endsWith('.d.ts')) {
-                    await fs_1.promises.copyFile(path_1.default.join(path, dtsFile), path_1.default.join(targetPackDir, 'index.d.ts'));
+            ;
+            try {
+                let scconfig = JSON.parse(await fs_1.promises.readFile(path_1.default.join(path, distDir, 'scconfig.json'), 'utf8'));
+                if (scconfig?.dependencies) {
+                    pack.dependencies = {};
+                    scconfig.dependencies.forEach((name) => {
+                        pack.dependencies[name] = '*';
+                        if (targetDir != targetPackDir) {
+                            this.copyPackage(name, path_1.default.join(targetDir, name), packages);
+                        }
+                        ;
+                    });
                 }
-                try {
-                    let scconfig = JSON.parse(await fs_1.promises.readFile(path_1.default.join(path, 'dist', 'scconfig.json'), 'utf8'));
-                    if (scconfig?.dependencies) {
-                        pack.dependencies = {};
-                        scconfig.dependencies.forEach((name) => {
-                            pack.dependencies[name] = '*';
-                            if (targetDir != targetPackDir) {
-                                this.copyPackage(name, path_1.default.join(targetDir, name), packages);
-                            }
-                            ;
-                        });
-                    }
-                    ;
-                }
-                catch (err) { }
+                ;
             }
+            catch (err) { }
         }
         ;
         return pack;

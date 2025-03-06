@@ -219,21 +219,26 @@ export class Storage implements IStorage{
             let dtsFile: string = pack.pluginTypes || pack.types;
             let targetPackDir = targetDir;
             if (!targetPackDir.endsWith(packName))
-                targetPackDir = Path.join(targetDir, packName);            
+                targetPackDir = Path.join(targetDir, packName);     
+            let distDir = 'dist';       
             if (distFile && distFile.endsWith('.js')){
-                await Fs.mkdir(targetPackDir, {recursive: true});
-                await Fs.copyFile(Path.join(path, distFile), Path.join(targetPackDir, 'index.js'));    
-                if (dtsFile && dtsFile.endsWith('.d.ts')){
-                    await Fs.copyFile(Path.join(path, dtsFile), Path.join(targetPackDir, 'index.d.ts'));                                
-                }                            
+                distDir = Path.dirname(distFile);
+                // await Fs.mkdir(targetPackDir, {recursive: true});
+                // await Fs.copyFile(Path.join(path, distFile), Path.join(targetPackDir, 'index.js'));    
+                // if (dtsFile && dtsFile.endsWith('.d.ts')){
+                //     await Fs.copyFile(Path.join(path, dtsFile), Path.join(targetPackDir, 'index.d.ts'));                                
+                // }                            
             }
-            else{
-                await Fs.cp(Path.join(path, 'dist'), targetPackDir, {recursive: true});
+            // else{
+                await Fs.cp(Path.join(path, distDir), targetPackDir, {recursive: true});
                 if (dtsFile && dtsFile.endsWith('.d.ts')){
                     await Fs.copyFile(Path.join(path, dtsFile), Path.join(targetPackDir, 'index.d.ts'));                                
-                } 
+                };
+                if (distFile && distFile.endsWith('.js')){
+                    await Fs.copyFile(Path.join(path, distFile), Path.join(targetPackDir, 'index.js'));  
+                };
                 try{
-                    let scconfig = JSON.parse(await Fs.readFile(Path.join(path, 'dist', 'scconfig.json'), 'utf8'));
+                    let scconfig = JSON.parse(await Fs.readFile(Path.join(path, distDir, 'scconfig.json'), 'utf8'));
                     if (scconfig?.dependencies){
                         pack.dependencies = {};
                         scconfig.dependencies.forEach((name: string) => {
@@ -246,7 +251,7 @@ export class Storage implements IStorage{
                     };
                 }
                 catch(err){}
-            }
+            // }
         };
         return pack;
     };
