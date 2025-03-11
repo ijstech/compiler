@@ -734,7 +734,7 @@ if (!rootDir.endsWith('/'))
                 }
                 else if (n == 'title')
                     meta += `  <title>${scconfig.meta[n]}</title>\n`
-                else if (n == 'chartset')
+                else if (n == 'charset')
                     meta += `  <meta charset="${scconfig.meta[n]}">\n`
                 else if (n.indexOf(':') < 0)
                     meta += `  <meta name="${n}" content="${scconfig.meta[n]}">\n`
