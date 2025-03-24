@@ -111,7 +111,7 @@ async function main() {
             case 'dapp':
                 await bundleDapp(storage);
                 break;
-            case 'sdk':
+            case 'lib':
                 await bundleSdk(storage);
                 break;
             case 'contract':

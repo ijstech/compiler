@@ -92,7 +92,7 @@ export async function bundleContract(storage: Types.IStorage, solc: Types.ISolc,
         "outputObjects": "bytecode"
     }, RootPath);
     await bundleDist('contract', storage, RootPath);
-    await bundleLib(storage, RootPath);
+    await bundleLib('contract', storage, RootPath);
 };
 export async function bundleTactContract(storage: Types.IStorage, RootPath?: string, config?: any){
     let options = config;
@@ -127,7 +127,7 @@ export async function bundleTactContract(storage: Types.IStorage, RootPath?: str
 
         try {
             await bundleDist('contract', storage, RootPath);
-            await bundleLib(storage, RootPath);
+            await bundleLib('sdk', storage, RootPath);
         } catch (err) {
             console.error('Bundle contract error: ', err);
         }
@@ -138,9 +138,9 @@ export async function bundleTactContract(storage: Types.IStorage, RootPath?: str
 export async function bundleSdk(storage: Types.IStorage, RootPath?: string){
     RootPath = RootPath || storage.rootPath;
     await bundleDist('sdk', storage, RootPath);
-    await bundleLib(storage, RootPath);
+    await bundleLib('sdk', storage, RootPath);
 };
-export async function bundleLib(storage: Types.IStorage, RootPath?: string){
+export async function bundleLib(bundleType: string, storage: Types.IStorage, RootPath?: string){
     RootPath = RootPath || storage.rootPath;
     let packageConfig = await storage.getPackageConfig();
     if (packageConfig){
@@ -164,7 +164,8 @@ export async function bundleLib(storage: Types.IStorage, RootPath?: string){
                 target: TS.ScriptTarget.ES2020
             }
         });
-        packageManager.addPackage('@ijstech/eth-contract', await storage.getPackageTypes('@ijstech/eth-contract'));            
+        if (bundleType == 'contract')
+            packageManager.addPackage('@ijstech/eth-contract', await storage.getPackageTypes('@ijstech/eth-contract'));            
         let pack:Types.IPackage = {files: await storage.getFiles(Path.join(RootPath, 'src'))};
         packageManager.addPackage(packageConfig.name, pack);
 

@@ -19,7 +19,7 @@ export declare enum EPackageType {
 export declare function bundleContract(storage: Types.IStorage, solc: Types.ISolc, RootPath?: string): Promise<void>;
 export declare function bundleTactContract(storage: Types.IStorage, RootPath?: string, config?: any): Promise<Record<string, string>>;
 export declare function bundleSdk(storage: Types.IStorage, RootPath?: string): Promise<void>;
-export declare function bundleLib(storage: Types.IStorage, RootPath?: string): Promise<void>;
+export declare function bundleLib(bundleType: string, storage: Types.IStorage, RootPath?: string): Promise<void>;
 export declare function bundleDist(bundleType: string, storage: Types.IStorage, RootPath?: string): Promise<void>;
 export declare function bundleWorker(storage: Types.IStorage, RootPath?: string): Promise<void>;
 export declare function bundleWidget(storage: Types.IStorage, RootPath?: string): Promise<void>;
