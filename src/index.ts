@@ -137,8 +137,8 @@ export async function bundleTactContract(storage: Types.IStorage, RootPath?: str
 };
 export async function bundleSdk(storage: Types.IStorage, RootPath?: string){
     RootPath = RootPath || storage.rootPath;
-    await bundleDist('sdk', storage, RootPath);
-    await bundleLib('sdk', storage, RootPath);
+    await bundleDist('lib', storage, RootPath);
+    await bundleLib('lib', storage, RootPath);
 };
 export async function bundleLib(bundleType: string, storage: Types.IStorage, RootPath?: string){
     RootPath = RootPath || storage.rootPath;

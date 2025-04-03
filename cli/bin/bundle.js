@@ -109,6 +109,7 @@ async function main() {
             case 'dapp':
                 await (0, compiler_1.bundleDapp)(storage);
                 break;
+            case 'sdk':
             case 'lib':
                 await (0, compiler_1.bundleSdk)(storage);
                 break;
