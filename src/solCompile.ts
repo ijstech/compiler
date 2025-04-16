@@ -82,7 +82,7 @@ async function recursiveAdd(storage: Types.IStorage, root: string, srcPath: stri
     let files = await storage.readDir(currPath);
     for (let i = 0; i < files.length; i++) {
         let _path = Path.join(root, srcPath, files[i]).replace(/\\/g, "/").replace(/^([A-Za-z]):/, "/$1");
-        if (files[i].endsWith(".sol") && await storage.isFile(_path)) {
+        if ((files[i].endsWith(".sol") || files[i].endsWith(".json")) && await storage.isFile(_path)) {
             if (!sources[files[i]]) {
                 if ((!exclude || !exclude.includes(_path))){
                     let content = await storage.readFile(Path.resolve(currPath, files[i]));
@@ -189,7 +189,11 @@ async function processOutput(storage: Types.IStorage, sourceDir: string, output:
 
             for (let j in output.contracts[i]) {
                 let abi = (<any>output.contracts[i])[j].abi;
-                let bytecode = (<any>output.contracts[i])[j].evm?.bytecode?.object;
+                if (i.endsWith('.json')){
+                    outputOptions.abi = true;
+                    outputOptions.bytecode = true;
+                };
+                let bytecode = (<any>output.contracts[i])[j].bytecode || (<any>output.contracts[i])[j].evm?.bytecode?.object;
                 let linkReferences = (<any>output.contracts[i])[j].evm?.bytecode?.linkReferences;
 
                 let _export = await callCodeGen(storage, outputDir, p, j, abi, bytecode, linkReferences, outputOptions);
@@ -257,7 +261,7 @@ async function callCodeGen(storage: Types.IStorage, outputDir: string, path: str
         }
         if (outputBytecode) {
             file["bytecode"] = bytecode;
-            if (Object.keys(linkReferences).length)
+            if (linkReferences && Object.keys(linkReferences).length)
                 file["linkReferences"] = linkReferences;
         }
         await storage.writeFile(outputDir + '/' + path + name +  '.json.ts', "export default " + prettyPrint(JSON.stringify(file)));
@@ -319,11 +323,25 @@ export async function bundle(solc: Types.ISolc, storage: Types.IStorage, config:
         customSources = customSources || [];
         let sources: Types.ISource = {};
         let input = await buildInput(storage, sourceDir, sourceFiles, optimizerRuns, viaIR, customSources);
+        let json: any = {};
         for (let n in input.sources){
-            if (!sources[n])
+            if (n.endsWith('.json')){
+                json[n] = input.sources[n];
+                delete input.sources[n];
+            }
+            else if (!sources[n])
                 sources[n] = input.sources[n];
         };
         let output = JSON.parse(await solc.compile(JSON.stringify(input), version));
+        for (let n in json) {
+            let name = n.split('.')[0];
+            if (name.indexOf('/') > -1)
+                name = name.split('/').pop() || name;
+            let content = JSON.parse(json[n].content);       
+            output.contracts[n] = output.contracts[n] || {};
+            output.contracts[n][name] = output.contracts[n][name] || {};
+            output.contracts[n][name] = content;
+        };
         let exports = await processOutput(storage, sourceDir, output, outputDir, outputOptions, customSources);
         if (output.errors) {
             output.errors/*.filter(e=>e.severity!='warning')*/.forEach((e: any) => console.log(e.formattedMessage));
