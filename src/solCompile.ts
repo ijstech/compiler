@@ -337,7 +337,8 @@ export async function bundle(solc: Types.ISolc, storage: Types.IStorage, config:
             let name = n.split('.')[0];
             if (name.indexOf('/') > -1)
                 name = name.split('/').pop() || name;
-            let content = JSON.parse(json[n].content);       
+            let content = JSON.parse(json[n].content);    
+            output.contracts = output.contracts || {};   
             output.contracts[n] = output.contracts[n] || {};
             output.contracts[n][name] = output.contracts[n][name] || {};
             output.contracts[n][name] = content;
