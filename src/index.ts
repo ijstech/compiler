@@ -434,7 +434,7 @@ export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
             if (dep && dependencies.indexOf(item) < 0){   
                 let idx = dependencies.push(item);
                 dep.dependencies?.forEach((depItem: string) => {
-                    if (depItem.startsWith('@scom/')){
+                    if (depItem.startsWith('@scom/') || depItem.startsWith('@ijstech/') || depItem.startsWith('@trustroot/')){
                         let depIdx = dependencies.indexOf(depItem);
                         if (depIdx < 0){
                             dependencies.splice(idx-1, 0, depItem);
@@ -576,7 +576,7 @@ if (!rootDir.endsWith('/'))
             // };
             module.dependencies = [];//deps;
             pack.dependencies?.forEach((item: string) => {
-                if ((scconfig.modules[item] || item.startsWith('@scom/') || item.startsWith('@ijstech/')) && item != '@ijstech/components' && !item.startsWith('@ijstech/components/')){
+                if ((scconfig.modules[item] || item.startsWith('@scom/') || item.startsWith('@ijstech/') || item.startsWith('@trustroot/')) && item != '@ijstech/components' && !item.startsWith('@ijstech/components/')){
                     if (module.dependencies.indexOf(item) < 0){
                         let idx = module.dependencies.push(item);
                         if (!scconfig.modules[item] && !scconfig.dependencies[item])
@@ -584,7 +584,7 @@ if (!rootDir.endsWith('/'))
                         let dep = packageManager.packages(item);
                         if (dep && dep.dependencies){
                             dep.dependencies.forEach((depItem: string) => {
-                                if ((depItem.startsWith('@scom/') || depItem.startsWith('@ijstech/')) && depItem != '@ijstech/components' && !depItem.startsWith('@ijstech/components/')){
+                                if ((depItem.startsWith('@scom/') || depItem.startsWith('@ijstech/') || item.startsWith('@trustroot/')) && depItem != '@ijstech/components' && !depItem.startsWith('@ijstech/components/')){
                                     if (module.dependencies.indexOf(depItem) < 0)
                                         module.dependencies.splice(idx -1, 0, depItem)
                                     else if (module.dependencies.indexOf(depItem) > idx){
@@ -636,7 +636,7 @@ if (!rootDir.endsWith('/'))
             for (let i = 0; i < items.length; i ++){
                 let name = items[i];
                 if (name != '@ijstech/components/' && !name.startsWith('@ijstech/components/')){
-                    if ((all || scconfig.modules[name] || name.startsWith('@ijstech/') || name.startsWith('@scom/'))){   
+                    if ((all || scconfig.modules[name] || name.startsWith('@ijstech/') || name.startsWith('@scom/') || name.startsWith('@trustroot/'))){   
                         let pack;
                         if (scconfig.modules[name])
                             pack = scconfig.modules[name]
@@ -1118,7 +1118,7 @@ export class Compiler {
                         if (pack.dependencies){
                             for (let i = 0; i < pack.dependencies.length; i ++){
                                 let n = pack.dependencies[i];
-                                if (PackageWhiteList.indexOf(n) > -1 || n.startsWith('@scom/') || n.startsWith('@ijstech/'))
+                                if (PackageWhiteList.indexOf(n) > -1 || n.startsWith('@scom/') || n.startsWith('@ijstech/') || n.startsWith('@trustroot/'))
                                     await this.addPackage(n);
                             };
                         };
