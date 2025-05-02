@@ -392,7 +392,9 @@ export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
         });
         let scconfig = await storage.getSCConfig();    
         let distDir = Path.join(scRootDir, 'dist');
+        let srcDir = 'src';
         if (scconfig) {
+            srcDir = scconfig.src || 'src';
             let moduleSourceDir = Path.join(scRootDir, scconfig.moduleDir || 'modules');
             for (let name in scconfig.modules) {
                 let path = Path.join(moduleSourceDir, scconfig.modules[name].path);
@@ -408,7 +410,7 @@ export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
                 modules[name] = pack;
             };
         };        
-        let pack:Types.IPackage = {files: await storage.getFiles(Path.join(scRootDir, 'src'))};
+        let pack:Types.IPackage = {files: await storage.getFiles(Path.join(scRootDir, srcDir))};
         for (let n in pack.files){
             if (n == 'index.ts' || n == 'index.tsx')
                 pack.files[n] = `///<amd-module name='${packageConfig.name}'/> \n` + pack.files[n];
@@ -486,7 +488,7 @@ export async function bundleWidget(storage: Types.IStorage, RootPath?: string){
                 };
             };
         };
-        await storage.copyAssets(Path.join(scRootDir, 'src'), distDir);
+        await storage.copyAssets(Path.join(scRootDir, srcDir), distDir);
         await storage.writeFile(Path.join(distDir, 'index.js'), script);
 
         await storage.writeFile(Path.join(distDir, 'scconfig.json'), JSON.stringify({
