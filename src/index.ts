@@ -560,9 +560,9 @@ if (!rootDir.endsWith('/'))
         let distDir = Path.join(scRootDir, scconfig.distDir || 'dist');
         if (scconfig.ipfs)
             distDir = distDir + '/output';
-        let rootDir = '';
+        let rootDir = '/';
         if (scconfig.version && scconfig.bundle)
-            rootDir = scconfig.version;
+            rootDir = '/' + scconfig.version;
         let distLibDir = Path.join(distDir, rootDir,  'libs');
         let distModuleDir = Path.join(distDir, rootDir, 'modules');
                 
