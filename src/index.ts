@@ -25,7 +25,7 @@ if (typeof process === 'object') {
 };
 const indexHtmlTemplate = `
 <!DOCTYPE html>
-
+<html>
 <head>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0,viewport-fit=cover">
 {{meta}}
@@ -37,7 +37,6 @@ const indexHtmlTemplate = `
   {{oauth}}
   {{bundleJS}}
 </head>
-<html>
 
 <body>
   <script>
@@ -792,7 +791,7 @@ if (!rootDir.endsWith('/'))
             indexHtml = indexHtml.replace('{{bundleJS}}', ``);
         if (scconfig.ipfs == true){
             delete scconfig.ipfs;
-            let idx = indexHtml.replaceAll('{{rootDir}}', rootDir?rootDir+'/':'');
+            let idx = indexHtml.replaceAll('{{rootDir}}', '/' + rootDir?rootDir+'/':'');
             await storage.writeFile(Path.join(distDir, 'index.html'), idx);
             await storage.writeFile(Path.join(distDir, 'scconfig.json'), JSON.stringify(scconfig, null, 4));
             let cid = await storage.hashDir(distDir);            
