@@ -1,6 +1,6 @@
 {
     "name": "@ijstech/compiler",
-    "version": "0.1.114",
+    "version": "0.1.116",
     "dependencies": [
         "@ijstech/tact"
     ]

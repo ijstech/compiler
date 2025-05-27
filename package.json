@@ -1,6 +1,6 @@
 {
   "name": "@ijstech/compiler",
-  "version": "0.1.115",
+  "version": "0.1.116",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
   "pluginTypes": "dist/index.d.ts",
