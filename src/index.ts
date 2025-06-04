@@ -523,38 +523,106 @@ if (!rootDir.endsWith('/'))
                 return pack;
             }
         });
-        packageManager.addPackage('@ijstech/components', await storage.getPackageTypes('@ijstech/components'));
-        if (scconfig.networks){
-            packageManager.addPackage('bignumber.js', await storage.getPackageTypes('bignumber.js'));
-            packageManager.addPackage('@ijstech/eth-wallet', await storage.getPackageTypes('@ijstech/eth-wallet'));
-            packageManager.addPackage('@ijstech/eth-contract', await storage.getPackageTypes('@ijstech/eth-contract'));
+        function createPackageManager(tsconfig?: any) {
+            return new PackageManager({
+                packageImporter: async (packName: string) => {
+                    return await storage.getPackageTypes(packName);
+                },
+                tsconfig
+            });
+        }
+
+        async function addCommonPackages(pm: PackageManager) {
+            pm.addPackage('@ijstech/components', await storage.getPackageTypes('@ijstech/components'));
+            if (scconfig.networks) {
+                pm.addPackage('bignumber.js', await storage.getPackageTypes('bignumber.js'));
+                pm.addPackage('@ijstech/eth-wallet', await storage.getPackageTypes('@ijstech/eth-wallet'));
+                pm.addPackage('@ijstech/eth-contract', await storage.getPackageTypes('@ijstech/eth-contract'));
+            }
+            for (let n in scconfig.dependencies) {
+                if (!pm.packages(n)) {
+                    pm.addPackage(n, await storage.getPackageTypes(n));
+                }
+            }
+        }   
+
+        const reactTsconfig = {
+            allowJs: false,
+            alwaysStrict: true,
+            declaration: true,
+            esModuleInterop: true,
+            experimentalDecorators: true,
+            module: TS.ModuleKind.AMD,
+            moduleResolution: TS.ModuleResolutionKind.NodeNext,
+            jsx: TS.JsxEmit.React,
+            jsxFactory: 'React.createElement',
+            jsxFragmentFactory: 'React.Fragment',
+            noEmitOnError: true,
+            outFile: "index.js",
+            removeComments: true,
+            resolveJsonModule: false,
+            skipLibCheck: true,
+            target: TS.ScriptTarget.ES2020
         };
-        for (let n in scconfig.dependencies){
-            if (!packageManager.packages(n))
-                packageManager.addPackage(n, await storage.getPackageTypes(n));  
-        };
-        
-        for (let name in packages){
-            let pack = {name, files: await storage.getFiles(packages[name]) };
-            for (let n in pack.files){
+
+        let customWebComponentPackageManager = createPackageManager();
+        let reactPackageManager = createPackageManager(reactTsconfig);
+
+        await addCommonPackages(customWebComponentPackageManager);
+        await addCommonPackages(reactPackageManager);
+
+        let reactPackages: string[] = [];
+        let customWebComponentPackages: string[] = [];
+        for (let name in packages) {
+            let isReactPackage: boolean = false;
+            let pack = { files: await storage.getFiles(packages[name]) };
+            for (let n in pack.files) {
                 if (n == 'index.ts' || n == 'index.tsx')
                     pack.files[n] = `///<amd-module name='${name}'/> \n` + pack.files[n];
                 else
                     pack.files[n] = `///<amd-module name='${name}/${n}'/> \n` + pack.files[n];
-            };
-            packageManager.addPackage(name, pack);
-        };
-
-        await packageManager.buildAll(storage);
-
-        for (let name in packages) {
-            let pack = packageManager.packages(name);
-            if (pack.errors && pack.errors.length > 0) {
-                console.error('Package compilation error: ' + name);
-                console.error(JSON.stringify(pack.errors, null, 4));
-                return;
+                if (pack.files[n].includes('@scom/components')) {
+                    isReactPackage = true;
+                }
             }
-        };
+            if (isReactPackage) {
+                reactPackages.push(name);
+                reactPackageManager.addPackage(name, pack);
+            } else {
+                customWebComponentPackages.push(name);
+                customWebComponentPackageManager.addPackage(name, pack);
+            }
+        }
+
+        async function addBuiltPackagesToManager(
+            names: string[],
+            fromManager: PackageManager,
+            toManager: PackageManager
+        ) {
+            for (let name of names) {
+                let pack = fromManager.packages(name);
+                if (pack.errors && pack.errors.length > 0) {
+                    console.error('Package compilation error: ' + name);
+                    console.error(JSON.stringify(pack.errors, null, 4));
+                    return false;
+                }
+                toManager.addPackage(name, pack);
+            }
+            return true;
+        }
+
+        if (customWebComponentPackages.length > 0) {
+            await customWebComponentPackageManager.buildAll(storage);
+            const ok = await addBuiltPackagesToManager(customWebComponentPackages, customWebComponentPackageManager, packageManager);
+            if (!ok) return;
+        }
+
+        if (reactPackages.length > 0) {
+            await reactPackageManager.buildAll(storage);
+            const ok = await addBuiltPackagesToManager(reactPackages, reactPackageManager, packageManager);
+            if (!ok) return;
+        }
+
         //copy compiled modules to dist directory
         let distDir = Path.join(scRootDir, scconfig.distDir || 'dist');
         if (scconfig.ipfs)
